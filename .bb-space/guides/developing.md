@@ -27,6 +27,7 @@ The scripts live in `scripts/e2e/` and run one after another:
 | `smoke.mjs` | `index.md`, an HTML report, and a `.tldr` canvas open without page errors |
 | `live-refresh.mjs` | text appended to a page on disk shows up without a reload |
 | `draw.mjs` | `bb space draw` lands with the canvas closed and with it open |
+| `tree-dnd.mjs` | drag and drop and *Move to…* in the Files tree; the open document follows; illegal drops are refused |
 
 They take their target from the environment:
 

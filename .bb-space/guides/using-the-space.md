@@ -15,6 +15,13 @@ folder button at the top right of the document). Use **+** for a new page,
 canvas, HTML file, or folder; hover a row to rename or delete it. A folder's
 `index.md` opens when you pick the folder.
 
+Drag a file or folder onto a folder to move it there, or onto the empty area
+below the tree to move it to the space root. Dropping on a file moves into
+that file's folder, and a closed folder opens after you hover it for a moment.
+From the keyboard, use the row's **Move to…** action and pick a folder (arrow
+keys, Enter). A folder can't move into itself, and a move onto an existing
+name is refused. If the open document moves, it stays open at its new path.
+
 Prefer the tree beside the document? Settings → Plugins → Project Space →
 *File tree position* → `left`.
 

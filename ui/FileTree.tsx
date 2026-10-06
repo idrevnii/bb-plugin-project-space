@@ -1,7 +1,7 @@
-// The space's file tree: folders and files with create, rename, and delete.
-// Rendered in the page's right panel (default) or beside the document.
+// The space's file tree: folders and files with create, rename, delete, and
+// move (drag and drop, or the Move to… row action). Rendered in the page's right panel (default) or beside the document.
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent, KeyboardEvent, ReactNode } from "react";
+import type { DragEvent, FormEvent, KeyboardEvent, ReactNode } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -18,6 +18,7 @@ import {
   type SpaceFileKind,
 } from "../lib/space";
 import { errorMessage, type SpaceRpc } from "./data";
+import { followMove, moveDestinations, planMove } from "./tree-move";
 
 interface TreeNode {
   path: string;
@@ -129,7 +130,14 @@ function useExpanded(projectId: string, activePath: string | null) {
       else next.delete(path);
       return next;
     });
-  return { expanded, toggle };
+  // Keep a moved folder (and its open subfolders) expanded under the new path.
+  const follow = (from: string, to: string) =>
+    setExpanded((previous) => {
+      const next = new Set<string>();
+      for (const path of previous) next.add(followMove(path, from, to) ?? path);
+      return next;
+    });
+  return { expanded, toggle, follow };
 }
 
 function NameInput({
@@ -198,6 +206,9 @@ function Row({
   onClick,
   actions,
   chevron,
+  dragPath,
+  onDragStart,
+  onDragEnd,
 }: {
   depth: number;
   active: boolean;
@@ -207,9 +218,26 @@ function Row({
   onClick: () => void;
   actions: ReactNode;
   chevron?: "open" | "closed";
+  dragPath: string;
+  onDragStart: (path: string) => void;
+  onDragEnd: () => void;
 }) {
   return (
     <div
+      draggable
+      data-tree-path={dragPath}
+      onDragStart={(event) => {
+        // Our own MIME type only, so no other drop target (and no bb gesture)
+        // mistakes a tree drag for text or a link.
+        event.stopPropagation();
+        event.dataTransfer.setData(DRAG_TYPE, dragPath);
+        event.dataTransfer.effectAllowed = "move";
+        onDragStart(dragPath);
+      }}
+      onDragEnd={(event) => {
+        event.stopPropagation();
+        onDragEnd();
+      }}
       className={cn(
         "group flex h-7 items-center gap-1.5 rounded-md pr-1 text-sm",
         active ? "bg-state-active text-foreground" : "text-foreground/90 hover:bg-state-hover",
@@ -238,6 +266,73 @@ function Row({
         {actions}
       </div>
     </div>
+  );
+}
+
+const DRAG_TYPE = "application/x-project-space-path";
+const AUTO_EXPAND_MS = 600;
+
+/** Keyboard-friendly folder picker for the Move to… row action. */
+function MoveDialog({
+  from,
+  destinations,
+  onPick,
+  onCancel,
+}: {
+  from: string;
+  destinations: string[];
+  onPick: (folder: string) => void;
+  onCancel: () => void;
+}) {
+  const list = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    list.current?.querySelector<HTMLButtonElement>("button")?.focus();
+  }, []);
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onCancel();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const buttons = Array.from(list.current?.querySelectorAll<HTMLButtonElement>("button") ?? []);
+    const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const next = event.key === "ArrowDown" ? index + 1 : index - 1;
+    buttons[(next + buttons.length) % buttons.length]?.focus();
+  };
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/30" onClick={onCancel} />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Move ${from} to…`}
+        onKeyDown={onKeyDown}
+        className="fixed left-1/2 top-24 z-50 flex max-h-[60vh] w-80 -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-border bg-popover text-sm text-popover-foreground shadow-lg"
+      >
+        <div className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
+          Move <span className="font-medium text-foreground">{baseName(from)}</span> to…
+        </div>
+        <div ref={list} className="min-h-0 flex-1 overflow-y-auto py-1">
+          {destinations.length === 0 ? (
+            <p className="px-3 py-1.5 text-xs text-muted-foreground">No other folders.</p>
+          ) : (
+            destinations.map((folder) => (
+              <button
+                key={folder}
+                type="button"
+                onClick={() => onPick(folder)}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left outline-none hover:bg-state-hover focus-visible:bg-state-hover"
+              >
+                <Icon name="Folder" className="size-4 shrink-0 text-muted-foreground" />
+                <span className="truncate">{folder === "" ? "Space root" : folder}</span>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -280,9 +375,14 @@ export function FileTree({
   onRefresh: () => void;
 }) {
   const nodes = useMemo(() => buildTree(entries ?? []), [entries]);
-  const { expanded, toggle } = useExpanded(projectId, activePath);
+  const { expanded, toggle, follow } = useExpanded(projectId, activePath);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [moving, setMoving] = useState<string | null>(null);
+  // The entry being dragged, and the folder under the pointer ("" is the root).
+  const dragged = useRef<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const expandTimer = useRef<{ folder: string; timer: number } | null>(null);
 
   const exists = (path: string) => entries?.some((entry) => entry.path === path) ?? false;
 
@@ -333,16 +433,94 @@ export function FileTree({
       toast.error(`${to} already exists`);
       return;
     }
+    await move(from, to);
+  };
+
+  const move = async (from: string, to: string) => {
     try {
       await rpc.call("space_move", { projectId, from, to });
-      if (activePath !== null && (activePath === from || activePath.startsWith(`${from}/`))) {
-        onOpen(to + activePath.slice(from.length));
-      }
+      follow(from, to);
+      const followed = activePath === null ? null : followMove(activePath, from, to);
+      if (followed !== null) onOpen(followed);
       onRefresh();
     } catch (cause) {
       toast.error(errorMessage(cause));
     }
   };
+
+  const moveInto = async (from: string, folder: string) => {
+    const plan = planMove(from, folder, exists);
+    if (plan.kind === "refuse") toast.error(plan.reason);
+    if (plan.kind !== "move") return;
+    if (folder !== "") toggle(folder, true);
+    await move(plan.from, plan.to);
+  };
+
+  const folders = useMemo(
+    () => (entries ?? []).filter((entry) => entry.kind === "directory").map((entry) => entry.path).sort(),
+    [entries],
+  );
+
+  const clearExpandTimer = () => {
+    if (expandTimer.current !== null) window.clearTimeout(expandTimer.current.timer);
+    expandTimer.current = null;
+  };
+
+  const endDrag = () => {
+    dragged.current = null;
+    setDropTarget(null);
+    clearExpandTimer();
+  };
+
+  useEffect(() => clearExpandTimer, []);
+
+  // Drop handlers for a folder's subtree, or the whole tree for the root.
+  // Events bubble from rows to the nearest folder, so dropping on a file
+  // moves into the folder that holds it.
+  const dropHandlers = (folder: string) => ({
+    onDragOver: (event: DragEvent) => {
+      if (dragged.current === null || !event.dataTransfer.types.includes(DRAG_TYPE)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer.dropEffect = "move";
+      if (dropTarget !== folder) setDropTarget(folder);
+      if (folder !== "" && !expanded.has(folder) && expandTimer.current?.folder !== folder) {
+        clearExpandTimer();
+        expandTimer.current = {
+          folder,
+          timer: window.setTimeout(() => {
+            if (dragged.current !== null) toggle(folder, true);
+          }, AUTO_EXPAND_MS),
+        };
+      } else if (expandTimer.current !== null && expandTimer.current.folder !== folder) {
+        clearExpandTimer();
+      }
+    },
+    onDrop: (event: DragEvent) => {
+      const from = dragged.current ?? event.dataTransfer.getData(DRAG_TYPE);
+      if (!from) return;
+      event.preventDefault();
+      event.stopPropagation();
+      endDrag();
+      void moveInto(from, folder);
+    },
+  });
+
+  const dropClass = (folder: string) => {
+    if (dropTarget !== folder || dragged.current === null) return undefined;
+    return planMove(dragged.current, folder, exists).kind === "refuse"
+      ? "rounded-md bg-destructive/10 ring-1 ring-destructive/50"
+      : "rounded-md bg-primary/10 ring-1 ring-primary/50";
+  };
+
+  const dragProps = (path: string) => ({
+    dragPath: path,
+    onDragStart: (from: string) => {
+      dragged.current = from;
+      setDraft(null);
+    },
+    onDragEnd: endDrag,
+  });
 
   const remove = async (path: string, kind: "file" | "directory") => {
     const what = kind === "directory" ? `the folder "${path}" and everything in it` : `"${path}"`;
@@ -391,8 +569,14 @@ export function FileTree({
       if (node.kind === "directory") {
         const open = expanded.has(node.path);
         return (
-          <div key={node.path}>
+          <div
+            key={node.path}
+            data-drop-folder={node.path}
+            className={dropClass(node.path)}
+            {...dropHandlers(node.path)}
+          >
             <Row
+              {...dragProps(node.path)}
               depth={depth}
               active={false}
               chevron={open ? "open" : "closed"}
@@ -404,6 +588,7 @@ export function FileTree({
                 <>
                   <RowAction icon="Plus" label={`New page in ${node.name}`} onClick={() => startCreate(node.path, "markdown")} />
                   <RowAction icon="Edit" label={`Rename ${node.name}`} onClick={() => setDraft({ mode: "rename", path: node.path })} />
+                  <RowAction icon="MoveTo" label={`Move ${node.name} to…`} onClick={() => setMoving(node.path)} />
                   <RowAction icon="Trash2" label={`Delete ${node.name}`} onClick={() => void remove(node.path, "directory")} />
                 </>
               }
@@ -419,6 +604,7 @@ export function FileTree({
       }
       return (
         <Row
+          {...dragProps(node.path)}
           key={node.path}
           depth={depth}
           active={node.path === activePath}
@@ -429,6 +615,7 @@ export function FileTree({
           actions={
             <>
               <RowAction icon="Edit" label={`Rename ${node.name}`} onClick={() => setDraft({ mode: "rename", path: node.path })} />
+              <RowAction icon="MoveTo" label={`Move ${node.name} to…`} onClick={() => setMoving(node.path)} />
               <RowAction icon="Trash2" label={`Delete ${node.name}`} onClick={() => void remove(node.path, "file")} />
             </>
           }
@@ -489,7 +676,19 @@ export function FileTree({
           <Icon name="ArrowReloadHorizontal" className="size-3.5" />
         </Button>
       </div>
-      <nav aria-label="Space files" className="min-h-0 flex-1 overflow-y-auto px-1.5 py-2">
+      <nav
+        aria-label="Space files"
+        data-drop-folder=""
+        className={cn("min-h-0 flex-1 overflow-y-auto px-1.5 py-2", dropClass(""))}
+        {...dropHandlers("")}
+        onDragLeave={(event) => {
+          const next = event.relatedTarget;
+          if (!(next instanceof Node) || !event.currentTarget.contains(next)) {
+            setDropTarget(null);
+            clearExpandTimer();
+          }
+        }}
+      >
         {error !== null ? (
           <p role="alert" className="px-2 text-xs text-destructive">{error}</p>
         ) : entries === null ? (
@@ -507,6 +706,17 @@ export function FileTree({
           </>
         )}
       </nav>
+      {moving !== null ? (
+        <MoveDialog
+          from={moving}
+          destinations={moveDestinations(moving, folders)}
+          onCancel={() => setMoving(null)}
+          onPick={(folder) => {
+            setMoving(null);
+            void moveInto(moving, folder);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
