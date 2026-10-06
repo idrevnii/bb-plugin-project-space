@@ -1,14 +1,19 @@
 // Markdown reading view: document typography from host theme tokens, code
 // blocks through BB's own source viewer, links between space files routed
-// inside the space, images served from the space preview URL.
+// inside the space, links to other project files opened in BB's file
+// preview, images served from the space preview URL.
 import { Children, isValidElement, useMemo } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
-import { UrlLink, experimental_SourceCode as SourceCode } from "@get-bb/plugin-sdk/app";
+import {
+  UrlLink,
+  experimental_FileLink as FileLink,
+  experimental_SourceCode as SourceCode,
+} from "@get-bb/plugin-sdk/app";
 import { cn } from "@/lib/utils";
-import { encodeSpacePath, resolveSpaceLink } from "../lib/space";
+import { encodeSpacePath, resolveDocumentLink, resolveSpaceLink } from "../lib/space";
 import { MermaidBlock } from "./MermaidBlock";
 
 export interface MarkdownViewProps {
@@ -17,7 +22,14 @@ export interface MarkdownViewProps {
   path: string;
   previewBaseUrl: string | null;
   onOpenSpacePath: (path: string, hash: string) => void;
+  /** The checkout holding the space; links out of the space open there. */
+  checkout?: { hostId: string; path: string } | null;
+  /** Whether the space has a file; decides where `/path` links point. */
+  spaceHas?: (path: string) => boolean;
 }
+
+const LINK_CLASSES =
+  "text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary";
 
 const LANGUAGE_EXTENSIONS: Record<string, string> = {
   js: "js",
@@ -126,6 +138,8 @@ export function MarkdownView({
   path,
   previewBaseUrl,
   onOpenSpacePath,
+  checkout,
+  spaceHas,
 }: MarkdownViewProps) {
   const components = useMemo<Components>(
     () => ({
@@ -189,13 +203,13 @@ export function MarkdownView({
         />
       ),
       a: ({ node: _node, href = "", children, ...props }) => {
-        const target = resolveSpaceLink(path, href);
-        if (target !== null) {
+        const target = resolveDocumentLink(path, href, spaceHas);
+        if (target?.kind === "space") {
           return (
             <a
               {...props}
               href={`#${target.path}`}
-              className="text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
+              className={LINK_CLASSES}
               onClick={(event) => {
                 if (event.metaKey || event.ctrlKey) return;
                 event.preventDefault();
@@ -206,12 +220,56 @@ export function MarkdownView({
             </a>
           );
         }
+        if (target?.kind === "checkout") {
+          if (checkout == null || target.path === "") {
+            return (
+              <span
+                className="underline decoration-dotted underline-offset-2"
+                title={
+                  checkout == null
+                    ? `${target.path}: the project checkout is not known yet.`
+                    : "Links to the checkout root itself do not open."
+                }
+              >
+                {children}
+              </span>
+            );
+          }
+          const { lines } = target;
+          return (
+            <FileLink
+              {...props}
+              target={{ kind: "host", hostId: checkout.hostId, path: `${checkout.path}/${target.path}` }}
+              location={
+                lines === null
+                  ? null
+                  : lines.kind === "line"
+                    ? { kind: "line", line: lines.line, column: null }
+                    : lines
+              }
+              title={target.path + (lines === null ? "" : lines.kind === "line" ? `:${lines.line}` : `:${lines.startLine}-${lines.endLine}`)}
+              className={LINK_CLASSES}
+            >
+              {children}
+            </FileLink>
+          );
+        }
+        if (target?.kind === "outside") {
+          return (
+            <span
+              className="underline decoration-dotted underline-offset-2"
+              title={`${target.href} points outside the project checkout, so it does not open.`}
+            >
+              {children}
+            </span>
+          );
+        }
         if (href.startsWith("#")) {
           return (
             <a
               {...props}
               href={href}
-              className="text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
+              className={LINK_CLASSES}
               onClick={(event) => {
                 event.preventDefault();
                 document
@@ -226,7 +284,7 @@ export function MarkdownView({
         return (
           <UrlLink
             href={href}
-            className="text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
+            className={LINK_CLASSES}
           >
             {children}
           </UrlLink>
@@ -255,7 +313,7 @@ export function MarkdownView({
         <input {...props} disabled className="size-3.5 accent-current" />
       ),
     }),
-    [path, previewBaseUrl, onOpenSpacePath],
+    [path, previewBaseUrl, onOpenSpacePath, checkout, spaceHas],
   );
 
   return (

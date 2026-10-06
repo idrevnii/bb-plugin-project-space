@@ -58,5 +58,10 @@ Saving from the editor writes normalized Markdown: paragraphs on one line,
 source layout changes, and only once you edit. Frontmatter and raw HTML
 (shown as grey chips) are kept as written.
 
+Links to code elsewhere in the project (`../../server/index.ts#L10`) open
+the file in bb's preview panel on the right, with the line or range
+(`#L10-L24`) highlighted. A link that points above the project checkout is
+not clickable; hover it to see why.
+
 HTML files render like a browser page. Canvases are full tldraw boards and
 save themselves.
