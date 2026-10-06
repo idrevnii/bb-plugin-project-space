@@ -13,6 +13,7 @@ import {
   type PluginRpcHandlers,
 } from "@get-bb/plugin-sdk";
 import { z } from "zod";
+import { LINT_HINT, lintTldr } from "../lib/canvas/lint";
 import { describeTldr, drawnNodeIds } from "../lib/canvas/read";
 import { drawSpecSchema, type DrawSpec } from "../lib/canvas/spec";
 import { fileKind } from "../lib/space";
@@ -176,6 +177,7 @@ export const drawModule = defineModule({
         `Drew on ${path}. ${placement}`.trim(),
         "",
         describeTldr(after, path),
+        ...(lintTldr(after).length > 0 ? [LINT_HINT] : []),
       ].join("\n");
     }
 

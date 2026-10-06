@@ -5,6 +5,7 @@
 // walked and described in the same vocabulary `space_draw` uses, so agents
 // see the user's own edits and can build on them. No tldraw import: this runs
 // on the server.
+import { formatIssue, lintRecords } from "./lint";
 
 type Rec = Record<string, unknown>;
 
@@ -150,6 +151,12 @@ export function describeTldr(json: string, title: string): string {
   }
   if (shapes.length === 0) {
     sections.push("", "The board is currently blank.");
+  }
+  const issues = lintRecords(records);
+  if (issues.length > 0) {
+    sections.push("", "Overlaps:", ...issues.map(formatIssue));
+  } else if (shapes.length > 1) {
+    sections.push("", "Overlaps: none.");
   }
   return sections.join("\n");
 }
