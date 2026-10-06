@@ -12,7 +12,7 @@
     "branding": {
       "icon": "Layers"
     },
-    "server": "./server.ts",
+    "server": "./server/index.ts",
     "app": "./app.tsx",
     "skills": [
       "skills"

@@ -13,7 +13,7 @@ import {
   ProjectSwitcher,
   SpacePage,
   routeSubPath,
-} from "./ui/SpacePage";
+} from "./ui/page/SpacePage";
 
 function OpenSpaceHeaderAction({
   projectId,

@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
-import type { SpaceFile, SpaceInfo } from "../server";
+import type { SpaceFile, SpaceInfo } from "../../server";
 import {
   SPACE_DIR,
   baseName,
@@ -22,7 +22,7 @@ import {
   isBinaryKind,
   normalizeSpacePath,
   parentOf,
-} from "../lib/space";
+} from "../../lib/space";
 import {
   errorMessage,
   useSpaceFile,
@@ -31,10 +31,10 @@ import {
   useSpaceRpc,
   useSpaceTree,
   type SpaceRpc,
-} from "./data";
-import { FileTree } from "./FileTree";
-import { MarkdownView } from "./MarkdownView";
-import { TldrawView } from "./TldrawView";
+} from "../data";
+import { FileTree } from "../FileTree";
+import { MarkdownView } from "../MarkdownView";
+import { TldrawView } from "../TldrawView";
 
 export const PANEL_PATH = "space";
 export const FILES_TAB = { panelId: "space", id: "files" } as const;

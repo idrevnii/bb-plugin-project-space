@@ -22,7 +22,7 @@
   },
   "include": [
     "ui",
-    "server.ts",
+    "server",
     "app.tsx",
     "components",
     "lib",

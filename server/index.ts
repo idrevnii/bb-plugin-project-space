@@ -16,14 +16,14 @@ import {
   type BbPluginApi,
 } from "@get-bb/plugin-sdk";
 import { z } from "zod";
-import { describeTldr, drawnNodeIds } from "./lib/canvas/read";
-import { drawSpecSchema, type DrawSpec } from "./lib/canvas/spec";
+import { describeTldr, drawnNodeIds } from "../lib/canvas/read";
+import { drawSpecSchema, type DrawSpec } from "../lib/canvas/spec";
 import {
   SPACE_DIR,
   fileKind,
   joinSpacePath,
   normalizeSpacePath,
-} from "./lib/space";
+} from "../lib/space";
 
 /** Realtime channel: payload `{ projectId }`. */
 export const SPACE_CHANGED = "space-changed";
