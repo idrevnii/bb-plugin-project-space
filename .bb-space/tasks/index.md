@@ -17,6 +17,27 @@ Wave 0 exists so wave 1 can run without merge pain: today `server.ts` and
 `ui/SpacePage.tsx` hold almost everything, and the directory is not a git
 repository yet, so there are no worktrees.
 
+## Status
+
+Updated 2026-10-07. "Merged" means in `main` with `npm run check` green.
+
+| Task | State |
+|---|---|
+| T00, T01 | merged |
+| T10 | merged |
+| T11 | merged |
+| T12 | merged |
+| T13 | merged |
+| T14 | not started |
+| T15 | not started |
+| T16 | not started |
+| T17 | merged |
+| T18 | in progress, uncommitted in its worktree |
+| T19 | not started |
+| T20 | in progress, uncommitted in its worktree |
+| T21 | not started |
+| T30–T34 | waiting for wave 2 (T10 is merged, so they can start) |
+
 ## Who touches what
 
 | Task | Owns (creates or mainly edits) | Also touches (small, additive) |

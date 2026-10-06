@@ -26,14 +26,25 @@
 
 ## Next
 
-Broken down into parallel briefs in [tasks](tasks/index.md).
+Broken down into parallel briefs in [tasks](tasks/index.md); progress per task
+is in [its status table](tasks/index.md#status).
 
-1. **Annotations** — select text (Markdown/HTML) or shapes (tldraw), comment,
-   collect in a review tray, send to a thread. See
-   [the annotations decision](decisions/annotations.md).
-2. **WYSIWYG Markdown** — TipTap editing in place of the source pane.
-3. **`space_canvas_view`** — a PNG of a canvas so agents can check their
-   drawing; overlap lint after each draw.
-4. **Mermaid** in Markdown code fences.
-5. Drag and drop in the tree; search across the space; outline tab.
-6. Worktree awareness: show when a thread's worktree has unmerged space edits.
+- [ ] **Annotations** — select text (Markdown/HTML) or shapes (tldraw), comment,
+  collect in a review tray, send to a thread. See
+  [the annotations decision](decisions/annotations.md).
+  - [x] Data layer: model, text-quote anchoring, storage, RPC (T10)
+  - [ ] Markdown, review tab, agent API, tldraw, HTML (T30–T34)
+- [x] **WYSIWYG Markdown** — TipTap editing in place of the source pane, with a
+  *Source* toggle (T11)
+- [ ] **Canvas checks for agents**
+  - [x] Overlap lint after each draw (T17)
+  - [ ] `space_canvas_view`: a PNG of a canvas so agents can check their
+    drawing (T18)
+- [x] **Mermaid** in Markdown code fences (T12)
+- [ ] **Tree and navigation**
+  - [x] Drag and drop in the tree, plus *Move to…* (T13)
+  - [ ] Outline tab (T14)
+  - [ ] Search across the space (T15)
+  - [ ] Links to project files outside the space (T16)
+- [ ] **Worktree awareness**: show when a thread's worktree has unmerged space
+  edits (T19)
