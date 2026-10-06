@@ -13,6 +13,7 @@ import { registerCli } from "./cli";
 import type { ServerContext } from "./context";
 import { drawModule } from "./draw";
 import { filesModule } from "./files";
+import { searchModule } from "./search";
 import { createSpaces } from "./space";
 
 export { SPACE_CHANGED } from "./space";
@@ -23,10 +24,11 @@ export type {
   SpaceTreeEntry,
   SpaceWriteResult,
 } from "./files";
+export type { SpaceSearchOutput, SpaceSearchResult } from "./search";
 
 export { SPACE_ANNOTATIONS_CHANGED } from "../lib/annotations";
 
-const modules = [filesModule, drawModule, annotationsModule] as const;
+const modules = [filesModule, drawModule, annotationsModule, searchModule] as const;
 
 type UnionToIntersection<U> = (
   U extends unknown ? (value: U) => void : never

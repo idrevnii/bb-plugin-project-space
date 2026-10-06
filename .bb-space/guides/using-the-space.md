@@ -22,6 +22,15 @@ From the keyboard, use the row's **Move to…** action and pick a folder (arrow
 keys, Enter). A folder can't move into itself, and a move onto an existing
 name is refused. If the open document moves, it stays open at its new path.
 
+The **search box** above the tree finds pages as you type: first files
+whose name matches (fuzzy), then lines that contain the text, in any case,
+in Markdown, HTML and other text files, plus the labels on canvases. The
+results replace the tree until you clear the box (**Esc** or ×). Arrow keys
+pick a result and **Enter** (or a click) opens it; a text hit in a Markdown
+page scrolls to the section it is in. Search reads files as you type and
+stops after about two seconds or 50 results; a note says when there were
+more, so narrow the query.
+
 Prefer the tree beside the document? Settings → Plugins → Project Space →
 *File tree position* → `left`.
 

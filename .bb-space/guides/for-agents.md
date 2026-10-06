@@ -6,10 +6,18 @@ The plugin ships a `project-space` skill; this page is the short version.
 bb space root    # absolute path of the live space
 bb space init    # create it with index.md if missing
 bb space tree    # list what is there
+bb space search annotations   # find pages by name, then by text inside
 bb space link architecture/index.md --title "Architecture"   # chat card
 bb space draw architecture/diagram.tldr --spec-file spec.json  # diagram
 bb space canvas architecture/diagram.tldr                      # read it back
 ```
+
+`bb space search` prints name matches first (one path per line), then text
+hits as `path:line: snippet` (canvas hits name the matching shape label, with
+no line). Any case, at most three hits per file, 50 results and about two
+seconds in all; a last line says when more were cut. `--json` gives
+`{ results: [{ path, kind, line?, snippet? }], truncated }`, `--limit` fewer.
+Search before writing a page so you extend the one that exists.
 
 In new threads the same drawing is available as the `space_draw` and
 `space_canvas_read` tools.

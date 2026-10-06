@@ -1,5 +1,6 @@
 // The space's file tree: folders and files with create, rename, delete, and
-// move (drag and drop, or the Move to… row action). Rendered in the page's right panel (default) or beside the document.
+// move (drag and drop, or the Move to… row action), with search on top
+// (ui/SearchBox.tsx). Rendered in the page's right panel (default) or beside the document.
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, FormEvent, KeyboardEvent, ReactNode } from "react";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import {
   type SpaceFileKind,
 } from "../lib/space";
 import { errorMessage, type SpaceRpc } from "./data";
+import { SearchBox, SearchResults, useSpaceSearch } from "./SearchBox";
 import { followMove, moveDestinations, planMove } from "./tree-move";
 
 interface TreeNode {
@@ -375,6 +377,7 @@ export function FileTree({
   onRefresh: () => void;
 }) {
   const nodes = useMemo(() => buildTree(entries ?? []), [entries]);
+  const search = useSpaceSearch(projectId, rpc, onOpen);
   const { expanded, toggle, follow } = useExpanded(projectId, activePath);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -676,7 +679,10 @@ export function FileTree({
           <Icon name="ArrowReloadHorizontal" className="size-3.5" />
         </Button>
       </div>
+      <SearchBox search={search} />
+      {search.active ? <SearchResults search={search} /> : null}
       <nav
+        hidden={search.active}
         aria-label="Space files"
         data-drop-folder=""
         className={cn("min-h-0 flex-1 overflow-y-auto px-1.5 py-2", dropClass(""))}

@@ -21,6 +21,7 @@ project in a way they will come back to. Do not dump session logs here.
 bb space root      # absolute path of the live space; creates nothing
 bb space init      # create it with a starter index.md if missing
 bb space tree      # what is already there
+bb space search <text>   # pages by name, then by text inside (canvas labels too)
 ```
 
 Write with your ordinary file tools at the path `bb space root` prints. In a
