@@ -28,7 +28,7 @@ Updated 2026-10-07. "Merged" means in `main` with `npm run check` green.
 | T11 | merged |
 | T12 | merged |
 | T13 | merged |
-| T14 | not started |
+| T14 | merged |
 | T15 | not started |
 | T16 | not started |
 | T17 | merged |
