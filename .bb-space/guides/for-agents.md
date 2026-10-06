@@ -27,5 +27,10 @@ the main checkout, so the user sees changes at once.
 
 - Keep `index.md` as the front page and link every new page from it.
 - One topic per page, folders by topic, relative links between pages.
+- Link to code with relative paths too: from `guides/x.md`,
+  `[entry](../../server/index.ts#L10)` (or `#L10-L24`) opens the file in bb's
+  preview with those lines highlighted. A link that climbs above the checkout
+  stays plain text. `/src/app.ts` also means the checkout root, unless the
+  space has that file.
 - Markdown by default; HTML for visual or interactive reports; `.tldr`
   canvases for diagrams, drawn with `space_draw` — never hand-written JSON.

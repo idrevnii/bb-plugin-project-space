@@ -17,6 +17,10 @@ const projectInfoSchema = z.object({
   projectName: z.string(),
   /** Absolute path of `.bb-space` on the project's host. */
   rootPath: z.string(),
+  /** Absolute path of the project checkout that holds the space. */
+  checkoutPath: z.string(),
+  /** The host both paths live on. */
+  hostId: z.string(),
   exists: z.boolean(),
   /** True when the server sees file changes live; otherwise the app polls. */
   watching: z.boolean(),
@@ -128,6 +132,8 @@ export const filesModule = defineModule({
         projectId: space.projectId,
         projectName: space.projectName,
         rootPath: space.rootPath,
+        checkoutPath: checkoutOf(space),
+        hostId: space.hostId,
         exists,
         // Without a space there is nothing to watch; the app polls until
         // space_init creates it.

@@ -1,6 +1,6 @@
 // A project's space: picks the document for the route and lays it out with
 // the toolbar and, when the tree sits on the left, the file tree.
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useSettings } from "@get-bb/plugin-sdk/app";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,17 @@ export function ProjectSpace({
     },
     [go, info.projectId],
   );
+
+  const checkout = useMemo(
+    () => ({ hostId: info.hostId, path: info.checkoutPath }),
+    [info.hostId, info.checkoutPath],
+  );
+  // Until the tree loads, `/path` links stay in the space as they always did.
+  const spaceHas = useMemo(() => {
+    if (tree.entries === null) return undefined;
+    const files = new Set(tree.entries.map((entry) => entry.path));
+    return (target: string) => files.has(target);
+  }, [tree.entries]);
 
   const toolbar = (controls: ReactNode) => (
     <Toolbar
@@ -132,6 +143,8 @@ export function ProjectSpace({
         rpc={rpc}
         previewBaseUrl={previewBaseUrl}
         onOpenSpacePath={openSpacePath}
+        checkout={checkout}
+        spaceHas={spaceHas}
         toolbar={toolbar}
       />
     );

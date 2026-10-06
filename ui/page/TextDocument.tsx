@@ -25,6 +25,8 @@ export function TextDocument({
   rpc,
   previewBaseUrl,
   onOpenSpacePath,
+  checkout,
+  spaceHas,
   toolbar,
 }: {
   projectId: string;
@@ -32,6 +34,8 @@ export function TextDocument({
   rpc: SpaceRpc;
   previewBaseUrl: string | null;
   onOpenSpacePath: (path: string, hash: string) => void;
+  checkout: { hostId: string; path: string } | null;
+  spaceHas: ((path: string) => boolean) | undefined;
   toolbar: (controls: ReactNode) => ReactNode;
 }) {
   const kind = fileKind(file.path);
@@ -173,6 +177,8 @@ export function TextDocument({
           path={file.path}
           previewBaseUrl={previewBaseUrl}
           onOpenSpacePath={onOpenSpacePath}
+          checkout={checkout}
+          spaceHas={spaceHas}
         />
       </div>
     ) : kind === "html" ? (

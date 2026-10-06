@@ -39,6 +39,9 @@ changes immediately; write there rather than into the worktree's own
   updating an existing page over adding a near-duplicate.
 - Link between pages with relative Markdown links: `[Deploy](../guides/deploy.md)`.
   Images and other assets go next to the page and are linked relatively.
+- Link to code the same way, climbing out of `.bb-space/`:
+  `[server](../../server/index.ts#L10)` from `guides/x.md` opens the file in
+  bb's preview at line 10 (`#L10-L24` highlights a range).
 - Names: lowercase-kebab-case (`request-lifecycle.md`).
 
 ## Pick the format

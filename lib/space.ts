@@ -116,6 +116,91 @@ export function resolveSpaceLink(
   return { path: stack.join("/"), hash };
 }
 
+/** One-based lines a `#L40` or `#L40-L52` fragment points at. */
+export type LineTarget =
+  | { kind: "line"; line: number }
+  | { kind: "range"; startLine: number; endLine: number };
+
+/** Reads `L40`, `L40-L52` or `L40-52`; null for any other fragment. */
+export function parseLineHash(hash: string): LineTarget | null {
+  const match = /^L(\d+)(?:-L?(\d+))?$/i.exec(hash);
+  if (match === null) return null;
+  const start = Number(match[1]);
+  if (start < 1) return null;
+  if (match[2] === undefined) return { kind: "line", line: start };
+  const end = Number(match[2]);
+  if (end < start) return null;
+  return end === start
+    ? { kind: "line", line: start }
+    : { kind: "range", startLine: start, endLine: end };
+}
+
+export type DocumentLink =
+  /** A file in the space; same result `resolveSpaceLink` gives. */
+  | { kind: "space"; path: string; hash: string }
+  /** A file elsewhere in the project checkout, relative to its root ("" is the root). */
+  | { kind: "checkout"; path: string; lines: LineTarget | null }
+  /** A relative link that climbs above the checkout root. */
+  | { kind: "outside"; href: string };
+
+/**
+ * Resolves a link in a space document the way `resolveSpaceLink` does, and
+ * also the links it gives up on: relative paths that climb out of the space
+ * land in the project checkout (`../../server/index.ts#L10`), and so does a
+ * root-absolute path (`/src/app.ts`) unless the space has that file
+ * (`spaceHas`; without it, root-absolute paths stay in the space as before).
+ * Returns null for external URLs and same-page anchors.
+ */
+export function resolveDocumentLink(
+  fromPath: string,
+  href: string,
+  spaceHas?: (path: string) => boolean,
+): DocumentLink | null {
+  const inSpace = resolveSpaceLink(fromPath, href);
+  if (inSpace !== null) {
+    const rooted = href.startsWith("/");
+    if (!rooted || spaceHas === undefined || spaceHas(inSpace.path)) {
+      return { kind: "space", ...inSpace };
+    }
+    if (inSpace.path === "") return { kind: "space", ...inSpace };
+    if (inSpace.path.startsWith(`${SPACE_DIR}/`)) {
+      return { kind: "space", path: inSpace.path.slice(SPACE_DIR.length + 1), hash: inSpace.hash };
+    }
+    return { kind: "checkout", path: inSpace.path, lines: parseLineHash(inSpace.hash) };
+  }
+  if (href === "" || href.startsWith("#")) return null;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith("//")) return null;
+  const hashIndex = href.indexOf("#");
+  const rawPath = hashIndex === -1 ? href : href.slice(0, hashIndex);
+  const hash = hashIndex === -1 ? "" : href.slice(hashIndex + 1);
+  const queryIndex = rawPath.indexOf("?");
+  let target = queryIndex === -1 ? rawPath : rawPath.slice(0, queryIndex);
+  try {
+    target = decodeURIComponent(target);
+  } catch {
+    return null;
+  }
+  // resolveSpaceLink only gives up on relative paths by climbing past the
+  // space root, so resolve again from the checkout root.
+  const stack = [SPACE_DIR, ...parentOf(fromPath).split("/")].filter(
+    (segment) => segment !== "",
+  );
+  for (const segment of target.split("/")) {
+    if (segment === "" || segment === ".") continue;
+    if (segment === "..") {
+      if (stack.length === 0) return { kind: "outside", href };
+      stack.pop();
+      continue;
+    }
+    stack.push(segment);
+  }
+  if (stack[0] === SPACE_DIR) {
+    // Out and back in: `../.bb-space/guides/x.md`.
+    return { kind: "space", path: stack.slice(1).join("/"), hash };
+  }
+  return { kind: "checkout", path: stack.join("/"), lines: parseLineHash(hash) };
+}
+
 /** Encodes a space-relative path for appending to a preview `baseUrl`. */
 export function encodeSpacePath(path: string): string {
   return path.split("/").map(encodeURIComponent).join("/");

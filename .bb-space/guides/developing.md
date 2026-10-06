@@ -31,6 +31,7 @@ The scripts live in `scripts/e2e/` and run one after another:
 | `mermaid.mjs` | mermaid blocks render (two diagrams, one parse error) in light and dark, and re-render on a theme flip |
 | `tree-dnd.mjs` | drag and drop and *Move to…* in the Files tree; the open document follows; illegal drops are refused |
 | `search.mjs` | `bb space search` finds pages by name, text and canvas label; the Files search box replaces the tree, Esc clears, Enter opens, a text hit scrolls to its section |
+| `outside-links.mjs` | a link out of the space opens the checkout file in bb's preview at its line or range; a link escaping the checkout is plain text; space links still route |
 
 They take their target from the environment:
 
