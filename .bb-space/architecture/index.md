@@ -5,7 +5,7 @@ the plugin's own `bb space draw`.
 
 ```
 ┌──────────── bb app (browser) ─────────────┐      ┌──── bb server ─────┐
-│ Space page (navPanel)    Files tab        │ RPC  │ server.ts          │
+│ Space page (navPanel)    Files tab        │ RPC  │ server/            │
 │  ├ MarkdownView          (fixedTab, flush)│◀────▶│  space_* handlers  │
 │  ├ HtmlFrame  ──iframe──▶ /api/v1/file-previews/<token>/<path>        │
 │  ├ TldrawView            FileTree         │      │  fs.watch ─┐       │
@@ -17,11 +17,29 @@ the plugin's own `bb space draw`.
 
 ## Pieces
 
-- **`server.ts`** resolves a project to its default
-  source (`hostId` + checkout path) and serves the `space_*` RPC. All file
-  I/O goes through `bb.sdk.files` with that host and a `rootPath`
-  confinement, so a project on an enrolled machine works the same as a local
-  one.
+- **`server/`** is split into modules. `index.ts` defines the settings,
+  builds a shared context (`bb`, settings, and the helpers from `space.ts`)
+  and lists the modules; each module (`defineModule` in `context.ts`) owns an
+  RPC contract, its handlers, and optional `bb space` subcommands. The
+  contracts merge into one `rpcContract` the app types its client with, and
+  `cli.ts` merges the subcommands. Adding a feature is a new module plus one
+  entry in `modules`.
+  - `space.ts` resolves a project to its default source (`hostId` + checkout
+    path), runs the watcher, and holds the shared zod path schemas. All file
+    I/O goes through `bb.sdk.files` with that host and a `rootPath`
+    confinement, so a project on an enrolled machine works the same as a
+    local one.
+  - `files.ts` — the `space_*` file RPC and `bb space root|init|tree`.
+  - `draw.ts` — the drawing queue, agent tools, `space_draw_*` RPC and
+    `bb space draw|canvas` (see *Agent drawing* below).
+  - `cli.ts` — `bb space`, `link`, and helpers (`projectOption`,
+    `requireProject`, `readInvokerFile`).
+- **`ui/page/`** is the Space page: `routing.ts` (route ⇄ subPath,
+  navigation, tree-position setting), `SpacePage.tsx` (project fallback and
+  "create space"), `ProjectSpace.tsx` (picks the document and lays it out),
+  `Toolbar.tsx`, `TextDocument.tsx` (view/edit with compare-and-swap),
+  `HtmlFrame.tsx`, `BinaryDocument.tsx`, `ProjectPicker.tsx`,
+  `ProjectSwitcher.tsx` (host header) and `FilesTab.tsx` (right panel).
 - **Live updates.** When the project's host is the server machine, a
   recursive `fs.watch` on `.bb-space/` publishes `space-changed` (debounced
   250 ms). Otherwise the app polls every 5 s while visible.

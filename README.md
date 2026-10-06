@@ -18,9 +18,13 @@ bb plugin install .
 ## Layout
 
 ```
-server.ts            RPC (space_*), fs.watch → realtime, `bb space` CLI, settings
+server/index.ts      plugin factory: settings, module list, one rpcContract
+server/space.ts      project → space resolution, fs.watch → realtime
+server/files.ts      space_* file RPC, `bb space root|init|tree`
+server/draw.ts       draw queue, space_draw / space_canvas_read tools, `bb space draw|canvas`
+server/cli.ts        `bb space` command: merges module commands, shared helpers
 app.tsx              Space page (navPanel), Files tab, thread-header button, ::space directive
-ui/SpacePage.tsx     routing, project picker, document area, text editing, HTML frame
+ui/page/             routing, project picker, toolbar, text / HTML / binary documents
 ui/FileTree.tsx      tree with create / rename / delete
 ui/MarkdownView.tsx  Markdown reader
 ui/TldrawView.tsx    .tldr editor with CAS autosave

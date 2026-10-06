@@ -1,4 +1,4 @@
-// Pure helpers shared by server.ts and the app: path rules and file kinds.
+// Pure helpers shared by the server and the app: path rules and file kinds.
 // No SDK or Node imports, so both bundles can use them.
 
 /** The space directory, relative to the project's checkout root. */

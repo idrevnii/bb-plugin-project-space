@@ -6,14 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { displayName, normalizeSpacePath } from "./lib/space";
 import { registerHeadlessRenderer } from "./ui/headless";
-import {
-  FILES_TAB,
-  FilesTab,
-  PANEL_PATH,
-  ProjectSwitcher,
-  SpacePage,
-  routeSubPath,
-} from "./ui/page/SpacePage";
+import { FilesTab } from "./ui/page/FilesTab";
+import { ProjectSwitcher } from "./ui/page/ProjectSwitcher";
+import { FILES_TAB, PANEL_PATH, routeSubPath } from "./ui/page/routing";
+import { SpacePage } from "./ui/page/SpacePage";
 
 function OpenSpaceHeaderAction({
   projectId,
