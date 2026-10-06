@@ -46,9 +46,12 @@ async function check(page, theme) {
   const errors = root.locator('[data-mermaid="error"]');
   if ((await errors.count()) !== 1) fail(`expected 1 mermaid error in ${theme}, got ${await errors.count()}`);
   const errorText = await errors.first().innerText();
-  if (!errorText.includes("mermaid:") || !errorText.includes("this is not mermaid")) {
-    fail(`error block lacks the error line or the source:\n${errorText}`);
-  }
+  if (!errorText.includes("mermaid:")) fail(`error block lacks the error line:\n${errorText}`);
+  // The source viewer renders inside a shadow root, which getByText pierces.
+  await waitFor(
+    "the diagram source in the error block",
+    async () => (await errors.first().getByText("this is not mermaid").count()) > 0,
+  );
   for (const label of ["E2E start", "E2E rendered"]) {
     if ((await root.getByText(label).count()) === 0) fail(`diagram label "${label}" missing in ${theme}`);
   }
