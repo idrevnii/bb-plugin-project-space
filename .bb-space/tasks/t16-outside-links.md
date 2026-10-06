@@ -27,11 +27,27 @@ point at code are the whole point of a project space.
 
 ## Acceptance
 
-- [ ] On a test page, `[server](../../server/index.ts#L10)` opens the file at
+- [x] On a test page, `[server](../../server/index.ts#L10)` opens the file at
       line 10 in bb's preview (e2e screenshot).
-- [ ] Space-internal links behave exactly as before (unit tests for the
+- [x] Space-internal links behave exactly as before (unit tests for the
       resolver).
-- [ ] `npm run check` passes.
+- [x] `npm run check` passes.
+
+## Result (2026-10-07)
+
+- `resolveDocumentLink` in `lib/space.ts` wraps `resolveSpaceLink`: space
+  links come back unchanged; relative links that climb out of `.bb-space/`
+  resolve against the checkout; `../.bb-space/x.md` comes back into the
+  space; a climb above the checkout is `outside`. `#L40`, `#L40-L52` and
+  `#L40-52` become a line or range (`parseLineHash`).
+- Root-absolute links (`/src/app.ts`) stay in the space when the space tree
+  has that path (or the tree has not loaded), otherwise go to the checkout,
+  so existing `/arch/index.md` links keep working.
+- `MarkdownView` renders checkout links with `experimental_FileLink`
+  (`kind: "host"`); bb opens them in the right-hand preview with the lines
+  highlighted. Links in the WYSIWYG editor are not clickable, as before.
+- Unit tests: `test/links.test.ts`. E2E: `scripts/e2e/outside-links.mjs`,
+  screenshots `outside-links-line.png` and `outside-links-range.png`.
 
 ## Out of scope
 
