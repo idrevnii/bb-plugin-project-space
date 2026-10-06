@@ -1,6 +1,8 @@
 # Annotations go back to threads
 
-**Status:** proposed — next milestone.
+**Status:** accepted — the data layer (model, anchoring, storage, RPC) is
+built; see [architecture/annotations.md](../architecture/annotations.md).
+The Review tab, *Send to…* and the agent CLI follow.
 
 The space is a full screen, not a thread panel, so annotations need an
 explicit route back to an agent.

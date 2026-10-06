@@ -8,6 +8,7 @@
 // and add it to `modules`. Its contract joins `rpcContract`, its handlers
 // and `bb space` subcommands register with the rest.
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { annotationsModule } from "./annotations";
 import { registerCli } from "./cli";
 import type { ServerContext } from "./context";
 import { drawModule } from "./draw";
@@ -23,7 +24,9 @@ export type {
   SpaceWriteResult,
 } from "./files";
 
-const modules = [filesModule, drawModule] as const;
+export { SPACE_ANNOTATIONS_CHANGED } from "../lib/annotations";
+
+const modules = [filesModule, drawModule, annotationsModule] as const;
 
 type UnionToIntersection<U> = (
   U extends unknown ? (value: U) => void : never

@@ -30,6 +30,8 @@ the plugin's own `bb space draw`.
     confinement, so a project on an enrolled machine works the same as a
     local one.
   - `files.ts` — the `space_*` file RPC and `bb space root|init|tree`.
+  - `annotations.ts` — annotation storage, `annotations_*` RPC, and
+    following moves/removes (see [annotations](annotations.md)).
   - `draw.ts` — the drawing queue, agent tools, `space_draw_*` RPC and
     `bb space draw|canvas` (see *Agent drawing* below).
   - `cli.ts` — `bb space`, `link`, and helpers (`projectOption`,
@@ -76,4 +78,4 @@ plugin's SQLite and publishes `space-draw`:
 Shape ids derive from spec ids (`shape:node-<id>`), so re-sending a node
 updates it and a double apply converges.
 
-See also: [file formats](file-formats.md).
+See also: [file formats](file-formats.md), [annotations](annotations.md).

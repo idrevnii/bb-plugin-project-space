@@ -7,6 +7,7 @@ import {
 } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 import { normalizeSpacePath } from "../lib/space";
+import { followFileChange } from "./annotations";
 import { projectOption, requireProject } from "./cli";
 import { defineModule } from "./context";
 import { absolute, checkoutOf, nonRootSpacePath, projectId } from "./space";
@@ -274,6 +275,7 @@ export const filesModule = defineModule({
           destinationPath: absolute(space, to),
           rootPath: space.rootPath,
         });
+        await followFileChange(bb, space, { kind: "move", from, to });
         notifyChanged(space.projectId);
         return { ok: true as const };
       },
@@ -285,6 +287,7 @@ export const filesModule = defineModule({
           rootPath: space.rootPath,
           recursive: true,
         });
+        await followFileChange(bb, space, { kind: "remove", path });
         notifyChanged(space.projectId);
         return { ok: true as const };
       },
