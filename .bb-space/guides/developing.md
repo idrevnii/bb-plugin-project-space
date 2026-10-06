@@ -27,6 +27,7 @@ The scripts live in `scripts/e2e/` and run one after another:
 | `smoke.mjs` | `index.md`, an HTML report, and a `.tldr` canvas open without page errors |
 | `live-refresh.mjs` | text appended to a page on disk shows up without a reload |
 | `draw.mjs` | `bb space draw` lands with the canvas closed and with it open |
+| `mermaid.mjs` | mermaid blocks render (two diagrams, one parse error) in light and dark, and re-render on a theme flip |
 
 They take their target from the environment:
 
