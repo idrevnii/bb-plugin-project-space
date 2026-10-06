@@ -20,16 +20,8 @@ A fenced `mermaid` block in a Markdown page renders as a diagram, in bb's
 light or dark theme (it re-renders when the theme flips). Mermaid runs with
 `securityLevel: "strict"`: HTML in labels is sanitized (no scripts or event
 handlers) and `click` directives are ignored. A block that fails to parse shows mermaid's error line above
-the diagram source.
-
-````md
-```mermaid
-flowchart LR
-  agent[Agent] -->|writes| space[.bb-space/]
-  space --> reader[Space reader]
-  reader -->|you comment| agent
-```
-````
+the diagram source. This page's own example (open *Source* to see the
+fence):
 
 ```mermaid
 flowchart LR
