@@ -15,6 +15,7 @@ checkout, so it lives in git next to the code it describes.
 | [Architecture](architecture/index.md) | How the page, panel, server, and files fit together |
 | [Using the space](guides/using-the-space.md) | Opening a space, creating pages, editing, canvases |
 | [For agents](guides/for-agents.md) | How agents find and write the space |
+| [Developing](guides/developing.md) | Checks, e2e scripts, and rules for parallel work |
 | [Decisions](decisions/index.md) | Why things are the way they are |
 | [Roadmap](roadmap.md) | What is done, what is next |
 | [Tasks](tasks/index.md) | The roadmap cut into briefs agents can take in parallel |

@@ -21,11 +21,12 @@
     "skipLibCheck": false
   },
   "include": [
-      "ui",
+    "ui",
     "server.ts",
     "app.tsx",
     "components",
     "lib",
-    "hooks"
+    "hooks",
+    "test"
   ]
 }

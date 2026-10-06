@@ -30,14 +30,19 @@ ui/headless.tsx      off-screen renderer for queued drawings
 lib/canvas/          draw spec, auto-layout, .tldr → text
 lib/space.ts         path rules shared by server and app
 skills/project-space the skill agents receive
+test/                unit tests (vitest)
+scripts/e2e/         Playwright checks against a running bb
 ```
 
 ## Develop
 
 ```sh
-npm run typecheck
+npm run check    # typecheck + tests + build
 bb plugin build && bb plugin reload project-space
+npm run e2e      # browser checks against the installed plugin
 ```
+
+See [`.bb-space/guides/developing.md`](.bb-space/guides/developing.md).
 
 tldraw is bundled under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md):
 free on `http://` and localhost origins; other https origins need the
