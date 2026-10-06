@@ -1,14 +1,15 @@
 // Project Space — frontend entry. Registers the full-screen Space page, its
-// Files tab in the host's right panel, an "Open space" button in thread
-// headers, and the ::space chat directive agents use to point at a page.
+// Files and Outline tabs in the host's right panel, an "Open space" button in
+// thread headers, and the ::space chat directive agents use to point at a page.
 import { definePluginApp, useBbNavigate } from "@get-bb/plugin-sdk/app";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { displayName, normalizeSpacePath } from "./lib/space";
 import { registerHeadlessRenderer } from "./ui/headless";
+import { OutlineTab } from "./ui/OutlineTab";
 import { FilesTab } from "./ui/page/FilesTab";
 import { ProjectSwitcher } from "./ui/page/ProjectSwitcher";
-import { FILES_TAB, PANEL_PATH, routeSubPath } from "./ui/page/routing";
+import { FILES_TAB, OUTLINE_TAB, PANEL_PATH, routeSubPath } from "./ui/page/routing";
 import { SpacePage } from "./ui/page/SpacePage";
 
 function OpenSpaceHeaderAction({
@@ -83,6 +84,13 @@ export default definePluginApp((app) => {
         title: "Files",
         icon: "PanelRight",
         component: FilesTab,
+        layout: "flush",
+      },
+      {
+        ...OUTLINE_TAB,
+        title: "Outline",
+        icon: "ListView",
+        component: OutlineTab,
         layout: "flush",
       },
     ],

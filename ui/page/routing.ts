@@ -5,6 +5,7 @@ import { encodeSpacePath, normalizeSpacePath } from "../../lib/space";
 
 export const PANEL_PATH = "space";
 export const FILES_TAB = { panelId: "space", id: "files" } as const;
+export const OUTLINE_TAB = { panelId: "space", id: "outline" } as const;
 
 export interface SpaceRoute {
   projectId: string | null;

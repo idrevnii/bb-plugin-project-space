@@ -25,6 +25,13 @@ name is refused. If the open document moves, it stays open at its new path.
 Prefer the tree beside the document? Settings → Plugins → Project Space →
 *File tree position* → `left`.
 
+## Outline
+
+The **Outline** tab, next to *Files* in the right panel, lists the open
+Markdown page's headings. Click one to scroll the page to it; the heading
+you are reading is highlighted as you scroll. Other files (HTML, canvases)
+have no outline.
+
 ## Reading and editing
 
 Markdown opens as a document. **Edit** makes the page itself editable, with
