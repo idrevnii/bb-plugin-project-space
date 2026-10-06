@@ -44,7 +44,7 @@ is in [its status table](tasks/index.md#status).
 - [ ] **Tree and navigation**
   - [x] Drag and drop in the tree, plus *Move to…* (T13)
   - [x] Outline tab (T14)
-  - [ ] Search across the space (T15)
+  - [x] Search across the space (T15)
   - [ ] Links to project files outside the space (T16)
 - [ ] **Worktree awareness**: show when a thread's worktree has unmerged space
   edits (T19)

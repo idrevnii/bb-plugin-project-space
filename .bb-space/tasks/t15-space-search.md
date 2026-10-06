@@ -27,11 +27,28 @@ Find a page by name or by text inside it.
 
 ## Acceptance
 
-- [ ] Searching `tldraw` in this space finds the decision page by content
+- [x] Searching `tldraw` in this space finds the decision page by content
       and `diagram.tldr` by label; `roadmap` finds the file by name.
-- [ ] A 2000-file space answers within the time budget (generate one in a
+- [x] A 2000-file space answers within the time budget (generate one in a
       temp project, report timings).
-- [ ] `npm run check` passes.
+- [x] `npm run check` passes.
+
+## Result (2026-10-07)
+
+Timings on a generated space of 2050 files (1800 Markdown pages of ~10 KB,
+100 HTML, 50 canvases, 50 PNGs, 50 text files over 1 MB), wall time of
+`bb space search` including ~0.25 s of CLI start-up:
+
+| Query | Results | Time |
+|---|---|---|
+| a word only in the last file (full scan) | 1 text hit | 0.38 s |
+| a word in nearly every file | 50, truncated | 0.28 s |
+| no match (full scan) | 0 | 0.38–0.48 s |
+| `page-44` (names) | 40 names | 0.42 s |
+
+Local spaces read files with Node (`stat` first, so big files are skipped
+unread); a space on another machine reads through `bb.sdk.files.read`, which
+has no size check before the read. Not measured on a remote host.
 
 ## Out of scope
 
