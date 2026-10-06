@@ -8,6 +8,7 @@ import { baseName, fileKind } from "../../lib/space";
 import type { SpaceFile } from "../../server";
 import { errorMessage, type SpaceRpc } from "../data";
 import { MarkdownView } from "../MarkdownView";
+import { outlineKey, useHeadingTracker } from "../outline";
 import { HtmlFrame } from "./HtmlFrame";
 import { MarkdownEditor } from "./MarkdownEditor";
 
@@ -44,6 +45,13 @@ export function TextDocument({
   /** Bumped when the draft is replaced from outside, so the editor reloads it. */
   const [editorKey, setEditorKey] = useState(0);
   const wysiwyg = editing && kind === "markdown" && !source;
+  /** The reader's scroll container, for the Outline tab's highlight. */
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  useHeadingTracker(
+    outlineKey(projectId, file.path),
+    kind === "markdown" && !editing ? scroller : null,
+    file.content,
+  );
 
   // Follow outside changes while not editing.
   useEffect(() => {
@@ -211,7 +219,7 @@ export function TextDocument({
           ) : null}
         </div>
       ) : (
-        <div className={cn("min-h-0 flex-1", kind === "html" ? "flex flex-col" : "overflow-y-auto")}>{reader}</div>
+        <div ref={setScroller} className={cn("min-h-0 flex-1", kind === "html" ? "flex flex-col" : "overflow-y-auto")}>{reader}</div>
       )}
     </div>
   );
