@@ -80,6 +80,10 @@ when the tool is not available). The spec:
 - Colors: black, grey, violet, light-violet, blue, light-blue, green,
   light-green, yellow, orange, red, light-red. Shapes: rect, ellipse, diamond,
   note.
+- The result ends with an *Overlaps* section: shape pairs that sit on top of
+  each other and boxes whose label did not fit. Fix them before moving on —
+  re-send those node ids with explicit `x`/`y` (and `w`/`h`), or redraw with
+  `clear: true`.
 - The result text describes the canvas afterwards. Before changing a diagram
   the user may have edited, read it with `space_canvas_read`
   (`bb space canvas <path.tldr>`).
