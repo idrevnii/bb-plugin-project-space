@@ -28,6 +28,7 @@ The scripts live in `scripts/e2e/` and run one after another:
 | `live-refresh.mjs` | text appended to a page on disk shows up without a reload |
 | `draw.mjs` | `bb space draw` lands with the canvas closed and with it open |
 | `markdown-editor.mjs` | editing a table cell, ticking a task and adding a link in the WYSIWYG editor save to disk; *Source* shows the same text |
+| `mermaid.mjs` | mermaid blocks render (two diagrams, one parse error) in light and dark, and re-render on a theme flip |
 
 They take their target from the environment:
 

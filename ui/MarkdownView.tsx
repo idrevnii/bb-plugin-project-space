@@ -9,6 +9,7 @@ import rehypeSlug from "rehype-slug";
 import { UrlLink, experimental_SourceCode as SourceCode } from "@get-bb/plugin-sdk/app";
 import { cn } from "@/lib/utils";
 import { encodeSpacePath, resolveSpaceLink } from "../lib/space";
+import { MermaidBlock } from "./MermaidBlock";
 
 export interface MarkdownViewProps {
   content: string;
@@ -85,6 +86,7 @@ function CodeBlock({ children }: { children?: ReactNode }) {
   }
   const language = /language-([\w+#-]+)/.exec(child.props.className ?? "")?.[1];
   const code = textOf(child.props.children).replace(/\n$/, "");
+  if (language?.toLowerCase() === "mermaid") return <MermaidBlock code={code} />;
   return (
     <div className="not-prose my-4 overflow-hidden rounded-lg border border-border bg-card text-[13px]">
       {language ? (
