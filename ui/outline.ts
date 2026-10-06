@@ -18,22 +18,42 @@ export interface OutlineHeading {
 
 const parser = unified().use(remarkParse).use(remarkGfm);
 
-/** Headings in document order, with the ids `MarkdownView` gives them. */
-export function outlineOf(markdown: string): OutlineHeading[] {
+/** Headings with the 1-based source line each starts on. */
+function headingsWithLines(markdown: string): (OutlineHeading & { line: number })[] {
   const slugger = new GithubSlugger();
-  const headings: OutlineHeading[] = [];
+  const headings: (OutlineHeading & { line: number })[] = [];
   const visit = (node: Root | Root["children"][number]) => {
     if (node.type === "heading") {
       // react-markdown drops raw HTML and rehype-slug reads the rendered text,
       // which has no image alt text.
       const text = toString(node as MdastHeading, { includeHtml: false, includeImageAlt: false });
-      headings.push({ id: slugger.slug(text), text: text.trim(), level: node.depth });
+      headings.push({
+        id: slugger.slug(text),
+        text: text.trim(),
+        level: node.depth,
+        line: node.position?.start.line ?? 0,
+      });
       return;
     }
     if ("children" in node) for (const child of node.children) visit(child);
   };
   visit(parser.parse(markdown));
   return headings;
+}
+
+/** Headings in document order, with the ids `MarkdownView` gives them. */
+export function outlineOf(markdown: string): OutlineHeading[] {
+  return headingsWithLines(markdown).map(({ id, text, level }) => ({ id, text, level }));
+}
+
+/** The id of the nearest heading at or above a 1-based source line. */
+export function headingAtLine(markdown: string, line: number): string | null {
+  let id: string | null = null;
+  for (const heading of headingsWithLines(markdown)) {
+    if (heading.line > line) break;
+    id = heading.id;
+  }
+  return id;
 }
 
 interface OutlineEntry {
@@ -73,6 +93,31 @@ export function scrollToHeading(key: string, id: string) {
   const scrollTo = entries.get(key)?.scrollTo;
   if (scrollTo) scrollTo(id);
   else document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/**
+ * Scrolls to a heading once the page under `key` is open and tracking its
+ * headings (it may still be loading after a navigation); gives up after
+ * `timeoutMs`.
+ */
+export function scrollToHeadingWhenReady(key: string, id: string, timeoutMs = 5000) {
+  const scrollTo = entries.get(key)?.scrollTo;
+  if (scrollTo) {
+    scrollTo(id);
+    return;
+  }
+  const stop = () => {
+    clearTimeout(timer);
+    listeners.delete(listener);
+  };
+  const listener = () => {
+    const ready = entries.get(key)?.scrollTo;
+    if (!ready) return;
+    stop();
+    ready(id);
+  };
+  const timer = setTimeout(stop, timeoutMs);
+  listeners.add(listener);
 }
 
 /** Where, from the top of the reader, a heading counts as "current". */
