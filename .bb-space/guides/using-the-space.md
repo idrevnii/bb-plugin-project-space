@@ -20,9 +20,20 @@ Prefer the tree beside the document? Settings → Plugins → Project Space →
 
 ## Reading and editing
 
-Markdown opens as a document. **Edit** shows the source with a live preview;
-save with **Save** or `Ctrl/⌘+S`, then **Done**. If an agent changed the file
+Markdown opens as a document. **Edit** makes the page itself editable, with
+the same typography as reading. The bar above it formats text, makes lists,
+task lists, quotes, code blocks, links and tables (row and column buttons
+appear while the cursor is in a table); tick tasks right in the page. Markdown
+shortcuts work as you type (`## `, `- `, `1. `, `[ ] `, `` ` ``, `**`).
+**Source** switches to the raw text with a live preview, and back.
+
+Save with **Save** or `Ctrl/⌘+S`, then **Done**. If an agent changed the file
 while you were editing, a banner lets you keep theirs or overwrite.
+
+Saving from the editor writes normalized Markdown: paragraphs on one line,
+`-` bullets, `| --- |` table rules. The page renders the same; only the
+source layout changes, and only once you edit. Frontmatter and raw HTML
+(shown as grey chips) are kept as written.
 
 HTML files render like a browser page. Canvases are full tldraw boards and
 save themselves.

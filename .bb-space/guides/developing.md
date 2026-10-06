@@ -27,6 +27,7 @@ The scripts live in `scripts/e2e/` and run one after another:
 | `smoke.mjs` | `index.md`, an HTML report, and a `.tldr` canvas open without page errors |
 | `live-refresh.mjs` | text appended to a page on disk shows up without a reload |
 | `draw.mjs` | `bb space draw` lands with the canvas closed and with it open |
+| `markdown-editor.mjs` | editing a table cell, ticking a task and adding a link in the WYSIWYG editor save to disk; *Source* shows the same text |
 
 They take their target from the environment:
 

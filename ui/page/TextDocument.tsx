@@ -9,6 +9,7 @@ import type { SpaceFile } from "../../server";
 import { errorMessage, type SpaceRpc } from "../data";
 import { MarkdownView } from "../MarkdownView";
 import { HtmlFrame } from "./HtmlFrame";
+import { MarkdownEditor } from "./MarkdownEditor";
 
 type SaveState =
   | { kind: "idle" }
@@ -38,6 +39,11 @@ export function TextDocument({
   /** The version the draft is based on; saves compare-and-swap against it. */
   const [baseSha, setBaseSha] = useState(file.sha256);
   const [save, setSave] = useState<SaveState>({ kind: "idle" });
+  /** Markdown edits in place by default; Source swaps to the textarea. */
+  const [source, setSource] = useState(false);
+  /** Bumped when the draft is replaced from outside, so the editor reloads it. */
+  const [editorKey, setEditorKey] = useState(0);
+  const wysiwyg = editing && kind === "markdown" && !source;
 
   // Follow outside changes while not editing.
   useEffect(() => {
@@ -87,6 +93,19 @@ export function TextDocument({
           <span className="text-xs text-muted-foreground">
             {save.kind === "saving" ? "Saving…" : draft !== file.content || baseSha !== file.sha256 ? "Unsaved" : "Saved"}
           </span>
+          {kind === "markdown" ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-pressed={source}
+              onClick={() => {
+                if (source) setEditorKey((key) => key + 1);
+                setSource(!source);
+              }}
+            >
+              Source
+            </Button>
+          ) : null}
           <Button size="sm" variant="outline" onClick={() => void doSave()}>
             Save
           </Button>
@@ -123,6 +142,7 @@ export function TextDocument({
             setDraft(file.content);
             setBaseSha(file.sha256);
             setSave({ kind: "idle" });
+            setEditorKey((key) => key + 1);
           }}
         >
           Discard mine
@@ -159,7 +179,16 @@ export function TextDocument({
     <div className="flex h-full min-h-0 flex-1 flex-col">
       {toolbar(controls)}
       {banner}
-      {editing ? (
+      {wysiwyg ? (
+        <MarkdownEditor
+          key={editorKey}
+          initialContent={draft}
+          path={file.path}
+          previewBaseUrl={previewBaseUrl}
+          onChange={setDraft}
+          onSave={() => void doSave()}
+        />
+      ) : editing ? (
         <div className={cn("grid min-h-0 flex-1", kind === "markdown" || kind === "html" ? "md:grid-cols-2" : "grid-cols-1")}>
           <textarea
             ref={textarea}
