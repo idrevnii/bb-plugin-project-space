@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Space — status</title>
+<link rel="stylesheet" href="status.css">
+</head>
+<body>
+<main>
+  <h1>Project Space — status</h1>
+  <p class="sub">MVP 0.1 · rendered from <code>.bb-space/reports/status.html</code> with a sibling stylesheet</p>
+  <div class="grid">
+    <div class="stat"><b id="done">0</b><span>features shipped</span><div class="bar"><i id="progress" style="width:0"></i></div></div>
+    <div class="stat"><b>3</b><span>file kinds rendered (md · html · tldr)</span></div>
+    <div class="stat"><b id="next">0</b><span>items on the roadmap</span></div>
+  </div>
+  <h2>Milestones <small style="color:var(--muted);font-weight:400">(click an item — scripts run in the sandbox)</small></h2>
+  <ul class="items" id="items"></ul>
+</main>
+<script>
+  const items = [
+    ["done", "Full-screen Space page with deep links"],
+    ["done", "File tree in the right panel"],
+    ["done", "Markdown reader and editor"],
+    ["done", "Sandboxed HTML with relative assets"],
+    ["done", "tldraw canvases with autosave"],
+    ["done", "Live refresh on agent writes"],
+    ["done", "Agent drawing on canvases"],
+    ["next", "Annotations → threads"],
+    ["next", "WYSIWYG Markdown"],
+
+    ["next", "Mermaid diagrams"],
+  ];
+  const list = document.getElementById("items");
+  for (const [state, text] of items) {
+    const li = document.createElement("li");
+    li.className = state;
+    li.innerHTML = `<span class="tag">${state === "done" ? "DONE" : "NEXT"}</span>${text}`;
+    li.onclick = () => li.classList.toggle("open");
+    list.append(li);
+  }
+  const done = items.filter(([s]) => s === "done").length;
+  document.getElementById("done").textContent = done;
+  document.getElementById("next").textContent = items.length - done;
+  requestAnimationFrame(() => document.getElementById("progress").style.width = `${Math.round(done / items.length * 100)}%`);
+</script>
+</body>
+</html>
