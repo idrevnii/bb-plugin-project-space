@@ -1,4 +1,7 @@
 import { createHash } from "node:crypto";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import Database from "better-sqlite3";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { canvasImageModule } from "../server/canvas-image";
@@ -22,7 +25,8 @@ type ToolResult = { content: Array<{ type: string; text?: string; data?: string 
 type Tool = { name: string; execute: (args: unknown, ctx: unknown) => Promise<ToolResult | string> };
 
 /** Both modules over an in-memory database and a Map of files. */
-function setup() {
+function setup(rootPath = ROOT) {
+  const target: ProjectSpace = { ...space, rootPath };
   const disk = new Map<string, string>();
   const db = new Database(":memory:");
   const tools = new Map<string, Tool>();
@@ -54,7 +58,7 @@ function setup() {
   const ctx = {
     bb,
     settings: { get: async () => ({ tldrawLicenseKey: "" }) },
-    resolveSpace: async () => space,
+    resolveSpace: async () => target,
     readText: async (_space: ProjectSpace, path: string) => disk.get(`${ROOT}/${path}`) ?? null,
     notifyChanged: () => {},
     spaceExists: async () => true,
@@ -68,11 +72,20 @@ function setup() {
     draw.rpc.space_draw_pending({ projectId: space.projectId, path: PATH }) as {
       batches: Array<{ id: number; spec: string }>;
     };
-  const put = (content: string, pngBase64: string) =>
+  const put = (content: string, pngBase64: string, error?: string) =>
     image.rpc.space_canvas_image_put(
-      { projectId: space.projectId, path: PATH, sha256: sha(content), pngBase64 },
+      {
+        projectId: space.projectId,
+        path: PATH,
+        sha256: sha(content),
+        pngBase64,
+        ...(error === undefined ? {} : { error }),
+      },
     );
-  return { disk, view, pending, put, published, draw, written };
+  const withdraw = () =>
+    draw.rpc.space_draw_ack({ ids: pending().batches.map((batch) => batch.id) });
+  const rows = () => (db.prepare(`SELECT COUNT(*) AS n FROM canvas_images`).get() as { n: number }).n;
+  return { disk, view, pending, put, published, draw, written, withdraw, rows };
 }
 
 const DOC = '{"tldrawFileFormatVersion":1,"records":[]}';
@@ -116,6 +129,37 @@ describe("space_canvas_view", () => {
     expect(pending().batches).toHaveLength(0);
   });
 
+  it("reports a file the renderer could not load instead of a blank picture", async () => {
+    const { disk, view, put } = setup();
+    disk.set(`${ROOT}/${PATH}`, '{"not": "a tldr');
+    put('{"not": "a tldr', "", "it is not a readable tldraw document (notATldrawFile)");
+    const result = await view();
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toMatch(/cannot be pictured: it is not a readable tldraw document/);
+  });
+
+  it("asks again when its request is taken without a picture", async () => {
+    const { disk, view, put, pending, withdraw } = setup();
+    disk.set(`${ROOT}/${PATH}`, DOC);
+    const result = view();
+    await vi.waitFor(() => expect(pending().batches).toHaveLength(1));
+    const first = pending().batches[0]!.id;
+    withdraw(); // a renderer acked it, but its picture never arrived
+    await vi.waitFor(() => expect(pending().batches.map((batch) => batch.id)).not.toContain(first));
+    await vi.waitFor(() => expect(pending().batches).toHaveLength(1));
+    put(DOC, "bmV3");
+    expect((await result).content[1]).toMatchObject({ type: "image", data: "bmV3" });
+    expect(pending().batches).toHaveLength(0);
+  });
+
+  it("forgets the picture of a canvas that is gone", async () => {
+    const { view, put, rows } = setup();
+    put(DOC, "iVBORw0KGgo=");
+    expect(rows()).toBe(1);
+    expect((await view()).content[0]!.text).toMatch(/does not exist/);
+    expect(rows()).toBe(0);
+  });
+
   it("says so for a missing or empty canvas without waiting", async () => {
     const { disk, view, pending } = setup();
     expect((await view()).content[0]!.text).toMatch(/does not exist/);
@@ -139,6 +183,37 @@ describe("bb space canvas --png", () => {
     const output = (await run(draw, "out/canvas.png")) as { stdout: string };
     expect(output.stdout).toContain("/repo/out/canvas.png");
     expect(written.get("/repo/out/canvas.png")).toBe("iVBORw0KGgo=");
+  });
+
+  it("refuses a relative path that lands in the space", async () => {
+    const { disk, put, draw, written } = setup();
+    disk.set(`${ROOT}/${PATH}`, DOC);
+    put(DOC, "iVBORw0KGgo=");
+    const runIn = (cwd: string, png: string) =>
+      draw.cli!.canvas!.run(
+        { positionals: { path: PATH }, options: { png } } as never,
+        { projectId: space.projectId, cwd } as never,
+      );
+    await expect(runIn(ROOT, "x.png")).rejects.toThrow(/not written into the space/);
+    await expect(runIn(`${ROOT}/sub`, "../x.png")).rejects.toThrow(/not written into the space/);
+    expect(written.size).toBe(0);
+  });
+
+  it("refuses a symlink into the space", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "canvas-image-"));
+    try {
+      const root = join(dir, "repo", ".bb-space");
+      mkdirSync(root, { recursive: true });
+      symlinkSync(root, join(dir, "link"));
+      const { disk, put, draw, written } = setup(root);
+      disk.set(`${root}/${PATH}`, DOC);
+      put(DOC, "iVBORw0KGgo=");
+      await expect(run(draw, join(dir, "link", "x.png"))).rejects.toThrow(/not written into the space/);
+      await expect(run(draw, join(dir, "out.png"))).resolves.toMatchObject({ exitCode: 0 });
+      expect([...written.keys()]).toEqual([join(dir, "out.png")]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("refuses to write into .bb-space", async () => {

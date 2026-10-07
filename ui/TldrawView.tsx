@@ -17,7 +17,7 @@ import { useRealtime } from "@get-bb/plugin-sdk/app";
 import { Button } from "@/components/ui/button";
 import type { SpaceFile } from "../server";
 import { errorMessage, type SpaceRpc } from "./data";
-import { postCanvasImage } from "./canvas-image";
+import { postCanvasError, postCanvasImage } from "./canvas-image";
 import { applyBatches, isRenderOnly, waitForFonts } from "./draw-queue";
 
 const SAVE_DELAY_MS = 800;
@@ -77,12 +77,18 @@ export function TldrawView({
   const loading = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [status, setStatus] = useState<"saved" | "saving" | "unsaved" | "conflict">("saved");
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadError, setLoadErrorState] = useState<string | null>(null);
+  /** The load error as of now, for picture requests (not a render). */
+  const unreadable = useRef<string | null>(null);
+  const setLoadError = useCallback((error: string | null) => {
+    unreadable.current = error;
+    setLoadErrorState(error);
+  }, []);
   const [saveError, setSaveError] = useState<string | null>(null);
   const colorScheme = useHostColorScheme();
 
   const putImage = useCallback(
-    (input: { projectId: string; path: string; sha256: string; pngBase64: string }) =>
+    (input: { projectId: string; path: string; sha256: string; pngBase64: string; error?: string }) =>
       rpc.call("space_canvas_image_put", input),
     [rpc],
   );
@@ -105,11 +111,13 @@ export function TldrawView({
         knownSha.current = result.sha256;
         setStatus(dirty.current ? "unsaved" : "saved");
         setSaveError(null);
-        await postCanvasImage(putImage, editor, {
-          projectId,
-          path: file.path,
-          sha256: result.sha256,
-        });
+        // Only if the board still is what was written.
+        await postCanvasImage(
+          putImage,
+          editor,
+          { projectId, path: file.path, sha256: result.sha256 },
+          () => !dirty.current && knownSha.current === result.sha256,
+        );
         return true;
       }
       dirty.current = true;
@@ -140,14 +148,21 @@ export function TldrawView({
         // A picture request. The board shows the file only if nobody has
         // rewritten it since we last loaded; otherwise leave the request to
         // the off-screen renderer, which reads the file afresh.
+        const sha256 = knownSha.current;
         const latest = await rpc.call("space_read", { projectId, path: file.path });
-        if (latest.sha256 !== knownSha.current) return;
-        await postCanvasImage(putImage, editor, {
-          projectId,
-          path: file.path,
-          sha256: knownSha.current,
-        });
-        await rpc.call("space_draw_ack", { ids: renders });
+        if (latest.sha256 !== sha256) return;
+        const target = { projectId, path: file.path, sha256 };
+        // A board edited meanwhile no longer shows the file; its save posts.
+        const posted =
+          unreadable.current === null
+            ? await postCanvasImage(
+                putImage,
+                editor,
+                target,
+                () => !dirty.current && knownSha.current === sha256,
+              )
+            : await postCanvasError(putImage, target, unreadable.current);
+        if (posted) await rpc.call("space_draw_ack", { ids: renders });
         return;
       }
       const done = [...applyBatches(editor, draws), ...renders];

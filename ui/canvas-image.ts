@@ -47,20 +47,43 @@ type ImagePut = (input: {
   path: string;
   sha256: string;
   pngBase64: string;
+  error?: string;
 }) => Promise<unknown>;
 
 /**
- * Exports and posts a picture of `path` as of file `sha256`. Never throws:
- * a missing picture only means the next view asks for a fresh one.
+ * Exports and posts a picture of `path` as of file `sha256`; true when the
+ * server has it. Never throws: a missing picture only means the next view
+ * asks for a fresh one. `stillCurrent` is checked after the export, so a
+ * board edited meanwhile is not posted under the file's sha.
  */
 export async function postCanvasImage(
   put: ImagePut,
   editor: Editor,
   target: { projectId: string; path: string; sha256: string },
-): Promise<void> {
+  stillCurrent: () => boolean = () => true,
+): Promise<boolean> {
   try {
-    await put({ ...target, pngBase64: await exportCanvasPng(editor) });
+    const pngBase64 = await exportCanvasPng(editor);
+    if (!stillCurrent()) return false;
+    await put({ ...target, pngBase64 });
+    return true;
   } catch (cause) {
     console.warn(`project-space: could not post a picture of ${target.path}`, cause);
+    return false;
+  }
+}
+
+/** Tells the server the file at `sha256` cannot be pictured, and why. */
+export async function postCanvasError(
+  put: ImagePut,
+  target: { projectId: string; path: string; sha256: string },
+  error: string,
+): Promise<boolean> {
+  try {
+    await put({ ...target, pngBase64: "", error });
+    return true;
+  } catch (cause) {
+    console.warn(`project-space: could not report ${target.path} as unreadable`, cause);
+    return false;
   }
 }
