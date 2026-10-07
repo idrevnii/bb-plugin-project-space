@@ -33,6 +33,7 @@ The scripts live in `scripts/e2e/` and run one after another:
 | `search.mjs` | `bb space search` finds pages by name, text and canvas label; the Files search box replaces the tree, Esc clears, Enter opens, a text hit scrolls to its section |
 | `outside-links.mjs` | a link out of the space opens the checkout file in bb's preview at its line or range; a link escaping the checkout is plain text; space links still route |
 | `canvas-view.mjs` | `bb space canvas --png` right after a draw pictures the new drawing, off-screen and with the canvas open; a hand-edited file is re-rendered, not served stale |
+| `canvas-readonly.mjs` | a canvas whose file tldraw cannot load is read-only and never saved over; fixing the file on disk makes it editable again |
 
 They take their target from the environment:
 

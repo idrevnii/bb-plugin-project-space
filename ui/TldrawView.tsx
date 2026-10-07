@@ -79,11 +79,14 @@ export function TldrawView({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [status, setStatus] = useState<"saved" | "saving" | "unsaved" | "conflict">("saved");
   const [loadError, setLoadErrorState] = useState<string | null>(null);
-  /** The load error as of now, for picture requests (not a render). */
+  /** The load error as of now, for picture requests and saves (not a render). */
   const unreadable = useRef<string | null>(null);
+  // A file that did not load leaves the board blank or stale; saving it
+  // would overwrite the file. So the board is read-only until a load works.
   const setLoadError = useCallback((error: string | null) => {
     unreadable.current = error;
     setLoadErrorState(error);
+    editorRef.current?.updateInstanceState({ isReadonly: error !== null });
   }, []);
   const [saveError, setSaveError] = useState<string | null>(null);
   const colorScheme = useHostColorScheme();
@@ -98,6 +101,11 @@ export function TldrawView({
   const save = useCallback(async (): Promise<boolean> => {
     const editor = editorRef.current;
     if (editor === null || !dirty.current) return false;
+    if (unreadable.current !== null) {
+      dirty.current = false;
+      setStatus("saved");
+      return false;
+    }
     dirty.current = false;
     setStatus("saving");
     try {
@@ -326,7 +334,7 @@ export function TldrawView({
         )}
         {loadError ? (
           <span className="pointer-events-auto rounded-md bg-card px-2 py-1 text-xs text-destructive shadow-sm">
-            This file cannot be shown: {loadError}.
+            This file cannot be shown: {loadError}. Editing is off until it is fixed.
           </span>
         ) : null}
         {saveError ? (
