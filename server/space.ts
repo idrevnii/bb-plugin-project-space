@@ -5,11 +5,11 @@
 // source's host, so a project on an enrolled machine works the same as a
 // local one. When that host is the server machine, a recursive fs.watch
 // publishes `space-changed` so open pages follow agents' writes.
-import { watch, type FSWatcher } from "node:fs";
 import { stat } from "node:fs/promises";
 import type { BbPluginApi } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 import { SPACE_DIR, normalizeSpacePath } from "../lib/space";
+import { watchTree, type TreeWatcher } from "./watch-tree";
 
 /** Realtime channel: payload `{ projectId }`. */
 export const SPACE_CHANGED = "space-changed";
@@ -136,7 +136,7 @@ export function createSpaces(bb: BbPluginApi) {
   // ── Live change notifications ────────────────────────────────────────────
   // One recursive watcher per local space, started the first time the app
   // touches that project and kept until the plugin unloads.
-  const watchers = new Map<string, FSWatcher>();
+  const watchers = new Map<string, TreeWatcher>();
   const pendingNotify = new Map<string, ReturnType<typeof setTimeout>>();
 
   function notifyChanged(projectIdToNotify: string): void {
@@ -155,14 +155,14 @@ export function createSpaces(bb: BbPluginApi) {
     if (!space.isLocal) return false;
     if (watchers.has(space.projectId)) return true;
     try {
-      const watcher = watch(space.rootPath, { recursive: true }, () =>
-        notifyChanged(space.projectId),
+      const watcher = watchTree(
+        space.rootPath,
+        () => notifyChanged(space.projectId),
+        (error) => {
+          bb.log.warn(`space watcher for ${space.projectId} stopped: ${String(error)}`);
+          watchers.delete(space.projectId);
+        },
       );
-      watcher.on("error", (error) => {
-        bb.log.warn(`space watcher for ${space.projectId} stopped: ${String(error)}`);
-        watcher.close();
-        watchers.delete(space.projectId);
-      });
       watchers.set(space.projectId, watcher);
       return true;
     } catch {
