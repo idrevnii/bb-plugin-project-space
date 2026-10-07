@@ -86,7 +86,11 @@ export function TldrawView({
   const setLoadError = useCallback((error: string | null) => {
     unreadable.current = error;
     setLoadErrorState(error);
-    editorRef.current?.updateInstanceState({ isReadonly: error !== null });
+    // Only on a change: setting it on every load marks the board touched.
+    const editor = editorRef.current;
+    if (editor !== null && editor.getInstanceState().isReadonly !== (error !== null)) {
+      editor.updateInstanceState({ isReadonly: error !== null });
+    }
   }, []);
   const [saveError, setSaveError] = useState<string | null>(null);
   const colorScheme = useHostColorScheme();
