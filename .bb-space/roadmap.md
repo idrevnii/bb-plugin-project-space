@@ -1,12 +1,12 @@
 # Roadmap
 
 This page lists what is built and what comes next, by milestone. ***The
-MVP, wave 1 and wave 2 are merged. Only one item for later is open.*** Each
+MVP, wave 1, wave 2 and the item for later are merged.*** Each
 item had a brief in [tasks](tasks/index.md), and the
 [status list](tasks/index.md#status) shows its state.
 
 > [!IMPORTANT] Open now
-> No task is open. The next possible item is in [Later](#later).
+> No task is open.
 
 ## MVP (0.1)
 
@@ -68,5 +68,5 @@ tab, and send them to a thread. See [the decision](decisions/annotations.md).
 
 ## Later
 
-- [ ] Copy the space edits of a worktree into the main space from the badge
-  (next step after T19)
+- [x] Copy the space edits of a worktree into the main space from the badge
+  (T35)

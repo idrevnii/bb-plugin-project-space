@@ -285,6 +285,7 @@ space".
 flowchart LR
   main[("main checkout: .bb-space/")] --> screen[Space screen]
   wt[("worktree: .bb-space/")] -->|badge, read-only| screen
+  wt -->|Copy in the badge| main
   wt -->|merge of the branch| main
 ```
 
@@ -294,9 +295,26 @@ flowchart LR
    "Viewing branch … — not the main space".
 3. To return, click **Open main version**.
 
-> [!IMPORTANT] The space copies nothing into the main space
-> The edits arrive when someone merges the branch. The reason is in the
+To put the edits of a worktree into the main space:
+
+- To copy one file, click **Copy** next to it in the badge. You can also
+  open the file and click **Copy to main space** in the banner.
+- To copy all files that the main space did not change, click **Copy all**
+  (or **Copy N safe**) next to the branch.
+- A deleted file (**D**) deletes the file in the main space.
+
+After the copy, the file goes away from the badge.
+
+> [!WARNING] Some files replace an edit in the main space
+> The badge marks a file "main changed it too" when the main space changed
+> it after the branch started. It marks a file "main not checked" when git
+> cannot compare them. For these files, the first click on **Copy** shows
+> **Replace main version?**. Click it again to copy. The copy does not merge.
+> To keep both edits, merge the branch with git. The reason is in the
 > [storage decision](../decisions/storage.md).
+
+If a file changed again after the badge listed it, the copy does not touch
+that file. A line in the badge tells you which files it did not copy.
 
 ## Settings
 

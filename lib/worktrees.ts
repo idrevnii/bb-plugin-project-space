@@ -40,3 +40,37 @@ export function splitEnvQuery(subPath: string): { rest: string; env: string | nu
   if (match === null) return { rest: subPath, env: null };
   return { rest: subPath.slice(0, match.index), env: match[3] ?? null };
 }
+
+/**
+ * Whether the main space changed a file after the branch left it, so a copy
+ * from the worktree replaces that change. `baseSha` is the file's sha at the
+ * merge base (null: it did not exist there); undefined when git cannot say,
+ * and then the answer is null (unknown).
+ */
+export function mainChangedSinceBase(
+  mainSha: string | null,
+  baseSha: string | null | undefined,
+): boolean | null {
+  if (baseSha === undefined) return null;
+  return mainSha !== baseSha;
+}
+
+export type CopyOutcome = "copied" | "conflict" | "stale";
+
+/** One line about a copy: how many files arrived and why the others did not. */
+export function copySummary(outcomes: CopyOutcome[]): string {
+  const count = (outcome: CopyOutcome) => outcomes.filter((value) => value === outcome).length;
+  const files = (n: number) => `${n} ${n === 1 ? "file" : "files"}`;
+  const parts: string[] = [];
+  const copied = count("copied");
+  const conflicts = count("conflict");
+  const stale = count("stale");
+  if (copied > 0 || outcomes.length === 0) parts.push(`Copied ${files(copied)}.`);
+  if (conflicts > 0) {
+    parts.push(`${files(conflicts)} changed in the main space after the list was made. Nothing was copied over ${conflicts === 1 ? "it" : "them"}.`);
+  }
+  if (stale > 0) {
+    parts.push(`${files(stale)} changed in the worktree after the list was made. Look again and copy ${stale === 1 ? "it" : "them"} again.`);
+  }
+  return parts.join(" ");
+}

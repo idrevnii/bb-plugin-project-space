@@ -18,6 +18,7 @@ which. A grey box is merged. A blue box is open.
 | 0 | one after another, one agent | [T00](t00-repo-baseline.md) → [T01](t01-split-modules.md) |
 | 1 | in parallel, after T01 | [T10](t10-annotations-core.md) · [T11](t11-wysiwyg-markdown.md) · [T12](t12-mermaid.md) · [T13](t13-tree-dnd.md) · [T14](t14-outline-tab.md) · [T15](t15-space-search.md) · [T16](t16-outside-links.md) · [T17](t17-canvas-lint.md) · [T18](t18-canvas-view-png.md) · [T19](t19-worktree-awareness.md) · [T20](t20-unit-tests.md) · [T21](t21-ui-qa-sweep.md) |
 | 2 | in parallel, after T10 | [T30](t30-annotations-markdown.md) · [T31](t31-annotations-review-tab.md) · [T32](t32-annotations-agent-api.md) · [T33](t33-annotations-tldraw.md) · [T34](t34-annotations-html.md) |
+| Later | one agent, in the main checkout | [T35](t35-worktree-copy.md) |
 
 Wave 0 had one job: to let wave 1 run without merge problems. Before it,
 `server.ts` and `ui/SpacePage.tsx` held almost all the code. Also the folder
@@ -47,6 +48,7 @@ Updated 2026-10-08. A ticked task is merged into `main`, and
 - [x] T32 Annotations for agents
 - [x] T33 Annotate canvases
 - [x] T34 Annotate HTML pages — merged with T33
+- [x] T35 Copy worktree edits into the main space
 
 ## Who changes what
 
@@ -72,6 +74,7 @@ changes small and additive.
 | T32 | `server/annotations-agent.ts`, `lib/annotation-text.ts` | `skills/project-space/SKILL.md` |
 | T33 | `ui/annotate/tldraw.tsx` | `ui/TldrawView.tsx` |
 | T34 | `ui/annotate/html-bridge.ts` | `ui/page/HtmlFrame.tsx` |
+| T35 | `server/worktrees.ts`, `ui/page/WorktreeBadge.tsx` | `ui/page/WorktreeDocument.tsx`, `ui/page/ProjectSpace.tsx`, `ui/data.ts` |
 
 > [!NOTE] Known overlaps, all small
 > T30 edits a different branch of `MarkdownView.tsx` than T12 and T16 did.

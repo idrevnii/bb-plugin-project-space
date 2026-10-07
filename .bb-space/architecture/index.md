@@ -100,7 +100,7 @@ feature, add a module and one entry in `modules`.== The steps are in
 | [`annotations.ts`](../../server/annotations.ts) | the storage of annotations and the `annotations_*` RPC; see [annotations](annotations.md) |
 | [`send.ts`](../../server/send.ts) | `annotations_send` and the `message.dispatch` hook that marks review comments sent |
 | [`search.ts`](../../server/search.ts) | `space_search` and `bb space search`; the matching is pure, in `lib/search.ts` |
-| [`worktrees.ts`](../../server/worktrees.ts) | `space_worktrees` and `space_worktree_read`; see the [storage decision](../decisions/storage.md) |
+| [`worktrees.ts`](../../server/worktrees.ts) | `space_worktrees`, `space_worktree_read` and `space_worktree_copy`; see the [storage decision](../decisions/storage.md) |
 | [`watch-tree.ts`](../../server/watch-tree.ts) | the watcher for each folder, for live updates |
 | [`cli.ts`](../../server/cli.ts) | `bb space`, `link`, and the helpers `projectOption`, `requireProject` and `readInvokerFile` |
 

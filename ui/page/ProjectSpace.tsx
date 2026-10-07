@@ -121,6 +121,11 @@ export function ProjectSpace({
         previewBaseUrl={previewBaseUrl}
         licenseKey={settingsTldrawLicenseKey}
         toolbar={toolbar}
+        listed={
+          worktrees
+            .find((worktree) => worktree.environmentId === env)
+            ?.files.find((listedFile) => listedFile.path === filePath) ?? null
+        }
       />
     );
   } else if (filePath === null) {

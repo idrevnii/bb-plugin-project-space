@@ -25,7 +25,7 @@ machine works the same as a local project.
 ## Consequences
 
 A thread in a worktree has its own checkout, so it can write a separate
-copy of the space. Two features handle this:
+copy of the space. Three features handle this:
 
 - **`bb space root` points at the main checkout.** An agent in a worktree
   writes where the user looks, and the user sees the edit immediately.
@@ -35,6 +35,9 @@ copy of the space. Two features handle this:
   the threads and the space files that the branch changed since the merge
   base. It lists a file only if its sha256 is different from the file in the
   main space. Committed and uncommitted changes both count.
+- **The badge copies a file into the main space** when you click **Copy**.
+  The copy uses compare-and-swap on both sides: if the worktree file or the
+  main file changed after the list was made, the copy does not touch it.
 
 | Rule | Value |
 | --- | --- |
@@ -43,10 +46,18 @@ copy of the space. Two features handle this:
 | worktrees that the badge checks | the 20 with the most recent activity |
 | cost without worktrees | one list of environments |
 | a file that you open | read-only, with `?env=<environmentId>` on the route, under the banner "Viewing branch X — not the main space" |
+| a file that main also changed after the merge base | marked "main changed it too"; **Copy** needs a second click |
+| a file that git cannot compare with the merge base | marked "main not checked"; **Copy** needs a second click |
+| **Copy all** | copies only the files that main did not change |
 
-> [!IMPORTANT] The badge copies nothing back
-> Edits in a worktree go into the main space only when someone merges the
-> branch, or copies them by hand. A copy action in the badge is a possible
-> next step. It is not built.
+> [!IMPORTANT] The copy replaces, it does not merge
+> A copy puts the whole worktree file into the main space. If main also
+> changed the file, the copy removes that change. Thus the badge marks these
+> files and asks before it copies them. To keep both changes, merge the
+> branch with git.
+
+We did not make a three-way merge in the badge. A merge of Markdown is
+possible, but a merge of a `.tldr` canvas is not safe, and a merge with
+conflicts needs a full editor. Git does this better.
 
 What the user sees: [Use the space → Worktrees](../guides/using-the-space.md#worktrees).

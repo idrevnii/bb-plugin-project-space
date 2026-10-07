@@ -1,5 +1,6 @@
 // A worktree's copy of a space file, read-only, under a banner that says it
-// is not the main space. Links inside it stay in the same worktree.
+// is not the main space. Links inside it stay in the same worktree. If the
+// badge lists the file, the banner can copy it into the main space.
 import { useCallback } from "react";
 import type { ReactNode } from "react";
 import { experimental_SourceCode as SourceCode } from "@get-bb/plugin-sdk/app";
@@ -10,12 +11,13 @@ import { Icon } from "@/components/ui/icon";
 import { baseName, fileKind } from "../../lib/space";
 import type { SpaceFile } from "../../server";
 import { NO_USERS } from "../canvas-file";
-import { useWorktreeFile } from "../data";
+import { useWorktreeCopy, useWorktreeFile, type WorktreeFile } from "../data";
 import { MarkdownView } from "../MarkdownView";
 import { isTldrawDevelopmentOrigin, loadInto, useHostColorScheme } from "../TldrawView";
 import { Centered } from "./Centered";
 import { HtmlFrame } from "./HtmlFrame";
 import { useSpaceNavigation } from "./routing";
+import { CopyFileButton } from "./WorktreeBadge";
 
 function ReadOnlyCanvas({ file, licenseKey }: { file: SpaceFile; licenseKey: string }) {
   const colorScheme = useHostColorScheme();
@@ -50,10 +52,13 @@ export function WorktreeDocument({
   previewBaseUrl,
   licenseKey,
   toolbar,
+  listed,
 }: {
   projectId: string;
   environmentId: string;
   path: string;
+  /** This file in the badge's list, or null when the badge does not list it. */
+  listed: WorktreeFile | null;
   /** The main space's preview: relative images and assets resolve there. */
   previewBaseUrl: string | null;
   licenseKey: string;
@@ -61,6 +66,15 @@ export function WorktreeDocument({
 }) {
   const go = useSpaceNavigation();
   const { file, branch, checkout, error } = useWorktreeFile(projectId, environmentId, path);
+  const { copy, busy, message } = useWorktreeCopy(projectId, environmentId);
+  const copyAndOpen = useCallback(
+    async (files: WorktreeFile[]) => {
+      const copied = await copy(files);
+      if (copied) go(projectId, path);
+      return copied;
+    },
+    [copy, go, projectId, path],
+  );
 
   const openSpacePath = useCallback(
     (target: string, hash: string) => {
@@ -81,7 +95,12 @@ export function WorktreeDocument({
       <span className="flex-1">
         Viewing branch <code className="font-mono">{branch ?? environmentId}</code> — not the
         main space. Read-only.
+        {listed?.mainChanged === true ? " The main space changed this file too." : null}
+        {message !== null ? <span className="ml-1 text-muted-foreground">{message}</span> : null}
       </span>
+      {listed != null ? (
+        <CopyFileButton file={listed} busy={busy} copy={copyAndOpen} label="Copy to main space" />
+      ) : null}
       <Button size="sm" variant="outline" onClick={() => go(projectId, path)}>
         Open main version
       </Button>

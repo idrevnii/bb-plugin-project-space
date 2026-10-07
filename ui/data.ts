@@ -9,6 +9,7 @@ import {
   useRpc,
 } from "@get-bb/plugin-sdk/app";
 import { SPACE_ANNOTATIONS_CHANGED, type Annotation } from "../lib/annotations";
+import { copySummary } from "../lib/worktrees";
 import type {
   SpaceFile,
   SpaceInfo,
@@ -348,4 +349,40 @@ export function useWorktreeFile(projectId: string, environmentId: string, path: 
   }, [refetch]);
   useSpaceChanges(projectId, false, refetch);
   return { ...(state ?? { file: null, branch: null, checkout: null }), error };
+}
+
+export type WorktreeFile = SpaceWorktree["files"][number];
+
+/**
+ * Copies files of one worktree into the main space. The server checks both
+ * shas from the listing, so a side that changed since is left alone.
+ * `message` says what happened; the badge refetches on `space-changed`.
+ */
+export function useWorktreeCopy(projectId: string, environmentId: string) {
+  const rpc = useSpaceRpc();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const copy = useCallback(
+    async (files: WorktreeFile[]): Promise<boolean> => {
+      setBusy(true);
+      setMessage(null);
+      try {
+        const result = await rpc.call("space_worktree_copy", {
+          projectId,
+          environmentId,
+          files: files.map(({ path, worktreeSha256, mainSha256 }) => ({ path, worktreeSha256, mainSha256 })),
+        });
+        const outcomes = result.files.map((file) => file.outcome);
+        setMessage(copySummary(outcomes));
+        return outcomes.every((outcome) => outcome === "copied");
+      } catch (cause) {
+        setMessage(`The copy failed: ${errorMessage(cause)}`);
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [rpc, projectId, environmentId],
+  );
+  return { copy, busy, message };
 }

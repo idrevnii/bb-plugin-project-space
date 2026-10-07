@@ -82,7 +82,8 @@ handler makes. **Keep the line coverage of `lib/` above 80 %.** Today it is
 | `tree-move.test.ts` | `ui/tree-move.ts`: permitted moves; the open document follows them |
 | `markdown-roundtrip.test.ts` | the TipTap schema (`ui/page/markdown-extensions.ts`): Markdown in, the same Markdown out, for each page of this space |
 | `watch-tree.test.ts` | `server/watch-tree.ts`: new folders, and files that a rename replaced |
-| `worktrees.test.ts` | `lib/worktrees.ts` and `?env=` in the route |
+| `worktrees.test.ts` | `lib/worktrees.ts` and `?env=` in the route; the copy summary |
+| `worktrees-rpc.test.ts` | `space_worktrees` and `space_worktree_copy` on the fake host: "main changed it too", a copy, a refused copy when one side changed |
 
 > [!NOTE] The canvas fixture is a snapshot
 > `test/fixtures/diagram.tldr` is an old copy of the architecture diagram. If
@@ -116,7 +117,7 @@ after a failure.
 | `outside-links.mjs` | a link out of the space opens the checkout file at its line or range; a link out of the checkout is plain text |
 | `canvas-view.mjs` | `bb space canvas --png` directly after a draw shows the new drawing, off-screen and open; a file edited by hand gets a new picture, not an old one |
 | `canvas-readonly.mjs` | a canvas that tldraw cannot load is read-only, and nothing saves over it; after a repair of the file, you can edit it again |
-| `worktrees.mjs` | a page added in the `.bb-space` of a worktree shows in the badge, opens read-only, and goes away after a delete; the script skips this check if there is no worktree |
+| `worktrees.mjs` | a page added in the `.bb-space` of a worktree shows in the badge, opens read-only, and goes away after a delete; **Copy to main space** copies a page; a page that main changed too is marked and copies only after a second click; the script skips this check if there is no worktree |
 | `tree-rename-delete.mjs` | a rename of the open page or its folder keeps the page open; the tree refuses a rename onto a name that exists; a delete of the open page or its folder opens the start page |
 | `tree-left.mjs` | *File tree position* = `left`: the tree is next to the document; open and make files there; a canvas fills the column; the switch back is live, and the script restores the setting |
 | `space-links.mjs` | the **Space** button in the thread header, with a label and as an icon only; the newest `::space` card in a thread and its *Open in space* (the script skips this check if the thread has no card) |
