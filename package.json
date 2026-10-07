@@ -62,6 +62,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^5.0.3",
     "better-sqlite3": "^12.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -82,6 +83,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "coverage": "vitest run --coverage --coverage.include='lib/**'",
     "build": "bb plugin build",
     "check": "npm run typecheck && npm test && npm run build",
     "e2e": "node scripts/e2e/smoke.mjs && node scripts/e2e/live-refresh.mjs && node scripts/e2e/draw.mjs && node scripts/e2e/annotations.mjs && node scripts/e2e/markdown-editor.mjs && node scripts/e2e/mermaid.mjs && node scripts/e2e/tree-dnd.mjs && node scripts/e2e/draw-lint.mjs && node scripts/e2e/outline.mjs && node scripts/e2e/search.mjs && node scripts/e2e/outside-links.mjs && node scripts/e2e/canvas-view.mjs && node scripts/e2e/canvas-readonly.mjs && node scripts/e2e/worktrees.mjs"

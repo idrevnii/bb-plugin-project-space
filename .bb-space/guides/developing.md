@@ -9,8 +9,30 @@ once without stepping on each other.
 npm install
 npm run check    # typecheck + unit tests (vitest) + bb plugin build
 npm test         # unit tests only; they live in test/
+npm run coverage # unit tests + line coverage of lib/ (HTML in coverage/)
 npm run e2e      # browser checks against the installed plugin
 ```
+
+## Unit tests
+
+Unit tests are `test/*.test.ts` (vitest), one file per module under test:
+
+| File | Covers |
+|---|---|
+| `space.test.ts`, `links.test.ts` | `lib/space.ts`: path normalization, link resolution, file kinds, names |
+| `canvas-layout.test.ts` | `lib/canvas/layout.ts`: box sizes, `lr`/`tb` layering, cycles, anchoring, title placement |
+| `canvas-read.test.ts` | `lib/canvas/read.ts` against `test/fixtures/diagram.tldr` (a copy of the architecture diagram), plus empty and broken files |
+| `canvas-spec.test.ts` | `lib/canvas/spec.ts`: colors, shapes and size limits |
+| `files-rpc.test.ts` | `space_write` / `space_read` handlers on the SDK's fake host (`@get-bb/plugin-sdk/testing`) with `bb.sdk.files` stubbed over a Map: conflicts and path rejection |
+
+Pure `lib/` code is tested directly. Server handlers run on
+`createFakePluginHost`, stubbing only the `bb.sdk` calls they make. Keep
+`lib/` line coverage above 80% (`npm run coverage`).
+
+The fixture is a snapshot: if a test needs a new kind of shape, edit the
+fixture, not the live diagram.
+
+## End-to-end checks
 
 `npm run e2e` drives a real bb server with Playwright, so the installed
 plugin must be the one you want to test. From the **main checkout** only:
