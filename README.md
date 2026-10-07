@@ -27,6 +27,8 @@ app.tsx              Space page (navPanel), Files tab, thread-header button, ::s
 ui/page/             routing, project picker, toolbar, text / HTML / binary documents
 ui/FileTree.tsx      tree with create / rename / delete
 ui/MarkdownView.tsx  Markdown reader
+ui/reading-style*    reading styles (Blue Topaz, Things) for reader and editor
+themes/              bb themes: palette + chat Markdown look
 ui/TldrawView.tsx    .tldr editor with CAS autosave
 ui/data.ts           RPC hooks with live refresh
 ui/canvas-apply.ts   spec → tldraw shapes      (ported from bb-plugin-canvas, MIT)
@@ -51,3 +53,10 @@ See [`.bb-space/guides/developing.md`](.bb-space/guides/developing.md).
 tldraw is bundled under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md):
 free on `http://` and localhost origins; other https origins need the
 *tldraw license key* setting.
+
+The *Reading style* setting and the **Blue Topaz** and **Things** themes
+(Settings → Appearance) follow the Obsidian themes
+[Blue Topaz](https://github.com/PKM-er/Blue-Topaz_Obsidian-css) and
+[Things](https://github.com/colineckert/obsidian-things) (both MIT). The
+themes' Markdown rules style bb's own DOM (`[data-markdown-preview]`), so a
+bb update can break them.

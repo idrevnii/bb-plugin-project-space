@@ -16,6 +16,24 @@
     "app": "./app.tsx",
     "skills": [
       "skills"
+    ],
+    "themes": [
+      {
+        "id": "blue-topaz",
+        "name": "Blue Topaz",
+        "description": "After the Obsidian Blue Topaz theme: headings colored by level, green italic, orange inline code, quotes behind an accent bar, in chat and in the space.",
+        "css": "./themes/blue-topaz.css"
+      },
+      {
+        "id": "things",
+        "name": "Things",
+        "description": "After the Obsidian Things theme: headings colored by level, tinted bold, italic and quotes, in chat and in the space.",
+        "css": "./themes/things.css",
+        "codeTheme": {
+          "dark": "one-dark-pro",
+          "light": "one-light"
+        }
+      }
     ]
   },
   "dependencies": {

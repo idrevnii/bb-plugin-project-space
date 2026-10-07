@@ -1,0 +1,140 @@
+/* The "blue-topaz" reading style for space Markdown, after the Obsidian
+   Blue Topaz theme's defaults (MIT,
+   https://github.com/PKM-er/Blue-Topaz_Obsidian-css): headings colored by
+   level (blues in light mode, a green-to-violet run in dark), strong bold,
+   green italic, gradient bold italic, orange inline code, quotes on a fill
+   behind a thick accent bar, orange bullets, tables with a tinted head and
+   striped rows.
+
+   themes/blue-topaz.css carries the same rules for bb's chat; keep the two
+   in step. The rules are unlayered, so they win over the Tailwind utilities
+   on the same elements. */
+
+[data-reading-style="blue-topaz"] {
+  --bt-h1: hsl(216deg 88% 26%);
+  --bt-h2: hsl(212deg 100% 33%);
+  --bt-h3: hsl(210deg 86% 39%);
+  --bt-h4: hsl(208deg 58% 49%);
+  --bt-h5: hsl(209deg 70% 62%);
+  --bt-h6: hsl(209deg 65% 60%);
+  --bt-accent: hsl(207deg 77% 54%);
+  --bt-strong: #000000;
+  --bt-em: #099d4e;
+  --bt-strong-em-from: #1048ff;
+  --bt-strong-em-to: #14c8ff;
+  --bt-code: #d45500;
+  --bt-code-fill: #cccccc62;
+  --bt-quote-fill: #d5d5d52c;
+  --bt-mark: hsl(34deg 100% 80% / 85%);
+  --bt-bullet: #f39c55;
+  --bt-row: #f1f1f176;
+  --bt-row-odd: #ffffff70;
+  --bt-row-hover: #85bfee2f;
+  --bt-rule: #bfbfbf;
+}
+
+.dark [data-reading-style="blue-topaz"] {
+  --bt-h1: hsl(78deg 62% 47%);
+  --bt-h2: hsl(118deg 42% 49%);
+  --bt-h3: hsl(180deg 53% 48%);
+  --bt-h4: hsl(216deg 69% 68%);
+  --bt-h5: hsl(258deg 79% 77%);
+  --bt-h6: hsl(290deg 85% 81%);
+  --bt-accent: hsl(208deg 64% 49%);
+  --bt-strong: #e7e7e7;
+  --bt-em: #a4ca8e;
+  --bt-strong-em-from: #43d3ff;
+  --bt-strong-em-to: #baaaff;
+  --bt-code: #d58000;
+  --bt-code-fill: #4c4c4cb0;
+  --bt-quote-fill: #9191911c;
+  --bt-mark: hsl(57deg 40% 38% / 54%);
+  --bt-bullet: #eb9563;
+  --bt-row: #2f2f2f32;
+  --bt-row-odd: #00000033;
+  --bt-row-hover: #08569a21;
+  --bt-rule: #3f3f3f;
+}
+
+[data-reading-style="blue-topaz"] h1 {
+  color: var(--bt-h1);
+}
+[data-reading-style="blue-topaz"] h2 {
+  color: var(--bt-h2);
+  border-bottom-color: var(--bt-h2);
+}
+[data-reading-style="blue-topaz"] h3 {
+  color: var(--bt-h3);
+}
+[data-reading-style="blue-topaz"] h4 {
+  color: var(--bt-h4);
+}
+[data-reading-style="blue-topaz"] h5 {
+  color: var(--bt-h5);
+}
+[data-reading-style="blue-topaz"] h6 {
+  color: var(--bt-h6);
+}
+/* Bold and italic inside a heading keep the heading's color. */
+[data-reading-style="blue-topaz"] :is(h1, h2, h3, h4, h5, h6) :is(strong, em) {
+  color: inherit;
+}
+
+[data-reading-style="blue-topaz"] strong {
+  color: var(--bt-strong);
+}
+[data-reading-style="blue-topaz"] em {
+  color: var(--bt-em);
+}
+[data-reading-style="blue-topaz"] :is(strong > em, em > strong) {
+  background-image: linear-gradient(120deg, var(--bt-strong-em-from) 0%, var(--bt-strong-em-to) 80%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-right: 0.05em;
+}
+[data-reading-style="blue-topaz"] mark {
+  color: inherit;
+  background-color: var(--bt-mark);
+  padding: 1px 2px;
+  border-radius: 3px;
+}
+
+[data-reading-style="blue-topaz"] :not(pre) > code {
+  color: var(--bt-code);
+  background-color: var(--bt-code-fill);
+}
+
+[data-reading-style="blue-topaz"] blockquote {
+  color: var(--foreground);
+  background-color: var(--bt-quote-fill);
+  border-left: 5px solid var(--bt-accent);
+  border-radius: 4px;
+  padding: 0.5em 0.5em 0.5em 0.9em;
+}
+
+[data-reading-style="blue-topaz"] ul > li::marker {
+  color: var(--bt-bullet);
+}
+[data-reading-style="blue-topaz"] ol > li::marker {
+  color: var(--bt-accent);
+}
+
+[data-reading-style="blue-topaz"] th {
+  background-color: color-mix(in srgb, var(--bt-accent) 10%, transparent);
+}
+[data-reading-style="blue-topaz"] :is(th, td) {
+  border-bottom-color: transparent;
+}
+[data-reading-style="blue-topaz"] tbody > tr {
+  background-color: var(--bt-row);
+}
+[data-reading-style="blue-topaz"] tbody > tr:nth-child(odd) {
+  background-color: var(--bt-row-odd);
+}
+[data-reading-style="blue-topaz"] tbody > tr:hover {
+  background-color: var(--bt-row-hover);
+}
+
+[data-reading-style="blue-topaz"] hr {
+  border-color: var(--bt-rule);
+}

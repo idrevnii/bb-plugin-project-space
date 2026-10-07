@@ -1,0 +1,189 @@
+/* Blue Topaz — a bb palette after the Obsidian Blue Topaz theme's defaults
+   (MIT, https://github.com/PKM-er/Blue-Topaz_Obsidian-css), plus its
+   Markdown look for bb's own Markdown: assistant replies and file previews,
+   both rendered inside [data-markdown-preview].
+
+   The palette tokens are bb's public theme API. The Markdown rules below
+   them style bb's DOM directly and may need adjusting after a bb update.
+   ui/reading-styles/blue-topaz.css carries the same rules for the space;
+   keep the two in step. */
+
+:root,
+.light {
+  --canvas: #ffffff;
+  --ink: #0e0e0e;
+  --primary: hsl(207deg 77% 54%);
+  --primary-foreground: #ffffff;
+  --muted-foreground: color-mix(in oklch, var(--ink) 66%, var(--canvas));
+  --subtle-foreground: color-mix(in oklch, var(--ink) 54%, var(--canvas));
+  --readback-foreground: color-mix(in oklch, var(--ink) 60%, var(--canvas));
+  --sidebar: #fcfcfc;
+  --destructive: #d04255;
+  --destructive-text: #b8323f;
+  --warning: #e08a2b;
+  --warning-text: #a85d00;
+  --attention: #e0b04a;
+  --success: #3f8f2a;
+  --diff-added: #3f8f2a;
+  --diff-removed: #d04255;
+  --pr-merged: #8a63d2;
+  --file-accent: hsl(207deg 77% 44%);
+
+  --bt-h1: hsl(216deg 88% 26%);
+  --bt-h2: hsl(212deg 100% 33%);
+  --bt-h3: hsl(210deg 86% 39%);
+  --bt-h4: hsl(208deg 58% 49%);
+  --bt-h5: hsl(209deg 70% 62%);
+  --bt-h6: hsl(209deg 65% 60%);
+  --bt-accent: hsl(207deg 77% 54%);
+  --bt-strong: #000000;
+  --bt-em: #099d4e;
+  --bt-strong-em-from: #1048ff;
+  --bt-strong-em-to: #14c8ff;
+  --bt-code: #d45500;
+  --bt-code-fill: #cccccc62;
+  --bt-quote-fill: #d5d5d52c;
+  --bt-mark: hsl(34deg 100% 80% / 85%);
+  --bt-bullet: #f39c55;
+  --bt-row: #f1f1f176;
+  --bt-row-odd: #ffffff70;
+  --bt-row-hover: #85bfee2f;
+  --bt-rule: #bfbfbf;
+}
+
+.dark {
+  --canvas: #202020;
+  --ink: #c6c6c6;
+  --primary: hsl(208deg 64% 49%);
+  --primary-foreground: #ffffff;
+  --sidebar: #151515;
+  --destructive: #c94f4f;
+  --destructive-text: #e16d76;
+  --warning: #e08a2b;
+  --warning-text: #eb9563;
+  --attention: #e0b04a;
+  --success: #6fb34a;
+  --diff-added: #6fb34a;
+  --diff-removed: #e16d76;
+  --pr-merged: #a98bf0;
+  --file-accent: hsl(208deg 70% 64%);
+
+  --bt-h1: hsl(78deg 62% 47%);
+  --bt-h2: hsl(118deg 42% 49%);
+  --bt-h3: hsl(180deg 53% 48%);
+  --bt-h4: hsl(216deg 69% 68%);
+  --bt-h5: hsl(258deg 79% 77%);
+  --bt-h6: hsl(290deg 85% 81%);
+  --bt-accent: hsl(208deg 64% 49%);
+  --bt-strong: #e7e7e7;
+  --bt-em: #a4ca8e;
+  --bt-strong-em-from: #43d3ff;
+  --bt-strong-em-to: #baaaff;
+  --bt-code: #d58000;
+  --bt-code-fill: #4c4c4cb0;
+  --bt-quote-fill: #9191911c;
+  --bt-mark: hsl(57deg 40% 38% / 54%);
+  --bt-bullet: #eb9563;
+  --bt-row: #2f2f2f32;
+  --bt-row-odd: #00000033;
+  --bt-row-hover: #08569a21;
+  --bt-rule: #3f3f3f;
+}
+
+/* Markdown. Heading sizes are relative to the surrounding text, which is
+   small in chat, so the levels stay apart without dwarfing the reply. */
+
+[data-markdown-preview] h1 {
+  color: var(--bt-h1);
+  font-size: 1.4em;
+  line-height: 1.3;
+}
+[data-markdown-preview] h2 {
+  color: var(--bt-h2);
+  font-size: 1.22em;
+  line-height: 1.35;
+  margin-top: 1.4em;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid var(--bt-h2);
+}
+[data-markdown-preview] h3 {
+  color: var(--bt-h3);
+  font-size: 1.1em;
+  margin-top: 1.2em;
+}
+[data-markdown-preview] h4 {
+  color: var(--bt-h4);
+  font-size: 1em;
+  font-weight: 600;
+}
+[data-markdown-preview] h5 {
+  color: var(--bt-h5);
+}
+[data-markdown-preview] h6 {
+  color: var(--bt-h6);
+}
+[data-markdown-preview] :is(h1, h2, h3):first-child {
+  margin-top: 0;
+}
+[data-markdown-preview] :is(h1, h2, h3, h4, h5, h6) :is(strong, em) {
+  color: inherit;
+}
+
+[data-markdown-preview] strong {
+  color: var(--bt-strong);
+}
+[data-markdown-preview] em {
+  color: var(--bt-em);
+}
+[data-markdown-preview] :is(strong > em, em > strong) {
+  background-image: linear-gradient(120deg, var(--bt-strong-em-from) 0%, var(--bt-strong-em-to) 80%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-right: 0.05em;
+}
+[data-markdown-preview] mark {
+  color: inherit;
+  background-color: var(--bt-mark);
+  padding: 1px 2px;
+  border-radius: 3px;
+}
+
+[data-markdown-preview] :not(pre) > code {
+  color: var(--bt-code);
+  background-color: var(--bt-code-fill);
+}
+
+[data-markdown-preview] blockquote {
+  color: var(--foreground);
+  background-color: var(--bt-quote-fill);
+  border-left: 5px solid var(--bt-accent);
+  border-radius: 4px;
+  padding: 0.5em 0.5em 0.5em 0.9em;
+}
+
+[data-markdown-preview] ul > li::marker {
+  color: var(--bt-bullet);
+}
+[data-markdown-preview] ol > li::marker {
+  color: var(--bt-accent);
+}
+
+[data-markdown-preview] th {
+  background-color: color-mix(in srgb, var(--bt-accent) 10%, transparent);
+}
+[data-markdown-preview] :is(th, td) {
+  border-color: transparent;
+}
+[data-markdown-preview] tbody > tr {
+  background-color: var(--bt-row);
+}
+[data-markdown-preview] tbody > tr:nth-child(odd) {
+  background-color: var(--bt-row-odd);
+}
+[data-markdown-preview] tbody > tr:hover {
+  background-color: var(--bt-row-hover);
+}
+
+[data-markdown-preview] hr {
+  border-color: var(--bt-rule);
+}

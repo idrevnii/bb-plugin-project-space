@@ -64,6 +64,14 @@ function defineSettings(bb: BbPluginApi) {
       options: ["right", "left"],
       default: "right",
     },
+    readingStyle: {
+      type: "select",
+      label: "Reading style",
+      description:
+        "How Markdown pages look. Blue Topaz and Things follow the Obsidian themes of those names: headings colored by level, styled bold, italic, code and quotes. Plain keeps the neutral look.",
+      options: ["blue-topaz", "things", "plain"],
+      default: "blue-topaz",
+    },
     tldrawLicenseKey: {
       type: "string",
       label: "tldraw license key",

@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { encodeSpacePath, resolveDocumentLink, resolveSpaceLink } from "../lib/space";
 import { MermaidBlock } from "./MermaidBlock";
+import { useReadingStyle } from "./reading-style";
 
 export interface MarkdownViewProps {
   content: string;
@@ -153,6 +154,7 @@ export function MarkdownView({
   checkout,
   spaceHas,
 }: MarkdownViewProps) {
+  const readingStyle = useReadingStyle();
   const components = useMemo<Components>(
     () => ({
       ...HEADINGS,
@@ -324,7 +326,7 @@ export function MarkdownView({
   );
 
   return (
-    <article className="text-[15px] text-foreground">
+    <article className="text-[15px] text-foreground" data-reading-style={readingStyle}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSlug]}

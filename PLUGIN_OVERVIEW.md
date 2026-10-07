@@ -8,6 +8,9 @@ Give every project a place for documentation people actually read.
   document — your choice in settings).
 - Markdown that reads like a document, HTML that renders like a web page,
   and tldraw canvases you can draw on.
+- Reading styles after the Obsidian themes **Blue Topaz** and **Things**:
+  headings colored by level, styled bold, italic, code and quotes. Matching
+  palettes in Settings → Appearance bring the same look to agent replies.
 - Live updates: when an agent writes a page, it appears while you look.
 
 ## How it works

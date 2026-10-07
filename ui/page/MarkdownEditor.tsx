@@ -7,6 +7,7 @@ import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/r
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { encodeSpacePath, resolveSpaceLink } from "../../lib/space";
+import { useReadingStyle } from "../reading-style";
 import { getEditorMarkdown, markdownExtensions, splitFrontmatter, withTrailingNewline } from "./markdown-extensions";
 
 // Mirrors MarkdownView's component classes, applied to ProseMirror's DOM.
@@ -58,6 +59,7 @@ export function MarkdownEditor({ initialContent, path, previewBaseUrl, onChange,
   // Latest callbacks without rebuilding the editor.
   const handlers = useRef({ onChange, onSave });
   handlers.current = { onChange, onSave };
+  const readingStyle = useReadingStyle();
 
   const editor = useEditor(
     {
@@ -92,7 +94,11 @@ export function MarkdownEditor({ initialContent, path, previewBaseUrl, onChange,
     <div className="flex min-h-0 flex-1 flex-col">
       {editor ? <FormatBar editor={editor} /> : null}
       <div className="min-h-0 flex-1 overflow-y-auto" onClick={() => editor?.commands.focus()}>
-        <div className="mx-auto w-full max-w-3xl px-6 py-8 md:px-10" onClick={(event) => event.stopPropagation()}>
+        <div
+          className="mx-auto w-full max-w-3xl px-6 py-8 md:px-10"
+          data-reading-style={readingStyle}
+          onClick={(event) => event.stopPropagation()}
+        >
           <EditorContent editor={editor} />
         </div>
       </div>

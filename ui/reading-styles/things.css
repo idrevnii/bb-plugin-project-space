@@ -1,0 +1,99 @@
+/* The "things" reading style for space Markdown, after the Obsidian Things
+   theme (MIT, https://github.com/colineckert/obsidian-things): headings
+   colored by level, tinted bold, italic and quotes, highlighted marks,
+   faded finished tasks, inline code on its own fill.
+
+   Colors read the --md-* variables first, so the plugin's Things bb theme
+   (themes/things.css), or any bb theme that sets them, colors the space and
+   chat alike; the fallbacks are Things' own colors. The rules are unlayered,
+   so they win over the Tailwind utilities on the same elements. */
+
+[data-reading-style="things"] {
+  --things-h1: var(--md-h1-color, var(--foreground));
+  --things-h2: var(--md-h2-color, var(--foreground));
+  --things-h3: var(--md-h3-color, #086ddd);
+  --things-h4: var(--md-h4-color, #a8781f);
+  --things-h5: var(--md-h5-color, #e4374b);
+  --things-h6: var(--md-h6-color, var(--muted-foreground));
+  --things-strong: var(--md-strong-color, #c32b74);
+  --things-em: var(--md-em-color, #c32b74);
+  --things-quote: var(--md-quote-color, #1f8a94);
+  --things-mark: var(--md-mark-color, hsl(50deg 100% 50% / 22%));
+  --things-mark-line: var(--md-mark-line-color, hsl(45deg 100% 45%));
+  --things-code: var(--md-code-color, #eceef1);
+}
+
+.dark [data-reading-style="things"] {
+  --things-h3: var(--md-h3-color, #2e80f2);
+  --things-h4: var(--md-h4-color, #e5b567);
+  --things-h5: var(--md-h5-color, #e83e3e);
+  --things-strong: var(--md-strong-color, #ff82b2);
+  --things-em: var(--md-em-color, #ff82b2);
+  --things-quote: var(--md-quote-color, #3eb4bf);
+  --things-mark: var(--md-mark-color, hsl(50deg 100% 50% / 18%));
+  --things-mark-line: var(--md-mark-line-color, hsl(50deg 100% 50%));
+  --things-code: var(--md-code-color, #303540);
+}
+
+[data-reading-style="things"] h1 {
+  color: var(--things-h1);
+}
+[data-reading-style="things"] h2 {
+  color: var(--things-h2);
+  border-bottom-width: 2px;
+}
+[data-reading-style="things"] h3 {
+  color: var(--things-h3);
+}
+[data-reading-style="things"] h4 {
+  color: var(--things-h4);
+}
+[data-reading-style="things"] h5 {
+  color: var(--things-h5);
+}
+[data-reading-style="things"] h6 {
+  color: var(--things-h6);
+}
+
+[data-reading-style="things"] strong {
+  color: var(--things-strong);
+}
+[data-reading-style="things"] em {
+  color: var(--things-em);
+}
+[data-reading-style="things"] mark {
+  color: inherit;
+  background-color: transparent;
+  background-image: linear-gradient(
+    0deg,
+    var(--things-mark-line) 0,
+    var(--things-mark-line) 2px,
+    var(--things-mark) 2px,
+    var(--things-mark) 100%
+  );
+}
+[data-reading-style="things"] mark :is(strong, em) {
+  color: inherit;
+}
+
+[data-reading-style="things"] blockquote {
+  color: var(--things-quote);
+  border-left-color: currentColor;
+  font-style: italic;
+}
+
+[data-reading-style="things"] :not(pre) > code {
+  background-color: var(--things-code);
+}
+
+/* Finished tasks recede: the reader's GFM items and the editor's task items. */
+[data-reading-style="things"] li.task-list-item:has(> input:checked),
+[data-reading-style="things"] li[data-checked="true"] {
+  color: var(--subtle-foreground);
+}
+
+[data-reading-style="things"] img {
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 12%),
+    0 1px 2px rgb(0 0 0 / 24%);
+}
