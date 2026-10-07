@@ -1,221 +1,312 @@
-# Using the space
+# Use the space
 
-How to open a project's space, find and organize pages, and read and edit
-them. Everything here happens in bb's full-screen **Space** page; the files
-behind it are the project's `.bb-space/` folder.
+This guide tells you how to open the space of a project, find and arrange
+pages, edit them and comment on them. You do all of this on the **Space
+screen** in bb. The files are in the `.bb-space/` folder of the project.
+
+## Parts of the Space screen
+
+The sketch shows the Space screen with the right panel open.
+
+```text
+┌─────────────────────────────────┬──────────────────────────┐
+│ (1) Space      [ project v ]    │ (4) Files Outline Review │
+├─────────────────────────────────┼──────────────────────────┤
+│ (2) project > page  Edit  (3)   │ (6) [ Search pages... ]  │
+├─────────────────────────────────┤                          │
+│                                 │   > architecture         │
+│ (5) The open file: a page       │   > guides               │
+│     or a canvas                 │     index                │
+│                                 │     roadmap              │
+└─────────────────────────────────┴──────────────────────────┘
+```
+
+| No. | Part | Does |
+| --- | --- | --- |
+| 1 | Title bar | selects the project |
+| 2 | Toolbar | shows the path of the open file, **Edit**, **Annotate** on HTML pages, and the worktree badge |
+| 3 | Panel button | shows and hides the right panel |
+| 4 | Tabs | switch the right panel between **Files**, **Outline** and **Review** |
+| 5 | Document | shows the open file |
+| 6 | Search box and tree | finds and lists the files of the space |
 
 ## Open the space
 
-- **Sidebar → Space** opens the last project you looked at.
-- The **Space** button in a thread's header opens that thread's project.
-- A `::space` card an agent posted in chat → **Open in space**.
+- In the bb sidebar, click **Space**. It opens the last project that you
+  looked at.
+- In the header of a thread, click **Space**. It opens the project of that
+  thread.
+- In chat, an agent can post a `::space` card. Click **Open in space**.
 
-Switch projects with the selector in the page's title bar.
+To show a different project, use the selector in the title bar.
 
-## Create, rename and delete pages
+## Make, rename and delete files
 
-The **Files** tab in the right panel is the tree; the folder button at the top
-right of the document shows and hides the panel.
+The **Files** tab in the right panel shows the tree of the space.
 
-1. Click **+** for a new page, canvas, HTML file or folder.
-2. Hover a row to rename or delete it. Renaming the open page, or its
-   folder, keeps it open under the new name; deleting it opens the start page.
-3. Pick a folder to open its `index.md`.
+1. To make a page, a canvas, an HTML file or a folder, click **+**.
+2. To rename or delete a file, move the pointer onto its row. Then click the
+   action.
+3. To open the `index.md` of a folder, click the folder.
 
-> [!TIP] Tree on the left
-> Settings → Plugins → Project Space → *File tree position* → `left` keeps the
-> tree beside the document instead of in the panel.
+If you rename the open file or its folder, the file stays open with its new
+name. If you delete the open file, the start page opens.
+
+> [!TIP] Put the tree on the left
+> Set Settings → Plugins → Project Space → *File tree position* to `left`.
+> The tree then shows next to the document, not in the right panel.
 
 ## Move files
 
-Drag a file or folder onto a folder to move it there, or onto the empty area
-below the tree to move it to the space root. Dropping on a file moves into
-that file's folder, and a closed folder opens after you hover it for a moment.
-If the open document moves, it stays open at its new path.
+Drag a file or a folder onto a folder to move it there. To move it to the
+root of the space, drag it onto the empty area below the tree.
 
-From the keyboard, use the row's **Move to…** action and pick a folder with
-the arrow keys and <kbd>Enter</kbd>.
+- If you drop an item onto a file, the item moves into the folder of that
+  file.
+- If you hold an item over a closed folder for a moment, the folder opens.
+- If the open file moves, it stays open at its new path.
 
-> [!NOTE] Refused moves
-> A folder cannot move into itself, and a move onto an existing name is
-> refused.
+To move an item with the keyboard, click **Move to…** on its row. Select a
+folder with the arrow keys and press <kbd>Enter</kbd>.
+
+> [!NOTE] Moves that the space refuses
+> You cannot move a folder into itself. You cannot move an item onto a name
+> that is already in the folder.
 
 ## Find a page
 
-The **search box** above the tree finds pages as you type: first files whose
-name matches (fuzzy), then lines containing the text, in any case — in
-Markdown, HTML and other text files, plus the labels on canvases.
+Type in the **search box** above the tree. The results show while you type:
+
+1. Files with a name that matches. The match is fuzzy.
+2. Lines that contain the text, in uppercase or lowercase. Search reads
+   Markdown, HTML and other text files, and the labels on canvases.
 
 | Key | Does |
 | --- | --- |
-| <kbd>↑</kbd> <kbd>↓</kbd> | pick a result |
-| <kbd>Enter</kbd> or a click | open it; a text hit in a Markdown page scrolls to its section |
-| <kbd>Esc</kbd> or × | clear the box and bring the tree back |
+| <kbd>↑</kbd> <kbd>↓</kbd> | selects a result |
+| <kbd>Enter</kbd> or a click | opens the result; a text hit on a Markdown page scrolls to its section |
+| <kbd>Esc</kbd> or × | clears the box and shows the tree again |
 
-Search stops after about two seconds or 50 results; a note says when there
-were more, so narrow the query.
+Search stops after about 2 seconds or 50 results. If there are more results,
+a note tells you. Then make the query more specific.
 
-## Jump within a page
+## Go to a heading
 
-The **Outline** tab, next to *Files*, lists the open Markdown page's headings.
-Click one to scroll to it; the heading you are reading is highlighted as you
-scroll. HTML pages and canvases have no outline.
+The **Outline** tab lists the headings of the open Markdown page. Click a
+heading to scroll to it. When you scroll, the outline highlights the heading
+that you read. HTML pages and canvases have no outline.
 
 ## Edit a Markdown page
 
-Markdown opens as a document; **Edit** makes the page itself editable, with
-the same look as reading.
+Click **Edit**. You can then change the page directly, and it keeps the look
+that it has in the reader.
 
-1. Format with the bar above the page: bold, italic, strikethrough,
-   highlight, code, lists, task lists, quotes, code blocks, links and tables
-   (row and column buttons appear while the cursor is in a table). Tick tasks
-   right in the page.
+1. Format the text with the bar above the page. It has bold, italic,
+   strikethrough, highlight, code, lists, task lists, quotes, code blocks,
+   links and tables. When the cursor is in a table, buttons for rows and
+   columns appear.
 2. Or type Markdown shortcuts: `## `, `- `, `1. `, `[ ] `, `` ` ``, `**`.
-3. **Source** switches to the raw text with a live preview, and back.
-4. Save with **Save** or <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>S</kbd>, then
-   **Done**.
+3. To see the raw text with a live preview, click **Source**. To return,
+   click it again.
+4. To save, click **Save** or press <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>S</kbd>.
+   Then click **Done**.
 
-> [!WARNING] An agent may have changed the file meanwhile
-> If so, saving shows a banner: keep their version (*Discard mine*) or
-> *Overwrite*. Nothing is merged for you.
+You can also tick a task directly on the page.
 
-Saving from the editor writes *normalized* Markdown: paragraphs on one line,
-`-` bullets, `| --- |` table rules. The page renders the same; only the
-source layout changes, and only once you edit. Frontmatter and raw HTML
-(shown as grey chips) are kept as written. A callout shows its title above
-its body: edit the body in place, the `> [!type] Title` line in *Source*.
-Footnote references show as small chips, and their notes stay where they are
-written.
+> [!WARNING] An agent can change the file while you edit it
+> If this happens, the save stops and a banner appears. To keep the other
+> version, click *Discard mine*. To keep your version, click *Overwrite*. The
+> space does not merge the two versions.
+
+### What the editor changes in the source
+
+When you save from the editor, it writes *normalized* Markdown:
+
+- each paragraph on one line;
+- `-` for bullets;
+- `| --- |` for the rule under a table header.
+
+The page looks the same. Only the layout of the source changes, and only
+after you edit the page.
+
+The editor keeps frontmatter and raw HTML as they are. It shows raw HTML as
+grey chips. For a callout, edit the body on the page and the
+`> [!type] Title` line in *Source*. Footnote references show as small chips,
+and the notes stay where you wrote them.
 
 ### Links to code
 
-Links to files elsewhere in the project, like `../../server/index.ts#L10`,
-open the file in bb's preview panel on the right with the line or range
-(`#L10-L24`) highlighted. A link that points above the project checkout is
-not clickable; hover it to see why.
+A link can point to a file outside the space, for example
+`../../server/index.ts#L10`. Click it to open the file in the bb preview on
+the right. The preview highlights the line, or the range for `#L10-L24`.
 
-## Annotations
+If a link points above the project checkout, you cannot click it. Move the
+pointer onto it to see the reason.
 
-Leave a comment on a passage of a Markdown page while reading it, on a
-passage of an HTML page ([below](#comments-on-an-html-page)), or on shapes in
-a canvas ([below](#comments-on-a-canvas)).
+## Comment on a page or a canvas
 
-1. Select the text; a **Comment** button appears under the selection.
-2. Write the comment and save with **Save** or
-   <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd>; <kbd>Esc</kbd> cancels.
-3. The passage stays highlighted. Click it to read the comment, **Edit** it,
-   **Resolve** (or **Reopen**) it, or **Delete** it. <kbd>Esc</kbd> while
-   editing leaves editing and keeps the comment open.
+You can attach comments to text on a Markdown page, to text on an HTML page
+and to shapes on a canvas. Then you send them to an agent from the **Review**
+tab. The agent changes the files and resolves each comment.
 
-The highlight follows the passage when the page is edited, by you or an
-agent, as long as the passage is still roughly there. A resolved comment is
-underlined instead of filled.
+```mermaid
+sequenceDiagram
+  actor You
+  participant S as Space screen
+  participant A as Agent thread
+  You->>S: select text, write a comment
+  You->>S: Review tab, Send to…
+  S->>A: message with the comments and their ids
+  A->>A: change the files
+  A->>S: bb space annotations resolve
+  S-->>You: the comment shows as resolved
+```
 
-> [!NOTE] When the text is gone
-> If the passage is deleted or rewritten beyond recognition, the comment is
-> kept and listed under the page title as *comment whose text is gone*.
+### On a Markdown page
+
+1. Select the text. A **Comment** button appears below the selection.
+2. Write the comment. To save it, click **Save** or press
+   <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd>. To cancel, press
+   <kbd>Esc</kbd>.
+3. The text stays highlighted. To read the comment, click the text. You can
+   then **Edit**, **Resolve**, **Reopen** or **Delete** the comment.
+
+If you press <kbd>Esc</kbd> while you edit a comment, the edit stops and the
+comment stays open.
+
+The highlight follows its text when you or an agent edit the page. This works
+while the text stays approximately the same. A resolved comment has an
+underline, not a fill.
+
+> [!NOTE] If the text is gone
+> If someone deletes the text or changes it too much, the space keeps the
+> comment. It shows under the page title as *comment whose text is gone*.
 > Click it to edit or delete it.
 
-Selecting text while editing does not offer *Comment*: press **Done** first.
-Comments live in `.bb-space/.space/annotations/` and move with the page when
-you rename or move it in the tree.
+In edit mode, a selection does not show **Comment**. Click **Done** first.
 
-### Comments on an HTML page
+The space keeps comments in `.bb-space/.space/annotations/`. When you rename
+or move a file in the tree, its comments move with it.
 
-Press **Annotate** in the toolbar first. Then comment as on a Markdown page:
-select text, press **Comment**, save. Highlights and comments whose text is
-gone show only while **Annotate** is on; they are listed above the page.
+### On an HTML page
 
-The page's own scripts keep running in **Annotate** mode, and it still
-cannot reach bb. Opening a comment from the **Review** tab turns
-**Annotate** on by itself.
+1. Click **Annotate** in the toolbar.
+2. Comment as on a Markdown page: select text, click **Comment** and save.
 
-### Comments on a canvas
+Highlights show only while **Annotate** is on. Comments whose text is gone
+show in a list above the page. In **Annotate** mode, the scripts of the page
+still run, and the page still cannot reach bb. If you open a comment from the
+**Review** tab, **Annotate** turns on automatically.
 
-On a canvas, a comment points at shapes instead of text.
+### On a canvas
 
-1. Select one or more shapes; a **Comment** button appears under the
-   selection. Right-clicking the selection offers **Comment** too.
-2. Write the comment and save, as on a page.
-3. ==A numbered badge sits on the top-right corner of the shapes== and moves
-   with them and with the view. Click it to read, edit, resolve or delete
-   the comment; a dashed frame shows which shapes it is on.
+On a canvas, a comment points at shapes, not at text.
 
-A comment stays on its shapes when they are moved, resized or restyled, and
-when an agent redraws the same node ids. It is lost only when every shape it
-points at is deleted.
+1. Select one or more shapes. A **Comment** button appears below the
+   selection. You can also right-click the selection and click **Comment**.
+2. Write the comment and save it, as on a page.
+3. ==A numbered badge appears at the top-right corner of the shapes.== It
+   moves with the shapes and with the view. Click it to read, edit, resolve
+   or delete the comment. A dashed frame shows the shapes of the comment.
 
-> [!NOTE] When the shapes are gone
-> The comment is kept and listed in the board's top-left corner as *comment
-> whose shapes are gone*. Click it to edit or delete it. Undoing the delete
-> brings the badge back.
+The comment stays on its shapes when you move, resize or restyle them. It
+also stays when an agent draws the same node ids again. The badge goes away
+only when all its shapes are deleted.
 
-Agents see canvas comments too: `bb space canvas` prints each one under the
-shape it points at.
+> [!NOTE] If the shapes are gone
+> The space keeps the comment. It shows in the top-left corner of the canvas
+> as *comment whose shapes are gone*. Click it to edit or delete it. If you
+> undo the delete, the badge comes back.
 
-### Review and send to an agent
+Agents see canvas comments too: `bb space canvas` prints each comment under
+its shape.
 
-The **Review** tab in the right panel lists the project's comments by file:
-open ones first, then sent, then resolved. Click a comment to open its page
-scrolled to it, or its canvas centered on its shapes.
+### Send comments to an agent
 
-1. Every open comment is ticked. Untick the ones to leave out.
-2. Press **Send to…** and pick where the review goes:
-   - **New thread** opens the new-thread composer with the review in it.
-   - **Composer on screen** adds it to a composer that is open now.
-   - **Thread of this project** posts it to that thread at once.
-3. The message lists each comment with its quote and id, and tells the agent
-   to resolve each one with `bb space annotations resolve`.
+The **Review** tab lists the comments of the project by file. Open comments
+come first, then sent comments, then resolved comments. Click a comment to
+open its file at the comment. A canvas moves its view to the shapes of the
+comment.
 
-A comment is marked *sent* when the message is sent, whichever way it went,
-and the tab updates without a reload. A prefilled draft you never send marks
-nothing.
+1. Each open comment has a tick. Remove the tick from each comment that you
+   do not want to send.
+2. Click **Send to…** and select a destination:
 
-> [!NOTE] New thread uses the composer's project
-> **New thread** opens the composer with the project it last had selected.
-> Check it before sending.
+   | Destination | Result |
+   | --- | --- |
+   | **New thread** | the composer for a new thread opens with the review in it |
+   | **Composer on screen** | the review goes into a composer that is open now |
+   | **Thread of this project** | the review goes to that thread immediately |
+
+3. The message lists each comment with its quote and its id. It tells the
+   agent to resolve each comment with `bb space annotations resolve`.
+
+When the message is sent, the tab marks its comments *sent*, for all three
+destinations. The tab updates without a reload. If you do not send a draft,
+no comment changes.
+
+> [!NOTE] Check the project of a new thread
+> **New thread** opens the composer with the project that it had last.
+> Check the project before you send.
 
 ## HTML pages and canvases
 
-HTML files render like a browser page, scripts included, in a sandbox that
-cannot reach bb. Canvases are full tldraw boards and save themselves 800 ms
-after the last edit. A canvas whose file tldraw cannot load opens read-only,
-with the reason, until the file is fixed.
+An HTML file shows as a web page and runs its scripts. It runs in a sandbox
+and cannot reach bb.
 
-If an agent rewrites a canvas while you have strokes it has not saved yet, a
-card offers **Load theirs** (your strokes go) or **Keep mine** (their version
-goes). A save already on its way waits for the answer first, so nothing is
-lost in between.
+A canvas is a full tldraw board. It saves 800 ms after your last change. If
+tldraw cannot load the file, the canvas opens read-only and shows the
+reason. It stays read-only until someone repairs the file.
+
+An agent can change a canvas while you have strokes that are not saved yet.
+Then a card appears:
+
+- **Load theirs** — the canvas shows the agent's version, and you lose your
+  strokes.
+- **Keep mine** — the canvas keeps your strokes, and the agent's version is
+  lost.
+
+If a save was in progress, it waits for your answer. Thus you lose nothing
+in between.
 
 > [!NOTE] Files that are not UTF-8 text
-> A Latin-1 page or a binary file with a text extension shows a notice instead
-> of its contents and has no **Edit**, so the space never saves over it.
+> A Latin-1 page, or a binary file with a text extension, shows a notice and
+> not its content. It has no **Edit** button, so the space never saves over
+> it.
 
 ## Worktrees
 
-The space you see is the one in the project's **main checkout**. A thread
-that runs in a worktree and writes its own `.bb-space/` there shows up as a
-badge in the bar above the page: "1 worktree changed the space".
+The Space screen shows the space in the **main checkout** of the project. A
+thread in a worktree can write into the `.bb-space/` of that worktree. If it
+does, a badge appears in the toolbar, for example "1 worktree changed the
+space".
 
-1. Click the badge to see each worktree's branch, its threads, and the files
-   it added (**A**), changed (**M**) or deleted (**D**).
-2. Click a file to open it read-only from that worktree, under a "Viewing
-   branch … — not the main space" banner.
-3. **Open main version** goes back.
+```mermaid
+flowchart LR
+  main[("main checkout: .bb-space/")] --> screen[Space screen]
+  wt[("worktree: .bb-space/")] -->|badge, read-only| screen
+  wt -->|merge of the branch| main
+```
 
-> [!IMPORTANT] Nothing is copied into the main space
-> Those edits arrive when the branch is merged. Why it works this way:
+1. Click the badge. It lists each worktree with its branch, its threads, and
+   the files that it added (**A**), changed (**M**) or deleted (**D**).
+2. Click a file. It opens read-only from that worktree, under the banner
+   "Viewing branch … — not the main space".
+3. To return, click **Open main version**.
+
+> [!IMPORTANT] The space copies nothing into the main space
+> The edits arrive when someone merges the branch. The reason is in the
 > [storage decision](../decisions/storage.md).
 
 ## Settings
 
-Settings → Plugins → Project Space:
+Go to Settings → Plugins → Project Space.
 
 | Setting | Values | Does |
 | --- | --- | --- |
-| *File tree position* | `right` (default), `left` | tree in the page's side panel, or beside the document |
-| *Reading style* | `blue-topaz` (default), `things`, `plain` | how Markdown pages look — see the [decision](../decisions/reading-styles.md) |
-| *tldraw license key* | a key, or empty | only needed when bb is opened over a non-local https address, such as bb connect |
+| *File tree position* | `right` (default), `left` | puts the tree in the right panel, or next to the document |
+| *Reading style* | `blue-topaz` (default), `things`, `plain` | sets the look of Markdown pages; see the [decision](../decisions/reading-styles.md) |
+| *tldraw license key* | a key, or empty | is necessary only when you open bb at an https address that is not local, for example with bb connect |
 
 The **Blue Topaz** and **Things** themes in Settings → Appearance give agent
 replies and file previews the same Markdown look.

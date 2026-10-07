@@ -9,57 +9,58 @@
 <body>
 <main>
   <h1>Project Space — status</h1>
-  <p class="sub">Version 0.1 · updated 2026-10-07 · source <code>.bb-space/reports/status.html</code> with a sibling stylesheet</p>
+  <p class="sub">Version 0.1 · updated 2026-10-08 · source <code>.bb-space/reports/status.html</code> and a stylesheet in the same folder</p>
 
   <section class="verdict">
-    <strong>On track.</strong> The MVP and wave 1 are merged with <code>npm run check</code> green.
-    The annotations UI works on Markdown pages and canvases (T30–T33).
-    What is left: annotating HTML pages (T34, ready to start).
+    <strong>Done.</strong> All planned tasks are merged, and <code>npm run check</code> passes.
+    Comments work on Markdown pages, HTML pages and canvases (T30–T34).
+    One item is open for later: copy the space edits of a worktree into the main space.
   </section>
 
   <div class="grid">
     <div class="stat"><b id="done">0</b><span>milestones shipped</span><div class="bar"><i id="progress"></i></div></div>
     <div class="stat"><b id="next">0</b><span>milestones open</span></div>
     <div class="stat"><b>98 %</b><span>line coverage of <code>lib/</code></span></div>
-    <div class="stat"><b>26</b><span>end-to-end scripts</span></div>
+    <div class="stat"><b>27</b><span>end-to-end scripts</span></div>
   </div>
 
   <h2>Milestones</h2>
-  <p class="hint">Filter the list — the page's own scripts run in the sandbox.</p>
+  <p class="hint">Filter the list. The scripts of this page run in the sandbox.</p>
   <div class="filters" role="group" aria-label="Filter milestones">
     <button data-filter="all" aria-pressed="true">All</button>
     <button data-filter="next" aria-pressed="false">Open</button>
     <button data-filter="done" aria-pressed="false">Shipped</button>
   </div>
   <ul class="items" id="items">
-    <li class="next"><span class="tag">OPEN</span>Annotate HTML pages <small>T34</small></li>
-    <li class="done"><span class="tag">DONE</span>Annotate canvases <small>T33</small></li>
+    <li class="next"><span class="tag">OPEN</span>Copy the space edits of a worktree into the main space <small>later</small></li>
+    <li class="done"><span class="tag">DONE</span>Comments on HTML pages <small>T34</small></li>
+    <li class="done"><span class="tag">DONE</span>Comments on canvases <small>T33</small></li>
     <li class="done"><span class="tag">DONE</span>Annotations for agents: <code>bb space annotations</code> <small>T32</small></li>
-    <li class="done"><span class="tag">DONE</span>Review tab and sending annotations to a thread <small>T31</small></li>
-    <li class="done"><span class="tag">DONE</span>Annotate Markdown pages <small>T30</small></li>
+    <li class="done"><span class="tag">DONE</span>Review tab and <em>Send to…</em> a thread <small>T31</small></li>
+    <li class="done"><span class="tag">DONE</span>Comments on Markdown pages <small>T30</small></li>
     <li class="done"><span class="tag">DONE</span>UI QA sweep <small>T21</small></li>
     <li class="done"><span class="tag">DONE</span>Annotations data layer <small>T10</small></li>
-    <li class="done"><span class="tag">DONE</span>Callouts, highlights, footnotes, safe HTML in Markdown</li>
+    <li class="done"><span class="tag">DONE</span>Callouts, highlights, footnotes and safe HTML in Markdown</li>
     <li class="done"><span class="tag">DONE</span>Reading styles and bb themes (Blue Topaz, Things)</li>
     <li class="done"><span class="tag">DONE</span>Unit tests for the pure core <small>T20</small></li>
     <li class="done"><span class="tag">DONE</span>Worktree awareness <small>T19</small></li>
     <li class="done"><span class="tag">DONE</span>Canvas pictures for agents (PNG) <small>T18</small></li>
     <li class="done"><span class="tag">DONE</span>Overlap lint after agent drawing <small>T17</small></li>
     <li class="done"><span class="tag">DONE</span>Links to project files outside the space <small>T16</small></li>
-    <li class="done"><span class="tag">DONE</span>Search across the space <small>T15</small></li>
+    <li class="done"><span class="tag">DONE</span>Search in the space <small>T15</small></li>
     <li class="done"><span class="tag">DONE</span>Outline tab <small>T14</small></li>
     <li class="done"><span class="tag">DONE</span>Drag and drop, <em>Move to…</em> <small>T13</small></li>
     <li class="done"><span class="tag">DONE</span>Mermaid diagrams in Markdown <small>T12</small></li>
     <li class="done"><span class="tag">DONE</span>WYSIWYG Markdown editor <small>T11</small></li>
     <li class="done"><span class="tag">DONE</span>Agent drawing on canvases <small>MVP</small></li>
-    <li class="done"><span class="tag">DONE</span>Live refresh on agent writes <small>MVP</small></li>
+    <li class="done"><span class="tag">DONE</span>Live refresh after agent writes <small>MVP</small></li>
     <li class="done"><span class="tag">DONE</span>tldraw canvases with autosave <small>MVP</small></li>
     <li class="done"><span class="tag">DONE</span>Sandboxed HTML with relative assets <small>MVP</small></li>
-    <li class="done"><span class="tag">DONE</span>Full-screen Space page, file tree, Markdown reader <small>MVP</small></li>
+    <li class="done"><span class="tag">DONE</span>Full-screen Space screen, file tree, Markdown reader <small>MVP</small></li>
   </ul>
 
   <h2>Where to read more</h2>
-  <p>The <a href="../roadmap.md">roadmap</a> lists every item; the task briefs are in <a href="../tasks/index.md">tasks</a>.</p>
+  <p>The <a href="../roadmap.md">roadmap</a> lists all items. The task briefs are in <a href="../tasks/index.md">tasks</a>.</p>
 </main>
 <script>
   const items = [...document.querySelectorAll("#items li")];

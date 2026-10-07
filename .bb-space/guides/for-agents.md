@@ -1,106 +1,125 @@
 # For agents
 
-What an agent can do with a project's space: the `bb space` commands, the
-drawing tools, and the rules for writing pages. The plugin ships these rules
-as the `project-space` skill ([SKILL.md](../../skills/project-space/SKILL.md));
-this page is the short version.
+This page lists what an agent can do with the space of a project: the
+`bb space` commands, the agent tools and the rules for pages. The plugin
+gives agents these rules in the `project-space` skill
+([SKILL.md](../../skills/project-space/SKILL.md)). This page is the short
+version.
 
-> [!IMPORTANT] Write where `bb space root` points
-> Write files there with ordinary tools. In a worktree that path is the main
-> checkout, so the user sees changes at once.
+> [!IMPORTANT] Write at the path that `bb space root` prints
+> Use your usual file tools at that path. In a worktree, the path is in the
+> main checkout, so the user sees your changes immediately.
 
 ## Commands
 
 | Command | Does |
 | --- | --- |
-| `bb space root` | prints the absolute path of the live space; creates nothing |
-| `bb space init` | creates the space with an `index.md` if missing |
-| `bb space tree` | lists what is there |
-| `bb space search <text>` | finds pages by name, then by text inside |
-| `bb space link <path> --title "…"` | prints a `::space` directive that shows the page as a card in chat |
-| `bb space draw <path.tldr> --spec-file spec.json` | draws a boxes-and-arrows diagram |
-| `bb space canvas <path.tldr>` | reads a canvas back as text, with the user's comments under the shapes they point at |
-| `bb space canvas <path.tldr> --png /tmp/d.png` | saves a PNG of the canvas, as the user sees it |
-| `bb space annotations list [--path p] [--status open\|sent\|resolved]` | the user's comments, one line each with its `ann_…` id |
-| `bb space annotations show <id>` | one comment with the quoted passage and 3 lines of the file around it |
-| `bb space annotations resolve <id> --note "…"` | marks it done; the note shows in the Review tab |
-| `bb space annotations reply <id> "…"` | answers without resolving, e.g. a question back |
+| `bb space root` | prints the absolute path of the live space; makes nothing |
+| `bb space init` | makes the space with an `index.md` if it is missing |
+| `bb space tree` | lists the files of the space |
+| `bb space search <text>` | finds pages by name, then by the text in them |
+| `bb space link <path> --title "…"` | prints a `::space` directive, which shows the page as a card in chat |
+| `bb space draw <path.tldr> --spec-file spec.json` | draws a diagram of boxes and arrows |
+| `bb space canvas <path.tldr>` | prints a canvas as text, with the user's comments under their shapes |
+| `bb space canvas <path.tldr> --png /tmp/d.png` | saves a PNG of the canvas as the user sees it |
+| `bb space annotations list [--path p] [--status open\|sent\|resolved]` | lists the user's comments, one line each with its `ann_…` id |
+| `bb space annotations show <id>` | prints one comment with its quote and 3 lines of the file around it |
+| `bb space annotations resolve <id> --note "…"` | marks the comment as done; the Review tab shows the note |
+| `bb space annotations reply <id> "…"` | answers and does not resolve, for example to ask a question back |
 
 ### Search output
 
-`bb space search` prints name matches first, one path per line, then text
-hits as `path:line: snippet`; canvas hits name the matching shape label, with
-no line.
+`bb space search` prints the name matches first, one path on each line.
+Then it prints the text hits as `path:line: snippet`. A canvas hit gives the
+label of the shape and has no line number.
 
 | Limit | Value |
 | --- | --- |
 | case | ignored |
-| hits per file | 3 |
+| hits in each file | 3 |
 | results | 50 (`--limit` for fewer) |
-| time | about 2 s, then a last line says more were cut |
+| time | about 2 s; then a last line says that the output was cut |
 | `--json` | `{ results: [{ path, kind, line?, snippet? }], truncated }` |
 
 > [!TIP] Search before you write
-> Extend the page that exists rather than adding a near-duplicate.
+> If a page about the topic exists, extend it. Do not add a second page
+> about the same topic.
 
-### When the user sends annotations
+### Comments from the user
 
-The Review tab's *Send to…* posts a message that starts with
-`Review of the project space` and ends each line with an `ann_…` id. For
-each id:
+The *Send to…* button of the Review tab posts a message. The message starts
+with `Review of the project space`, and each line ends with an `ann_…` id.
+The diagram shows what to do with each id.
 
-1. `bb space annotations show <id>` — read the comment and where the passage
-   is now.
+```mermaid
+flowchart LR
+  msg([Review message]) --> show["show id"]
+  show --> clear{Is it clear?}
+  clear -->|yes| edit[Change the file]
+  edit --> resolve["resolve id --note"]
+  clear -->|no| reply["reply id with a question"]
+```
+
+1. Run `bb space annotations show <id>`. It prints the comment and the
+   current position of the quoted text.
 2. Change the file.
-3. `bb space annotations resolve <id> --note "…"` — one line on what changed.
+3. Run `bb space annotations resolve <id> --note "…"`. Write one line about
+   the change.
 
-==Each output stays under 60 KB==; `list` ends with `… N more not shown`
-when it is cut, so narrow it with `--path` or `--status`.
+If a comment is not clear, run `bb space annotations reply <id> "…"` with
+your question. The comment stays open.
+
+==Each output stays below 60 KB.== If `list` cuts its output, the last line
+is `… N more not shown`. Then use `--path` or `--status` to get fewer lines.
 
 A comment on a canvas points at shapes. `bb space canvas <path.tldr>` prints
-it under the first of them, with the others named:
+the comment under the first of these shapes and names the other shapes:
 
 ```text
 - id "api" [rectangle] "API" at (0, 0) 160x80
     ↳ comment ann_k2… [sent] (also on db): "These two should be one service"
 ```
 
-Comments whose shapes are gone, are only hand-drawn, or are on the whole
-canvas follow in a closing *Comments* section; resolved ones are only
-counted. The `space_draw` result prints them the same way.
+A *Comments* section at the end lists the other comments. These are comments
+whose shapes are gone, comments on hand-drawn shapes only, and comments on
+the whole canvas. It only counts resolved comments. The result of
+`space_draw` prints comments in the same way.
 
 ## Tools
 
-In new threads the same drawing, and the annotations, are available as agent tools.
+In new threads, the drawing commands and the comment commands are also
+agent tools.
 
 | Tool | Does |
 | --- | --- |
-| `space_draw` | draws or updates a diagram from a spec; the result ends with an *Overlaps* section to fix |
-| `space_canvas_read` | the canvas as text: nodes, arrows, text, hand-drawn shapes, and comments under their shapes |
-| `space_canvas_view` | a PNG of the canvas (light theme, at most 1600 px wide) |
-| `space_annotations` | `action: list \| show \| resolve`, the same as the `bb space annotations` commands |
+| `space_draw` | draws or changes a diagram from a spec; the result ends with an *Overlaps* section for you to repair |
+| `space_canvas_read` | prints the canvas as text: nodes, arrows, text, hand-drawn shapes, and comments under their shapes |
+| `space_canvas_view` | returns a PNG of the canvas, in the light theme and 1600 px wide or less |
+| `space_annotations` | does `action: list \| show \| resolve`, the same as `bb space annotations` |
 
-tldraw runs only in the browser, so pictures come from an open bb window:
-every save posts one, and a stale one is re-rendered on request. ==With no
-window open, `space_canvas_view` answers within 12 s that it could not
-render==; fall back to `space_canvas_read`. Pictures live in the plugin's
-database, never in `.bb-space/`.
+tldraw runs only in a browser, so an open bb window makes the pictures. Each
+save posts a picture. If the picture is old, the window makes a new one on
+request. ==If no bb window is open, `space_canvas_view` tells you in 12 s or
+less that it cannot make the picture.== Then use `space_canvas_read`. The
+plugin keeps pictures in its database, never in `.bb-space/`.
 
 ## Rules for pages
 
-- **Front page** — keep `index.md` short and link every new page from it.
-- **Organization** — one topic per page, folders by topic, lowercase-kebab
-  names, relative links between pages.
-- **Links to code** — relative paths too: from `guides/x.md`,
-  `[entry](../../server/index.ts#L10)` (or `#L10-L24`) opens the file in bb's
-  preview with those lines highlighted. A link that climbs above the checkout
-  stays plain text; `/src/app.ts` means the checkout root unless the space
-  has that file.
-- **Formats** — Markdown by default; HTML for visual or interactive reports;
-  `.tldr` canvases for diagrams, drawn with `space_draw`, never hand-written
-  JSON. Small diagrams tied to the text go inline as ` ```mermaid ` blocks.
-- **Formatting** — every mark is a signal in the reading styles, so each gets
-  one job: **bold** for the thing to remember, *italic* for a new term,
-  `code` for anything literal, ==highlight== for what changed, callouts
-  colored by what the reader should do, tables for items that share
-  attributes. The skill's *Write for a reader* section has the full rules.
+- **Front page** — keep `index.md` short. Link each new page from it.
+- **Order** — write one topic on each page and put the folders in order by
+  topic. Use lowercase-kebab names and relative links between pages.
+- **Links to code** — use relative paths here too. From `guides/x.md`,
+  `[entry](../../server/index.ts#L10)` (or `#L10-L24`) opens the file in the
+  bb preview with these lines highlighted. A link that goes above the
+  checkout stays plain text. `/src/app.ts` points to the checkout root, if
+  the space has no file at that path.
+- **Formats** — use Markdown by default. Use HTML for visual or interactive
+  reports. Use `.tldr` canvases for diagrams. Draw them with `space_draw` and
+  never write their JSON by hand. Put small diagrams that go with the text
+  inline as ` ```mermaid ` blocks.
+- **Marks** — each mark is a signal in the reading styles, so give each mark
+  one job. Use **bold** for the thing to remember, *italic* for a new term,
+  `code` for literal text, and ==highlight== for what changed. Select the
+  callout type by what the reader must do. Use tables for items with the
+  same attributes. The skill's *Write for a reader* section has all the
+  rules.

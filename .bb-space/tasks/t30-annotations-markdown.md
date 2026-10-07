@@ -3,7 +3,7 @@
 Select text in a rendered Markdown page, write a comment, see it highlighted.
 
 > [!success] Done 2026-10-07
-> Wave 2 · depends on: T10. Documented in [Using the space → Annotations](../guides/using-the-space.md#annotations)
+> Wave 2 · depends on: T10. Documented in [Using the space → Annotations](../guides/using-the-space.md#comment-on-a-page-or-a-canvas)
 > and [Annotations → Markdown pages](../architecture/annotations.md#markdown-pages).
 
 ## Read first

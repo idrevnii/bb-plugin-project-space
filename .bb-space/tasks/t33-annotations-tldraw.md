@@ -3,7 +3,7 @@
 Comment on shapes in a tldraw canvas.
 
 > [!success] Done 2026-10-07
-> Wave 2 · depends on: T10. Documented in [Using the space → Comments on a canvas](../guides/using-the-space.md#comments-on-a-canvas)
+> Wave 2 · depends on: T10. Documented in [Using the space → Comments on a canvas](../guides/using-the-space.md#on-a-canvas)
 > and [Annotations → Canvases](../architecture/annotations.md#canvases).
 
 ## Read first

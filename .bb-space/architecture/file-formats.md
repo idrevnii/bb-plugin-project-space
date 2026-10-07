@@ -1,68 +1,70 @@
 # File formats
 
-What each file in a space opens as, and the Markdown syntax the reader
-understands beyond plain GFM. Look things up here; how the reader is built is
-in [architecture](index.md).
+This page tells what each file in a space opens as. It also lists the
+Markdown syntax that the reader knows in addition to plain GFM. Use it to
+look things up. How the reader is built is in [architecture](index.md).
 
 ## What opens as what
 
-| Extension | Opens as | Edited by |
+| Extension | Opens as | Edited with |
 | --- | --- | --- |
-| `.md`, `.markdown`, `.mdx` | rendered document | in place (WYSIWYG), or *Source* with a live preview |
-| `.html`, `.htm` | live page in a sandboxed iframe | source with a live preview |
-| `.tldr` | tldraw canvas | tldraw, autosaved |
-| `.png`, `.jpg`, `.gif`, `.webp`, `.avif`, `.svg` | image | — |
-| `.pdf` | the browser's PDF viewer | — |
-| anything else | highlighted source | source |
+| `.md`, `.markdown`, `.mdx` | a rendered document | the page itself (WYSIWYG), or *Source* with a live preview |
+| `.html`, `.htm` | a live page in a sandboxed iframe | the source, with a live preview |
+| `.tldr` | a tldraw canvas | tldraw, with autosave |
+| `.png`, `.jpg`, `.gif`, `.webp`, `.avif`, `.svg` | an image | — |
+| `.pdf` | the PDF viewer of the browser | — |
+| all other extensions | highlighted source | the source |
 
-`.tldr` files use tldraw's own format (`serializeTldrawJson`), so they also
-open on [tldraw.com](https://tldraw.com). An empty `.tldr` is a blank board;
-the first edit writes the format. Agents draw into them with `space_draw` /
-`bb space draw`, never by writing the JSON.
+`.tldr` files use the format of tldraw (`serializeTldrawJson`), so they also
+open on [tldraw.com](https://tldraw.com). An empty `.tldr` file is an empty
+canvas, and the first edit writes the format. Agents draw into canvases with
+`space_draw` or `bb space draw`. They never write the JSON.
 
 > [!NOTE] Hidden files
-> Dot-prefixed files and folders are hidden from the tree. `.bb-space/.space/`
-> is reserved for the plugin's bookkeeping — today, [annotations](annotations.md).
+> The tree does not show files and folders whose name starts with a dot.
+> `.bb-space/.space/` is for the plugin's own data. Today, this is
+> [annotations](annotations.md).
 
-## Markdown beyond GFM
+## Markdown in addition to GFM
 
-Pages are GitHub-flavored Markdown (tables, task lists, strikethrough,
-footnotes, autolinks) plus what GitHub and Obsidian readers expect.
+Pages are GitHub-flavored Markdown: tables, task lists, strikethrough,
+footnotes and autolinks. The reader also knows the syntax that GitHub and
+Obsidian readers know:
 
 | Syntax | Renders as |
 | --- | --- |
-| `> [!NOTE]` … `> [!CAUTION]` | GitHub alert: a colored callout with an icon |
-| `> [!info] Title`, `> [!bug]- Title` | Obsidian callout with its own title; `-` starts folded, `+` foldable but open |
-| `==text==` | highlight (`<mark>`) |
-| `[^1]` and `[^1]: …` | footnote; the notes gather at the end of the page |
+| `> [!NOTE]` … `> [!CAUTION]` | a GitHub alert: a colored callout with an icon |
+| `> [!info] Title`, `> [!bug]- Title` | an Obsidian callout with its own title; `-` makes it start folded, `+` makes it foldable but open |
+| `==text==` | a highlight (`<mark>`) |
+| `[^1]` and `[^1]: …` | a footnote; the notes go to the end of the page |
 | `<kbd>`, `<mark>`, `<details>`/`<summary>`, `<sub>`, `<sup>`, … | the HTML element |
 
-Callout types fall into GitHub's five colors:
+Each callout type gets one of the five GitHub colors:
 
 | Color | Types |
 | --- | --- |
-| *note* (blue) | `note`, `info`, `todo`, `abstract`, `summary`, `tldr`, and any unknown type |
+| *note* (blue) | `note`, `info`, `todo`, `abstract`, `summary`, `tldr`, and all unknown types |
 | *tip* (green) | `tip`, `hint`, `success`, `check`, `done` |
 | *important* (violet) | `important`, `question`, `help`, `faq`, `example` |
 | *warning* (orange) | `warning`, `attention` |
 | *caution* (red) | `caution`, `danger`, `error`, `failure`, `bug`, `missing` |
 | grey | `quote`, `cite` |
 
-Parsing lives in [lib/callouts.ts](../../lib/callouts.ts), shared by the
-reader and the editor; the reader's plugins are in
+The parser is in [lib/callouts.ts](../../lib/callouts.ts). The reader and
+the editor both use it. The reader's plugins are in
 [ui/markdown-plugins.ts](../../ui/markdown-plugins.ts).
 
-> [!WARNING] Raw HTML is sanitized
-> Only GitHub's allowlist plus `<mark>` survives: scripts, `style`, event
-> handlers and `javascript:` links are dropped. Ids from footnotes and raw
-> HTML get a `user-content-` prefix; in-page `#` links find them either way.
-> For anything styled, write an HTML page.
+> [!WARNING] Write an HTML page for styled content
+> The reader sanitizes raw HTML. Only the GitHub allowlist and `<mark>` stay.
+> It removes scripts, `style`, event handlers and `javascript:` links. Ids
+> from footnotes and raw HTML get the prefix `user-content-`. In-page `#`
+> links find them with or without the prefix.
 
 ## Mermaid diagrams
 
-A fenced `mermaid` block renders as a diagram in bb's light or dark theme and
-re-renders when the theme flips. This page's own example (open *Source* to
-see the fence):
+A fenced `mermaid` block renders as a diagram in the light or dark theme of
+bb. When the theme changes, the diagram renders again. Here is an example.
+To see the fence, open *Source*.
 
 ```mermaid
 flowchart LR
@@ -71,10 +73,11 @@ flowchart LR
   reader -->|you comment| agent
 ```
 
-- **Any diagram type** mermaid supports works: `sequenceDiagram`,
-  `classDiagram`, `stateDiagram-v2`, `erDiagram`, `gantt`, …
-- **Strict security** — `securityLevel: "strict"`: HTML in labels is
-  sanitized and `click` directives are ignored.
-- **Parse errors** show mermaid's error line above the diagram source.
-- **Loading** — mermaid is bundled into the Space page but initialised only
-  when a page first contains a diagram.
+- **All diagram types** of mermaid work: `sequenceDiagram`, `classDiagram`,
+  `stateDiagram-v2`, `erDiagram`, `gantt`, and others.
+- **Strict security** — with `securityLevel: "strict"`, the reader sanitizes
+  HTML in labels and ignores `click` directives.
+- **Parse errors** — the error line of mermaid shows above the source of the
+  diagram.
+- **Load time** — the Space screen bundles mermaid but starts it only when a
+  page first has a diagram.

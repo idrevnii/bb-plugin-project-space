@@ -3,7 +3,7 @@
 Agents can list, answer and resolve annotations, closing the loop T31 opens.
 
 > [!success] Done 2026-10-07
-> Wave 2 · depends on: T10. Documented in [For agents → When the user sends annotations](../guides/for-agents.md#when-the-user-sends-annotations)
+> Wave 2 · depends on: T10. Documented in [For agents → When the user sends annotations](../guides/for-agents.md#comments-from-the-user)
 > and [Annotations → For agents](../architecture/annotations.md#for-agents).
 
 ## Read first

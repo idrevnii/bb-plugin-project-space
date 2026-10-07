@@ -4,7 +4,7 @@ Collect open annotations and send them to an agent in one message: the bridge
 from the full-screen space back to threads.
 
 > [!success] Done 2026-10-07
-> Wave 2 · depends on: T10. Documented in [Using the space → Review and send to an agent](../guides/using-the-space.md#review-and-send-to-an-agent)
+> Wave 2 · depends on: T10. Documented in [Using the space → Review and send to an agent](../guides/using-the-space.md#send-comments-to-an-agent)
 > and [Annotations → Review and *Send to…*](../architecture/annotations.md#review-and-send-to).
 
 ## Read first

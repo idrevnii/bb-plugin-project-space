@@ -1,12 +1,12 @@
 # Annotations go back to threads
 
-The space is a full screen, not a thread panel, so a comment the user leaves
-on a page needs an explicit route back to an agent. This decision fixes that
-route.
+The space is a full screen, not a panel of a thread. Thus a comment that the
+user writes on a page needs a clear path back to an agent. This decision
+sets that path.
 
-**Decision.** Users pin comments to places in space files, collect them in a
-*Review* tab, and send them to a thread; ==the agent resolves each one when it
-has acted on it==.
+**Decision.** Users attach comments to places in space files, collect them
+in a *Review* tab and send them to a thread. ==The agent resolves each
+comment after it acts on it.==
 
 > [!NOTE] Status
 > Accepted and built for Markdown pages, HTML pages and canvases: the data
@@ -15,26 +15,29 @@ has acted on it==.
 
 ## Why
 
-Comments only help if they survive edits and reach the agent with enough
-context to act. So the design has four steps:
+A comment helps only if it stays in place after edits and gets to the agent
+with enough context. Thus the design has four steps:
 
-1. **Anchor.** Markdown and HTML annotations store a text-quote selector
-   (`exact` + `prefix` + `suffix`), so they survive edits; tldraw annotations
-   store shape ids. They are saved under `.bb-space/.space/annotations/`.
-2. **Collect.** Comments gather in a *Review* tab in the right panel.
-3. **Send.** *Send to…* picks a thread of this project or starts a new one.
-4. **Close the loop.** `bb space annotations list | resolve <id>` lets the
-   agent mark what it fixed; the tab shows open versus resolved.
+1. **Anchor.** A comment on a Markdown or HTML page stores a text-quote
+   selector (`exact` + `prefix` + `suffix`), so it stays in place after
+   edits. A comment on a canvas stores shape ids. The plugin saves comments
+   in `.bb-space/.space/annotations/`.
+2. **Collect.** Comments go into a *Review* tab in the right panel.
+3. **Send.** *Send to…* sends them to a thread of this project or starts a
+   new thread.
+4. **Resolve.** With `bb space annotations list | resolve <id>`, the agent
+   marks what it did. The tab shows which comments are open and which are
+   resolved.
 
-Sending has two transports, picked by what is on screen:
-
-| Situation | Transport |
-| --- | --- |
-| the space is open in a split next to a thread | `useComposers()` inserts into that composer; the user sends |
-| no composer visible | server `bb.sdk.threads.send` / `spawn` |
+*Send to…* has three destinations: a new thread, a composer on the screen,
+or a thread of this project. The first two put the review into a composer,
+and the user sends it. The third sends directly with
+`bb.sdk.threads.send`. Details are in
+[Architecture → Review and Send to](../architecture/annotations.md#review-and-send-to).
 
 ## Consequences
 
-- Annotations live in the repo with the space, hidden from the tree.
-- Moves and removes made in the app carry annotations along; moves made
-  outside it (`mv`, `git mv`) leave them orphaned.
+- Comments stay in the repository with the space. The tree does not show
+  them.
+- When you move or remove a file in the app, its comments move or go with
+  it. A move outside the app (`mv`, `git mv`) leaves its comments orphaned.
