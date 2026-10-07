@@ -7,6 +7,7 @@ import Code from "@tiptap/extension-code";
 import Highlight from "@tiptap/extension-highlight";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
+import Paragraph from "@tiptap/extension-paragraph";
 import { ListItem, TaskItem, TaskList } from "@tiptap/extension-list";
 import { TableKit } from "@tiptap/extension-table";
 import { Markdown } from "tiptap-markdown";
@@ -33,14 +34,16 @@ export function markdownExtensions({ resolveImage }: MarkdownExtensionOptions = 
       code: false,
       listItem: false,
       blockquote: false,
+      paragraph: false,
     }),
+    SpaceParagraph,
     SpaceText,
     CalloutBlockquote,
     SpaceHighlight,
     // Markdown allows `code` inside links and emphasis; TipTap's default
     // excludes every other mark. Registered after the others so it stays
     // innermost when serialized.
-    Code.extend({ excludes: "" }),
+    Code.extend({ excludes: "", addStorage: () => ({ markdown: { serialize: CODE_MARK } }) }),
     ListItem.extend({ addStorage: () => ({ markdown: { serialize: serializeListItem() } }) }),
     RawHtmlBlock,
     RawHtmlInline,
@@ -94,9 +97,11 @@ interface SerializerState {
   wrapBlock(delim: string, firstDelim: string | null, node: PmNode, f: () => void): void;
   render(node: PmNode, parent: PmNode, index: number): void;
   renderContent(node: PmNode): void;
+  renderInline(node: PmNode): void;
 }
 interface PmNode {
   attrs: Record<string, unknown>;
+  childCount: number;
   forEach(f: (child: PmNode, offset: number, index: number) => void): void;
 }
 
@@ -118,12 +123,58 @@ function serializeListItem(prefix?: (node: PmNode) => string) {
 const escapeAttribute = (value: string) =>
   value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+/**
+ * A paragraph that writes the pending line prefix (`> ` on a quote's later
+ * lines) before its text. tiptap-markdown notes where a `**`/`*`/`==` mark
+ * opens before that prefix is written, then "fixes" the delimiter at the
+ * wrong offset: `> **Bold**` on a callout's body line became `****Bold**`.
+ */
+const SpaceParagraph = Paragraph.extend({
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: SerializerState, node: PmNode) {
+          if (node.childCount > 0) state.write("");
+          state.renderInline(node);
+          state.closeBlock(node);
+        },
+        parse: {},
+      },
+    };
+  },
+});
+
+/** prosemirror-markdown's backtick fence: one more than the longest run inside. */
+function backticks(node: { isText?: boolean; text?: string }, side: -1 | 1): string {
+  let longest = 0;
+  if (node.isText) for (const run of node.text?.match(/`+/g) ?? []) longest = Math.max(longest, run.length);
+  const fence = "`".repeat(longest + 1);
+  if (longest === 0) return fence;
+  return side > 0 ? ` ${fence}` : `${fence} `;
+}
+
+/**
+ * Inline code. prosemirror-markdown writes code text raw (`escape: false`),
+ * so a `|` in a table cell would split the cell; with `escape: true` the text
+ * goes through SpaceText, which writes code raw except for `\|` in tables.
+ */
+const CODE_MARK = {
+  open: (_state: unknown, _mark: unknown, parent: { child(index: number): object }, index: number) =>
+    backticks(parent.child(index), -1),
+  close: (_state: unknown, _mark: unknown, parent: { child(index: number): object }, index: number) =>
+    backticks(parent.child(index - 1), 1),
+  escape: true,
+};
+
 /** Text that escapes `|` inside table cells, where it would split the cell. */
 const SpaceText = Text.extend({
   addStorage() {
     return {
       markdown: {
-        serialize(state: SerializerState, node: { text: string }) {
+        serialize(state: SerializerState, node: { text: string; marks: { type: { name: string } }[] }) {
+          if (node.marks.some((mark) => mark.type.name === "code")) {
+            return state.text(state.inTable ? node.text.replace(/\|/g, "\\|") : node.text, false);
+          }
           const text = node.text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
           if (!state.inTable) return state.text(text);
           text.split("|").forEach((part, index) => {

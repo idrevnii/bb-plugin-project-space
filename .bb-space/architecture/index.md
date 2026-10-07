@@ -47,7 +47,13 @@ state.
 Every save is a *compare-and-swap* on the sha256 the editor started from. A
 mismatch means someone, usually an agent, wrote the file meanwhile, and the
 editor offers *Discard mine* or *Overwrite*. Canvases autosave 800 ms after
-the last edit and reload on outside changes when nothing is unsaved.
+the last edit, one save at a time, and reload on outside changes when nothing
+is unsaved. While a save is on its way an outside change waits for its answer:
+until then the board cannot tell its own write echoing back from an agent's.
+
+A file that should be text but is not UTF-8 comes back base64-encoded;
+`BinaryDocument.tsx` shows a notice for it rather than the base64, which an
+edit would save over the file.
 
 > [!WARNING] A canvas tldraw cannot load is read-only
 > It opens with the reason shown, and nothing — the user, `space_draw`, a

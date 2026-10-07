@@ -104,6 +104,13 @@ fail.
 | `canvas-view.mjs` | `bb space canvas --png` right after a draw shows the new drawing, off-screen and open; a hand-edited file is re-rendered, not served stale |
 | `canvas-readonly.mjs` | a canvas tldraw cannot load is read-only and never saved over; fixing the file makes it editable again |
 | `worktrees.mjs` | a page added in a worktree's `.bb-space` shows in the badge, opens read-only, and drops out once deleted; skipped without a worktree |
+| `tree-rename-delete.mjs` | renaming the open page or its folder keeps it open; a rename onto an existing name is refused; deleting the open page or its folder opens the start page |
+| `tree-left.mjs` | *File tree position* = `left`: the tree beside the document, opening and creating there, a canvas filling the column; switching back is live (restores the setting) |
+| `space-links.mjs` | the thread-header **Space** button, labelled and icon-only; the newest `::space` card in a thread and its *Open in space* (skipped when the thread has none) |
+| `edit-conflict.mjs` | a page changed on disk while edited: the banner, a refused Save, *Discard mine* and *Overwrite*, in WYSIWYG and *Source* |
+| `canvas-conflict.mjs` | an agent rewriting an open canvas: *Load theirs*, *Keep mine*, a rewrite during an in-flight save, the board's own save echoing back |
+| `odd-files.mjs` | non-UTF-8 and binary files get a notice and stay untouched; a NUL in a `.txt`; an image; a 5 MB page; empty folders |
+| `console-warnings.mjs` | no bb DOM-guard warning ("tried to move … out of React's tree") blames the plugin |
 
 The scripts take their target from the environment:
 
@@ -112,6 +119,17 @@ The scripts take their target from the environment:
 | `BB_URL` | `http://127.0.0.1:38886` |
 | `PROJECT_ID` | `$BB_PROJECT_ID` (set inside a bb thread) |
 | `CHROME_PATH` | Playwright's Chromium (`npx playwright install chromium`) |
+| `THREAD_ID` | `$BB_THREAD_ID`, else the project's newest thread (`space-links.mjs`) |
+| `CARD_THREAD_ID` | `THREAD_ID`: the thread whose `::space` card is opened |
+
+Helpers in [`scripts/e2e/lib.mjs`](../../scripts/e2e/lib.mjs): `run(body, cleanup)`
+runs the cleanup even when `fail()` stops the body; `showFiles(page)` brings
+back the Files tab, which bb restores to whatever tab was last open.
+
+> [!WARNING] Some scripts change shared state while they run
+> `tree-left.mjs` flips the *File tree position* setting for every bb window,
+> and `bb space draw` with no window open queues a drawing that lands the
+> next time any window opens. Run them when nobody is using the space.
 
 ## Work in parallel
 

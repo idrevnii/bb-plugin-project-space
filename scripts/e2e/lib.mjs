@@ -19,7 +19,7 @@ mkdirSync(OUT, { recursive: true });
 
 /** Runs the bb CLI and returns stdout. */
 export function bb(...args) {
-  return execFileSync(process.env.BB_CLI ?? "bb", args, { encoding: "utf8" });
+  return execFileSync(process.env.BB_CLI ?? "bb", args, { encoding: "utf8", maxBuffer: 512 * 1024 * 1024 });
 }
 
 /** Absolute path of the project's .bb-space directory. */
@@ -29,7 +29,12 @@ export function spaceUrl(path = "") {
   return `${BB_URL}/plugins/project-space/space/${PROJECT_ID}/${path}`;
 }
 
+/** Thrown by `fail` inside `run`, so its cleanup still runs. */
+class Failure extends Error {}
+let running = false;
+
 export function fail(message) {
+  if (running) throw new Failure(message);
   console.error(`FAIL ${message}`);
   process.exit(1);
 }
@@ -61,6 +66,7 @@ export async function waitFor(what, check, timeoutMs = 15_000) {
 export async function run(body, cleanup = () => {}) {
   const session = await openBrowser();
   let code = 0;
+  running = true;
   try {
     await body(session);
     if (session.errors.length > 0) {
@@ -68,13 +74,40 @@ export async function run(body, cleanup = () => {}) {
       code = 1;
     }
   } catch (error) {
-    console.error(`FAIL ${error instanceof Error ? error.stack : error}`);
+    console.error(`FAIL ${error instanceof Failure ? error.message : error instanceof Error ? error.stack : error}`);
     code = 1;
   } finally {
+    running = false;
     await session.browser.close();
     await cleanup();
   }
   process.exit(code);
+}
+
+/**
+ * Shows the Files tab in bb's right panel and returns the tree. bb restores
+ * the panel's last tab (Outline after outline.mjs), sometimes after the page
+ * has rendered, so this retries until the tree stays visible.
+ */
+export async function showFiles(page) {
+  const tree = page.locator('nav[aria-label="Space files"]');
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
+    if (await tree.isVisible()) {
+      await page.waitForTimeout(300);
+      if (await tree.isVisible()) return tree;
+      continue;
+    }
+    const tab = page.getByRole("button", { name: "Files", exact: true });
+    const show = page.getByRole("button", { name: "Show files" });
+    if (await tab.isVisible()) {
+      if ((await tab.getAttribute("aria-pressed")) !== "true") await tab.click();
+    } else if (await show.isVisible()) {
+      await show.click();
+    }
+    await page.waitForTimeout(250);
+  }
+  fail("the Files tree did not show");
 }
 
 /** The Space page's own panel; excludes the off-screen canvas renderer. */

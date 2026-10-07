@@ -153,6 +153,8 @@ export function ProjectSpace({
         <Centered>Loading…</Centered>
       </div>
     );
+  } else if (isBinaryKind(fileKind(file.path)) || file.encoding === "base64") {
+    body = <BinaryDocument file={file} baseUrl={previewBaseUrl} toolbar={toolbar} />;
   } else if (fileKind(file.path) === "tldraw") {
     body = (
       <div className="flex h-full min-h-0 flex-1 flex-col">
@@ -168,8 +170,6 @@ export function ProjectSpace({
         </div>
       </div>
     );
-  } else if (isBinaryKind(fileKind(file.path))) {
-    body = <BinaryDocument file={file} baseUrl={previewBaseUrl} toolbar={toolbar} />;
   } else {
     body = (
       <TextDocument

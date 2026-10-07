@@ -43,7 +43,13 @@ await run(async ({ page }) => {
   // 2. A click scrolls the page to the heading and highlights it.
   const last = listed.at(-1);
   await items.filter({ hasText: last }).click();
-  await waitFor(`page scrolled to "${last}"`, async () => Math.abs(await offset(last)) < 80);
+  // A short last section cannot reach the top; then the page ends at the bottom.
+  const atBottom = () =>
+    pageHeadings.first().evaluate((heading) => {
+      const scroller = heading.closest(".overflow-y-auto");
+      return scroller.scrollTop > 0 && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
+    });
+  await waitFor(`page scrolled to "${last}"`, async () => Math.abs(await offset(last)) < 80 || (await atBottom()));
   await waitFor(`"${last}" highlighted`, async () => (await current()) === last);
   await page.screenshot({ path: join(OUT, "outline-click.png") });
   ok(`clicking "${last}" scrolls the page to it`);

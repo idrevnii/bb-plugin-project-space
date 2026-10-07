@@ -200,44 +200,54 @@ function HeadlessRenderer({
 export function registerHeadlessRenderer(app: PluginAppBuilder) {
   app.contentScripts.register({
     id: "headless-canvas-renderer",
-    async mount({ pluginId, signal }) {
+    // Synchronous on purpose: bb treats every DOM move as the plugin's while
+    // a mount promise is pending, and blocks its own app shell's inserts
+    // ("tried to move <div> out of React's tree"). The fetch runs detached.
+    mount({ pluginId, signal }) {
       const rpc = rpcFor(pluginId);
-      let licenseKey = "";
-      try {
-        licenseKey = ((await rpc("space_canvas_config", null)) as { licenseKey: string }).licenseKey;
-      } catch {
-        // No server yet: run without a key.
-      }
-      // Unlicensed on a non-local https origin tldraw hides itself; the page
-      // refuses to mount there, and so does this.
-      if (!isTldrawDevelopmentOrigin() && licenseKey === "") return;
-      if (signal.aborted) return;
-
-      const host = document.createElement("div");
-      host.setAttribute("data-project-space-headless", "");
-      host.setAttribute("aria-hidden", "true");
-      // Laid out but invisible: display:none would leave tldraw no geometry.
-      Object.assign(host.style, {
-        position: "fixed",
-        left: "-20000px",
-        top: "0",
-        width: `${STAGE_W}px`,
-        height: `${STAGE_H}px`,
-        opacity: "0",
-        pointerEvents: "none",
-        overflow: "hidden",
-      } satisfies Partial<CSSStyleDeclaration>);
-      document.body.appendChild(host);
-      const root = createRoot(host);
-      root.render(
-        <StrictMode>
-          <HeadlessRenderer rpc={rpc} licenseKey={licenseKey} signal={signal} />
-        </StrictMode>,
-      );
-      return () => {
-        root.unmount();
-        host.remove();
-      };
+      let unmount = () => {};
+      void (async () => {
+        let licenseKey = "";
+        try {
+          licenseKey = ((await rpc("space_canvas_config", null)) as { licenseKey: string }).licenseKey;
+        } catch {
+          // No server yet: run without a key.
+        }
+        // Unlicensed on a non-local https origin tldraw hides itself; the page
+        // refuses to mount there, and so does this.
+        if (!isTldrawDevelopmentOrigin() && licenseKey === "") return;
+        if (signal.aborted) return;
+        unmount = mountRenderer(rpc, licenseKey, signal);
+      })();
+      return () => unmount();
     },
   });
+}
+
+function mountRenderer(rpc: Rpc, licenseKey: string, signal: AbortSignal): () => void {
+  const host = document.createElement("div");
+  host.setAttribute("data-project-space-headless", "");
+  host.setAttribute("aria-hidden", "true");
+  // Laid out but invisible: display:none would leave tldraw no geometry.
+  Object.assign(host.style, {
+    position: "fixed",
+    left: "-20000px",
+    top: "0",
+    width: `${STAGE_W}px`,
+    height: `${STAGE_H}px`,
+    opacity: "0",
+    pointerEvents: "none",
+    overflow: "hidden",
+  } satisfies Partial<CSSStyleDeclaration>);
+  document.body.appendChild(host);
+  const root = createRoot(host);
+  root.render(
+    <StrictMode>
+      <HeadlessRenderer rpc={rpc} licenseKey={licenseKey} signal={signal} />
+    </StrictMode>,
+  );
+  return () => {
+    root.unmount();
+    host.remove();
+  };
 }

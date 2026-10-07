@@ -18,7 +18,8 @@ The **Files** tab in the right panel is the tree; the folder button at the top
 right of the document shows and hides the panel.
 
 1. Click **+** for a new page, canvas, HTML file or folder.
-2. Hover a row to rename or delete it.
+2. Hover a row to rename or delete it. Renaming the open page, or its
+   folder, keeps it open under the new name; deleting it opens the start page.
 3. Pick a folder to open its `index.md`.
 
 > [!TIP] Tree on the left
@@ -99,6 +100,15 @@ HTML files render like a browser page, scripts included, in a sandbox that
 cannot reach bb. Canvases are full tldraw boards and save themselves 800 ms
 after the last edit. A canvas whose file tldraw cannot load opens read-only,
 with the reason, until the file is fixed.
+
+If an agent rewrites a canvas while you have strokes it has not saved yet, a
+card offers **Load theirs** (your strokes go) or **Keep mine** (their version
+goes). A save already on its way waits for the answer first, so nothing is
+lost in between.
+
+> [!NOTE] Files that are not UTF-8 text
+> A Latin-1 page or a binary file with a text extension shows a notice instead
+> of its contents and has no **Edit**, so the space never saves over it.
 
 ## Worktrees
 

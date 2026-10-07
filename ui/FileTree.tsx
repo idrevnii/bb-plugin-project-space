@@ -530,6 +530,8 @@ export function FileTree({
     if (!window.confirm(`Delete ${what}?`)) return;
     try {
       await rpc.call("space_remove", { projectId, path });
+      // The open document went with it: fall back to the start page.
+      if (activePath !== null && followMove(activePath, path, "") !== null) onOpen("");
       onRefresh();
     } catch (cause) {
       toast.error(errorMessage(cause));

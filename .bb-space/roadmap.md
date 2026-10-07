@@ -1,15 +1,13 @@
 # Roadmap
 
 What is built and what comes next, by milestone. ***The MVP and wave 1 are
-merged; annotations UI and a UI QA sweep are what is left.*** Each open item
+merged; the annotations UI is what is left.*** Each open item
 is a brief in [tasks](tasks/index.md), with its state in the
 [status table](tasks/index.md#status).
 
 > [!IMPORTANT] Open now
-> - **Annotations UI** (T30–T34) can start: the data layer (T10) they build on
->   is merged.
-> - **UI QA sweep** (T21) has not started; several flows have never been
->   checked live.
+> **Annotations UI** (T30–T34) can start: the data layer (T10) they build on
+> is merged.
 
 ## MVP (0.1)
 
@@ -52,7 +50,7 @@ is a brief in [tasks](tasks/index.md), with its state in the
 - [x] **Annotations data layer**: model, text-quote anchoring, storage, RPC (T10)
 - [x] **Reading styles** (Blue Topaz, Things, plain) and two bb themes
 - [x] **Rich Markdown**: callouts, highlights, footnotes, safe inline HTML
-- [ ] **UI QA sweep** across the Space page (T21)
+- [x] **UI QA sweep** across the Space page: seven flows scripted, seven bugs fixed (T21)
 
 ## Wave 2 — annotations UI
 

@@ -76,6 +76,15 @@ export function TldrawView({
   const knownSha = useRef(file.sha256);
   const dirty = useRef(false);
   const loading = useRef(false);
+  /**
+   * A save is on its way. Until it answers, knownSha is stale: a new file
+   * may be our own write echoing back, or an agent's that our save will
+   * conflict with, so outside changes wait for the answer (see reconcile).
+   */
+  const saving = useRef(false);
+  const changedWhileSaving = useRef(false);
+  const latestFile = useRef(file);
+  latestFile.current = file;
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [status, setStatus] = useState<"saved" | "saving" | "unsaved" | "conflict">("saved");
   const [loadError, setLoadErrorState] = useState<string | null>(null);
@@ -101,8 +110,34 @@ export function TldrawView({
     [rpc],
   );
 
-  /** Saves unsaved edits; true when the file now holds them. */
-  const save = useCallback(async (): Promise<boolean> => {
+  // Someone else rewrote the file.
+  const reconcile = useCallback(() => {
+    const editor = editorRef.current;
+    const current = latestFile.current;
+    if (editor === null || current.sha256 === knownSha.current) return;
+    if (saving.current) {
+      changedWhileSaving.current = true;
+      return;
+    }
+    if (dirty.current) {
+      setStatus("conflict");
+      return;
+    }
+    const wasUnreadable = unreadable.current !== null;
+    loading.current = true;
+    try {
+      setLoadError(loadInto(editor, current.content));
+      knownSha.current = current.sha256;
+    } finally {
+      loading.current = false;
+    }
+    // A board that could not load showed nothing; frame the drawing as on open.
+    if (wasUnreadable && unreadable.current === null && editor.getCurrentPageShapeIds().size > 0) {
+      editor.zoomToFit({ animation: { duration: 0 } });
+    }
+  }, [setLoadError]);
+
+  const saveNow = useCallback(async (): Promise<boolean> => {
     const editor = editorRef.current;
     if (editor === null || !dirty.current) return false;
     if (unreadable.current !== null) {
@@ -111,7 +146,10 @@ export function TldrawView({
       return false;
     }
     dirty.current = false;
+    saving.current = true;
+    changedWhileSaving.current = false;
     setStatus("saving");
+    let sha256: string;
     try {
       const content = await serializeCanvas(editor);
       const result = await rpc.call("space_write", {
@@ -120,29 +158,50 @@ export function TldrawView({
         content,
         expectedSha256: knownSha.current,
       });
-      if (result.outcome === "written") {
-        knownSha.current = result.sha256;
-        setStatus(dirty.current ? "unsaved" : "saved");
-        setSaveError(null);
-        // Only if the board still is what was written.
-        await postCanvasImage(
-          putImage,
-          editor,
-          { projectId, path: file.path, sha256: result.sha256 },
-          () => !dirty.current && knownSha.current === result.sha256,
-        );
-        return true;
+      if (result.outcome !== "written") {
+        dirty.current = true;
+        setStatus("conflict");
+        return false;
       }
-      dirty.current = true;
-      setStatus("conflict");
-      return false;
+      sha256 = result.sha256;
+      knownSha.current = sha256;
     } catch (cause) {
       dirty.current = true;
       setStatus("unsaved");
       setSaveError(errorMessage(cause));
       return false;
+    } finally {
+      saving.current = false;
+      if (changedWhileSaving.current) {
+        changedWhileSaving.current = false;
+        reconcile();
+      }
     }
-  }, [rpc, projectId, file.path, putImage]);
+    setStatus((current) => (current === "conflict" ? current : dirty.current ? "unsaved" : "saved"));
+    setSaveError(null);
+    // Only if the board still is what was written.
+    await postCanvasImage(
+      putImage,
+      editor,
+      { projectId, path: file.path, sha256 },
+      () => !dirty.current && knownSha.current === sha256,
+    );
+    return true;
+  }, [rpc, projectId, file.path, putImage, reconcile]);
+
+  /**
+   * Saves unsaved edits; true when the file now holds them. One save at a
+   * time, so each compares against the sha the one before it wrote.
+   */
+  const inFlight = useRef<Promise<boolean> | null>(null);
+  const save = useCallback((): Promise<boolean> => {
+    if (inFlight.current !== null) return inFlight.current.catch(() => false).then(() => save());
+    const pending = saveNow().finally(() => {
+      inFlight.current = null;
+    });
+    inFlight.current = pending;
+    return pending;
+  }, [saveNow]);
 
   // Agents' drawing batches for this file land here first while it is open;
   // the off-screen renderer only picks up what no open canvas took.
@@ -226,27 +285,7 @@ export function TldrawView({
     [save],
   );
 
-  // Someone else rewrote the file.
-  useEffect(() => {
-    const editor = editorRef.current;
-    if (editor === null || file.sha256 === knownSha.current) return;
-    if (dirty.current) {
-      setStatus("conflict");
-      return;
-    }
-    const wasUnreadable = unreadable.current !== null;
-    loading.current = true;
-    try {
-      setLoadError(loadInto(editor, file.content));
-      knownSha.current = file.sha256;
-    } finally {
-      loading.current = false;
-    }
-    // A board that could not load showed nothing; frame the drawing as on open.
-    if (wasUnreadable && unreadable.current === null && editor.getCurrentPageShapeIds().size > 0) {
-      editor.zoomToFit({ animation: { duration: 0 } });
-    }
-  }, [file]);
+  useEffect(reconcile, [file, reconcile]);
 
   const handleMount = useCallback(
     (editor: Editor) => {
@@ -267,7 +306,8 @@ export function TldrawView({
         () => {
           if (loading.current) return;
           dirty.current = true;
-          setStatus("unsaved");
+          // Drawing on does not hide an open conflict.
+          setStatus((current) => (current === "conflict" ? current : "unsaved"));
           scheduleSave();
         },
         { source: "user", scope: "document" },
