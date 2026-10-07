@@ -115,7 +115,29 @@ underlined instead of filled.
 
 Selecting text while editing does not offer *Comment*: press **Done** first.
 Comments live in `.bb-space/.space/annotations/` and move with the page when
-you rename or move it in the tree. Sending them to a thread is still to come.
+you rename or move it in the tree.
+
+### Review and send to an agent
+
+The **Review** tab in the right panel lists the project's comments by file:
+open ones first, then sent, then resolved. Click a comment to open its page
+scrolled to it.
+
+1. Every open comment is ticked. Untick the ones to leave out.
+2. Press **Send to…** and pick where the review goes:
+   - **New thread** opens the new-thread composer with the review in it.
+   - **Composer on screen** adds it to a composer that is open now.
+   - **Thread of this project** posts it to that thread at once.
+3. The message lists each comment with its quote and id, and tells the agent
+   to resolve each one with `bb space annotations resolve`.
+
+A comment is marked *sent* when the message is sent, whichever way it went,
+and the tab updates without a reload. A prefilled draft you never send marks
+nothing.
+
+> [!NOTE] New thread uses the composer's project
+> **New thread** opens the composer with the project it last had selected.
+> Check it before sending.
 
 ## HTML pages and canvases
 

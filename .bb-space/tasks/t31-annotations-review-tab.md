@@ -3,8 +3,9 @@
 Collect open annotations and send them to an agent in one message: the bridge
 from the full-screen space back to threads.
 
-> [!todo] Ready to start
-> Wave 2 · depends on: T10. T10 is merged.
+> [!success] Done 2026-10-07
+> Wave 2 · depends on: T10. Documented in [Using the space → Review and send to an agent](../guides/using-the-space.md#review-and-send-to-an-agent)
+> and [Annotations → Review and *Send to…*](../architecture/annotations.md#review-and-send-to).
 
 ## Read first
 
@@ -36,10 +37,10 @@ from the full-screen space back to threads.
 
 ## Acceptance
 
-- [ ] e2e: two annotations → *Send to new thread* prefills the composer with
+- [x] e2e: two annotations → *Send to new thread* prefills the composer with
       the format above; sending to an existing thread posts it there.
-- [ ] Statuses update in the tab live.
-- [ ] `npm run check` passes.
+- [x] Statuses update in the tab live.
+- [x] `npm run check` passes.
 
 ## Out of scope
 

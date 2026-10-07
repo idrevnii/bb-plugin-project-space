@@ -226,6 +226,53 @@ export function useAnnotations(projectId: string, path: string) {
   return { annotations, error, refetch };
 }
 
+/**
+ * Every annotation in a project's space, oldest first. Refetches (coalesced)
+ * on any `space-annotations-changed` for the project and on reconnect.
+ */
+export function useProjectAnnotations(projectId: string | null) {
+  const rpc = useSpaceRpc();
+  const [annotations, setAnnotations] = useState<Annotation[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const refetch = useCallback(() => {
+    if (projectId === null) return;
+    rpc.call("annotations_list", { projectId }).then(
+      (result) => {
+        setAnnotations(result.annotations as Annotation[]);
+        setError(null);
+      },
+      (cause) => setError(errorMessage(cause)),
+    );
+  }, [rpc, projectId]);
+  useEffect(() => {
+    setAnnotations(null);
+    setError(null);
+    refetch();
+  }, [refetch]);
+  const latest = useRef(refetch);
+  latest.current = refetch;
+  const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (pending.current !== null) clearTimeout(pending.current);
+  }, []);
+  useRealtime(SPACE_ANNOTATIONS_CHANGED, (payload) => {
+    const change = payload as { projectId?: unknown } | null;
+    if (projectId === null || change?.projectId !== projectId || pending.current !== null) return;
+    // One send touches several files; read once after the burst.
+    pending.current = setTimeout(() => {
+      pending.current = null;
+      latest.current();
+    }, 150);
+  });
+  const connection = useRealtimeConnectionState();
+  const wasConnected = useRef(connection === "connected");
+  useEffect(() => {
+    if (connection === "connected" && !wasConnected.current) latest.current();
+    wasConnected.current = connection === "connected";
+  }, [connection]);
+  return { annotations, error, refetch };
+}
+
 const WORKTREES_POLL_MS = 60_000;
 
 /**

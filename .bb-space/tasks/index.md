@@ -5,7 +5,7 @@ brief says what to build, which files it owns, and how to prove it works; the
 rules every task follows are in [Developing → Work in parallel](../guides/developing.md#work-in-parallel).
 
 > [!IMPORTANT] Open now
-> T31–T34 can start: T10, which they build on, is merged.
+> T32–T34 can start: T10, which they build on, is merged.
 
 ## Waves
 
@@ -42,7 +42,7 @@ Updated 2026-10-07. A ticked task is merged into `main` with
 - [x] T20 Unit tests for the pure core
 - [x] T21 UI QA sweep
 - [x] T30 Annotate Markdown pages
-- [ ] T31 Review tab and sending annotations to a thread — ready to start
+- [x] T31 Review tab and sending annotations to a thread
 - [ ] T32 Annotations for agents — ready to start
 - [ ] T33 Annotate canvases — ready to start
 - [ ] T34 Annotate HTML pages — ready to start

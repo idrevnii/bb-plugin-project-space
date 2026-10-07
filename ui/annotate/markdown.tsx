@@ -18,6 +18,7 @@ import {
   type TextRange,
 } from "../../lib/annotations";
 import { errorMessage, useAnnotations, type SpaceRpc } from "../data";
+import { takeAnnotationFocus, useAnnotationFocus } from "./focus";
 import "./markdown.css";
 import { highlights, offsetOf, rangeOf, supportsHighlights, textModel, unwrapMarks, wrapMarks } from "./text";
 
@@ -456,6 +457,29 @@ export function AnnotatedMarkdown({
       pageNotes: list.filter((each) => each.anchor.kind === "file"),
     };
   }, [annotations, located]);
+
+  // The Review tab asked to show one: scroll to it and open its comment.
+  const focusId = useAnnotationFocus(projectId, path);
+  useEffect(() => {
+    if (focusId === null || article === null || annotations === null) return;
+    const annotation = annotations.find((each) => each.id === focusId);
+    // Not listed yet, or its quote not looked for yet: wait for the next pass.
+    if (annotation === undefined || (annotation.anchor.kind === "text-quote" && !located.has(focusId))) return;
+    const found = located.get(focusId);
+    const range = found == null ? null : rangeOf(textModel(article), found);
+    if (range !== null) {
+      range.startContainer.parentElement?.scrollIntoView({ block: "center" });
+      const rect = range.getClientRects()[0] ?? range.getBoundingClientRect();
+      setPopover({ kind: "open", id: focusId, at: relative(rect.left + rect.width / 2, rect.bottom + 14) });
+    } else {
+      const item = wrap.current?.querySelector(`[data-annotation-id="${CSS.escape(focusId)}"]`);
+      if (item == null) return;
+      item.scrollIntoView({ block: "center" });
+      const box = item.getBoundingClientRect();
+      setPopover({ kind: "open", id: focusId, at: relative(box.left + POPOVER_WIDTH / 2, box.bottom + 4) });
+    }
+    takeAnnotationFocus(focusId);
+  }, [focusId, article, annotations, located, relative]);
 
   const openAnnotation = popover?.kind === "open" ? annotations?.find((each) => each.id === popover.id) : undefined;
   useEffect(() => {

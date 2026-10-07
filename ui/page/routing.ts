@@ -8,6 +8,7 @@ import { splitEnvQuery } from "../../lib/worktrees";
 export const PANEL_PATH = "space";
 export const FILES_TAB = { panelId: "space", id: "files" } as const;
 export const OUTLINE_TAB = { panelId: "space", id: "outline" } as const;
+export const REVIEW_TAB = { panelId: "space", id: "review" } as const;
 
 export interface SpaceRoute {
   projectId: string | null;

@@ -18,13 +18,13 @@ data lives, grey boxes are outside the plugin.
 ## Space page
 
 The page owns the route `/plugins/project-space/space/*`: the first segment
-is the project id, the rest is the file path. The Files and Outline tabs in
+is the project id, the rest is the file path. The Files, Outline and Review tabs in
 the right panel get the same `subPath`, so page and tree agree without shared
 state.
 
 | File | Job |
 | --- | --- |
-| [`app.tsx`](../../app.tsx) | registers the page (`navPanel`), the Files and Outline tabs, the thread-header button and the `::space` directive |
+| [`app.tsx`](../../app.tsx) | registers the page (`navPanel`), the Files, Outline and Review tabs, the thread-header button and the `::space` directive |
 | [`ui/page/routing.ts`](../../ui/page/routing.ts) | route ⇄ `subPath`, navigation, tree-position setting |
 | [`ui/page/SpacePage.tsx`](../../ui/page/SpacePage.tsx) | project fallback and *Create space* |
 | [`ui/page/ProjectSpace.tsx`](../../ui/page/ProjectSpace.tsx) | picks the document view and lays it out |
@@ -36,6 +36,7 @@ state.
 | [`ui/TldrawView.tsx`](../../ui/TldrawView.tsx) | `.tldr` canvases with autosave |
 | [`ui/FileTree.tsx`](../../ui/FileTree.tsx) | the tree; `tree-move.ts` for drag and drop, `SearchBox.tsx` |
 | [`ui/OutlineTab.tsx`](../../ui/OutlineTab.tsx) | headings of the open page (`outline.ts`) |
+| [`ui/ReviewTab.tsx`](../../ui/ReviewTab.tsx) | the project's annotations and *Send to…* — see [annotations](annotations.md#review-and-send-to) |
 | [`ui/page/WorktreeBadge.tsx`](../../ui/page/WorktreeBadge.tsx) | worktree changes; `WorktreeDocument.tsx` opens them read-only |
 | [`ui/data.ts`](../../ui/data.ts) | RPC hooks that refetch on `space-changed` |
 
@@ -76,6 +77,7 @@ merges the subcommands. ==Adding a feature is a new module plus one entry in
 | [`draw.ts`](../../server/draw.ts) | the drawing queue, `space_draw` / `space_canvas_read`, `bb space draw` and `canvas` |
 | [`canvas-image.ts`](../../server/canvas-image.ts) | `space_canvas_view` and `bb space canvas --png` |
 | [`annotations.ts`](../../server/annotations.ts) | annotation storage and `annotations_*` RPC — see [annotations](annotations.md) |
+| [`send.ts`](../../server/send.ts) | `annotations_send` and the `message.dispatch` hook that marks review comments sent |
 | [`search.ts`](../../server/search.ts) | `space_search` and `bb space search`; matching is pure, in `lib/search.ts` |
 | [`worktrees.ts`](../../server/worktrees.ts) | `space_worktrees` / `space_worktree_read` — see the [storage decision](../decisions/storage.md) |
 | [`watch-tree.ts`](../../server/watch-tree.ts) | the per-directory watcher behind live updates |

@@ -5,18 +5,20 @@ edits to that file. This page is the contract the Review tab, *Send to…* and
 the agent CLI build on (T30–T34); why annotations exist is in the
 [decision](../decisions/annotations.md).
 
-> [!NOTE] Built so far: the data layer and Markdown pages
-> Model, anchoring, storage and RPC (T10), and annotating Markdown pages in
-> the reader (T30). The Review tab, HTML, canvases and the agent command are
-> still to come — see the [roadmap](../roadmap.md).
+> [!NOTE] Built so far: the data layer, Markdown pages and the Review tab
+> Model, anchoring, storage and RPC (T10), annotating Markdown pages in the
+> reader (T30), and the Review tab with *Send to…* (T31). HTML, canvases and
+> the agent command are still to come — see the [roadmap](../roadmap.md).
 
 | Piece | Where |
 | --- | --- |
 | model and anchoring (pure, shared by server and app) | [`lib/annotations.ts`](../../lib/annotations.ts) |
 | storage, RPC, following moves | [`server/annotations.ts`](../../server/annotations.ts) |
 | Markdown reader: selecting, highlights, the comment popover | [`ui/annotate/markdown.tsx`](../../ui/annotate/markdown.tsx), rendered text ↔ DOM in [`ui/annotate/text.ts`](../../ui/annotate/text.ts) |
-| tests | `test/annotations.test.ts`, `test/annotations-store.test.ts`, `test/annotate-text.test.ts` |
-| live checks | `scripts/e2e/annotations.mjs`, `scripts/e2e/annotations-markdown.mjs` |
+| Review tab and *Send to…* | [`ui/ReviewTab.tsx`](../../ui/ReviewTab.tsx); grouping and the message in [`lib/review.ts`](../../lib/review.ts) |
+| sending and marking sent | [`server/send.ts`](../../server/send.ts) |
+| tests | `test/annotations.test.ts`, `test/annotations-store.test.ts`, `test/annotate-text.test.ts`, `test/review.test.ts`, `test/send.test.ts` |
+| live checks | `scripts/e2e/annotations.mjs`, `scripts/e2e/annotations-markdown.mjs`, `scripts/e2e/review.mjs` |
 
 ## The model
 
@@ -105,6 +107,38 @@ wraps `MarkdownView` only while the page is read, never while it is edited.
 - **Live** — `useAnnotations` in [`ui/data.ts`](../../ui/data.ts) refetches
   on `space-annotations-changed` for the page and on reconnect.
 
+## Review and *Send to…*
+
+The Review tab lists `annotations_list` for the whole project
+(`useProjectAnnotations`, live on `space-annotations-changed`), grouped by
+`reviewGroups`: open, then sent, then resolved inside a file, oldest first;
+files with open comments first. Clicking a comment navigates to its file and
+calls `requestAnnotationFocus`, which the Markdown reader picks up once the
+page has rendered to scroll to the passage and open its comment.
+
+*Send to…* takes the ticked comments (by default every open one) to one of
+three places. `reviewMessage` builds the same text for all three:
+
+```text
+Review of the project space — 2 comments.
+1. architecture/index.md — «exact quote» → comment  [ann_…]
+2. roadmap.md → comment about the whole file  [ann_…]
+Resolve each with `bb space annotations resolve <id> --note "…"` when done.
+```
+
+| Destination | How |
+| --- | --- |
+| New thread | `useBbNavigate().toCompose({ initialPrompt })` |
+| Composer on screen | `useComposers()` → `composer.insert(…)` |
+| Thread of this project | RPC `annotations_send({ projectId, ids, threadId })` → `bb.sdk.threads.send` (mode `auto`) |
+
+Only the RPC knows its thread up front, so marking is done in one place for
+all three: a `message.dispatch` hook reads the ids back with
+`annotationIdsIn` (only after the `Review of the project space` header) and
+sets `status: "sent"` and `sentTo: { threadId, at }`. Resolved comments stay
+resolved; a re-dispatch to the same thread writes nothing. The hook always
+proceeds and never throws, so it can't block a send.
+
 ## Where annotations are stored
 
 One JSON file per annotated file, in the space's hidden bookkeeping folder:
@@ -155,6 +189,7 @@ All inputs carry `projectId`. Paths are space-relative and may not point into
 | `annotations_create` | `path, anchor, comment, author?` (default `"user"`) | `{ annotation }` |
 | `annotations_update` | `id, comment?, status?, resolution?, sentTo?` | `{ annotation }` |
 | `annotations_delete` | `id` | `{ ok: true }` |
+| `annotations_send` | `ids, threadId` (a thread of this project; at most 200 ids) | `{ sent, text }` |
 
 From a shell:
 

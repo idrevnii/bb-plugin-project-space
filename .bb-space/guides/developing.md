@@ -100,6 +100,7 @@ fail.
 | `formatting.mjs` | callouts (one foldable), highlights, `<kbd>`/`<mark>`/`<details>` and footnotes render; `<script>` is dropped; the editor keeps them on save |
 | `tree-dnd.mjs` | drag and drop and *Move to…* in the tree; the open document follows; illegal drops are refused |
 | `draw-lint.mjs` | an overlapping draw ends with an *Overlaps* section and the fix hint; a clean redraw reports none |
+| `review.mjs` | the Review tab lists two comments with the open count; a click opens the page scrolled to one; *Send to → New thread* prefills the composer with the review message. With `REVIEW_THREAD_ID` set, sending to that thread posts the message and the tab shows them sent without a reload |
 | `outline.mjs` | the Outline tab lists headings, a click scrolls, scrolling moves the highlight; a canvas has no outline |
 | `search.mjs` | `bb space search` finds by name, text and canvas label; the search box replaces the tree, <kbd>Esc</kbd> clears, <kbd>Enter</kbd> opens, a text hit scrolls to its section |
 | `outside-links.mjs` | a link out of the space opens the checkout file at its line or range; a link escaping the checkout is plain text |

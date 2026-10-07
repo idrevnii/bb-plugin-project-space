@@ -15,6 +15,7 @@ import type { ServerContext } from "./context";
 import { drawModule } from "./draw";
 import { filesModule } from "./files";
 import { searchModule } from "./search";
+import { sendModule } from "./send";
 import { createSpaces } from "./space";
 import { worktreesModule } from "./worktrees";
 
@@ -36,6 +37,7 @@ const modules = [
   drawModule,
   canvasImageModule,
   annotationsModule,
+  sendModule,
   searchModule,
   worktreesModule,
 ] as const;
