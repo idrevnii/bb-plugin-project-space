@@ -60,6 +60,21 @@ drawing the way the user sees it.
 - E2E: `scripts/e2e/canvas-view.mjs` (off-screen, stale-after-hand-edit, open
   canvas); pictures in `scripts/e2e/out/canvas-view-*.png`.
 
+### Fixes after review (@thread:thr_nndgyrd4x9)
+
+- `--png` is checked after the path is resolved: a relative path from inside
+  `.bb-space/`, `..`, and (on the space's own host) symlinks into the space
+  are refused.
+- A file tldraw cannot load is reported ("cannot be pictured: …"), no longer
+  stored as a blank picture: renderers post an `error` with the sha.
+- A render-only request is acked only once its answer reached the server; a
+  view re-queues whenever no request is waiting (covers a lost picture and a
+  request withdrawn by a parallel view that gave up).
+- The open canvas posts only if the board still matches the file after the
+  export, so unsaved edits never go out under the file's sha.
+- A view of a missing canvas drops its stored picture; pictures not
+  refreshed for 30 days are pruned at load.
+
 ## Out of scope
 
 Image annotations; PNG export into the space.

@@ -8,11 +8,13 @@
 // post one after every save (ui/canvas-image.ts). A view whose stored picture
 // is stale queues a render-only batch — an empty spec in the drawing queue —
 // and waits for a renderer to answer it. Pictures never go into `.bb-space/`.
+import { realpath } from "node:fs/promises";
+import { posix } from "node:path";
 import { PluginCliError, defineRpcContract, type BbPluginApi, type PluginRpcHandlers } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 import { RENDER_ONLY_SPEC } from "../lib/canvas/spec";
 import { fileKind } from "../lib/space";
-import { writeInvokerFile } from "./cli";
+import { invokerHost, invokerPath } from "./cli";
 import { defineModule, type ServerContext } from "./context";
 import { absolute, nonRootSpacePath, projectId, type ProjectSpace } from "./space";
 
@@ -21,6 +23,8 @@ const VIEW_WAIT_MS = 12_000;
 const POLL_MS = 300;
 /** Base64 of a PNG around 1600 px wide stays well below this. */
 const MAX_PNG_BASE64 = 16 * 1024 * 1024;
+/** Pictures not refreshed for this long are dropped (canvases since deleted). */
+const KEEP_MS = 30 * 24 * 60 * 60 * 1000;
 
 const canvasPath = nonRootSpacePath.refine(
   (value) => fileKind(value) === "tldraw",
@@ -30,7 +34,8 @@ const canvasPath = nonRootSpacePath.refine(
 export const canvasImageContract = defineRpcContract({
   /**
    * A renderer's picture of a canvas as of file `sha256`. An empty
-   * `pngBase64` means the canvas has no shapes.
+   * `pngBase64` means the canvas has no shapes, or, with `error`, that the
+   * renderer could not load the file.
    */
   space_canvas_image_put: {
     input: z.object({
@@ -38,6 +43,7 @@ export const canvasImageContract = defineRpcContract({
       path: canvasPath,
       sha256: z.string().min(1).max(128),
       pngBase64: z.string().max(MAX_PNG_BASE64),
+      error: z.string().max(500).optional(),
     }),
     output: z.object({ ok: z.literal(true) }),
   },
@@ -45,21 +51,26 @@ export const canvasImageContract = defineRpcContract({
 
 interface CanvasImage {
   sha256: string;
-  /** Empty when the canvas has no shapes. */
+  /** Empty when the canvas has no shapes or could not be loaded. */
   pngBase64: string;
+  /** Why the renderer could not load the file. */
+  error: string | null;
 }
 
 /** Stored pictures and render-only requests, one per plugin database. */
 function createImageStore(bb: BbPluginApi) {
   const db = bb.storage.database();
   const getRow = db.prepare(
-    `SELECT sha256, png AS pngBase64 FROM canvas_images WHERE project_id = ? AND path = ?`,
+    `SELECT sha256, png AS pngBase64, error FROM canvas_images WHERE project_id = ? AND path = ?`,
   );
   const upsert = db.prepare(
-    `INSERT INTO canvas_images (project_id, path, sha256, png, updated_at) VALUES (?, ?, ?, ?, ?)
+    `INSERT INTO canvas_images (project_id, path, sha256, png, error, updated_at) VALUES (?, ?, ?, ?, ?, ?)
        ON CONFLICT (project_id, path) DO UPDATE SET
-         sha256 = excluded.sha256, png = excluded.png, updated_at = excluded.updated_at`,
+         sha256 = excluded.sha256, png = excluded.png, error = excluded.error,
+         updated_at = excluded.updated_at`,
   );
+  const removeRow = db.prepare(`DELETE FROM canvas_images WHERE project_id = ? AND path = ?`);
+  const pruneRows = db.prepare(`DELETE FROM canvas_images WHERE updated_at < ?`);
   const findRender = db.prepare(
     `SELECT id FROM pending_draws WHERE project_id = ? AND path = ? AND spec = ? LIMIT 1`,
   );
@@ -72,8 +83,15 @@ function createImageStore(bb: BbPluginApi) {
     get(project: string, path: string): CanvasImage | null {
       return (getRow.get(project, path) as CanvasImage | undefined) ?? null;
     },
-    put(project: string, path: string, sha256: string, pngBase64: string): void {
-      upsert.run(project, path, sha256, pngBase64, Date.now());
+    put(project: string, path: string, sha256: string, pngBase64: string, error?: string): void {
+      upsert.run(project, path, sha256, pngBase64, error ?? null, Date.now());
+    },
+    /** Forgets the picture of a canvas that no longer exists. */
+    remove(project: string, path: string): void {
+      removeRow.run(project, path);
+    },
+    prune(): void {
+      pruneRows.run(Date.now() - KEEP_MS);
     },
     /** Queues a render-only batch unless one is waiting; its id, and whether it is new. */
     requestRender(project: string, path: string): { id: number; queued: boolean } {
@@ -107,6 +125,7 @@ function imageStore(bb: BbPluginApi): ImageStore {
 type CanvasView =
   | { kind: "image"; sha256: string; pngBase64: string }
   | { kind: "empty" }
+  | { kind: "unreadable"; error: string }
   | { kind: "missing" }
   | { kind: "timeout" };
 
@@ -146,30 +165,38 @@ async function viewCanvas(
   const store = imageStore(bb);
   const space = await resolveSpace(id);
   const deadline = Date.now() + VIEW_WAIT_MS;
-  let request: { id: number; queued: boolean } | null = null;
+  /** Render-only batches this call queued, removed when it returns. */
+  const queued: number[] = [];
   try {
     while (!signal?.aborted) {
       const file = await readCanvasFile(bb, space, path);
-      if (file === null) return { kind: "missing" };
+      if (file === null) {
+        store.remove(space.projectId, path);
+        return { kind: "missing" };
+      }
       if (file.blank) return { kind: "empty" };
       const image = store.get(space.projectId, path);
       if (image !== null && image.sha256 === file.sha256) {
+        if (image.error !== null) return { kind: "unreadable", error: image.error };
         return image.pngBase64 === ""
           ? { kind: "empty" }
           : { kind: "image", sha256: image.sha256, pngBase64: image.pngBase64 };
       }
       if (Date.now() >= deadline) break;
-      if (request === null) {
-        request = store.requestRender(space.projectId, path);
+      // Ask again whenever no request is waiting: a renderer may have taken
+      // one without posting, or another view may have withdrawn its own.
+      const request = store.requestRender(space.projectId, path);
+      if (request.queued) {
+        queued.push(request.id);
         bb.realtime.publish("space-draw", { projectId: space.projectId, path });
       }
       await new Promise((resolve) => setTimeout(resolve, POLL_MS));
     }
     return { kind: "timeout" };
   } finally {
-    // A request this call queued and nobody answered would linger in the
-    // queue; the next view asks again.
-    if (request?.queued) store.cancelRender(request.id);
+    // Unanswered requests would linger in the queue; a view still waiting
+    // on one queues its own on its next poll.
+    for (const id of queued) store.cancelRender(id);
   }
 }
 
@@ -179,6 +206,8 @@ function viewMessage(view: Exclude<CanvasView, { kind: "image" }>, path: string)
       return `${path} does not exist in the space.`;
     case "empty":
       return `${path} is an empty canvas: there is nothing to picture.`;
+    case "unreadable":
+      return `${path} cannot be pictured: ${view.error}. Use space_canvas_read to see what is in it.`;
     case "timeout":
       return [
         `No bb window rendered ${path} within ${VIEW_WAIT_MS / 1000} s, so there is no current picture of it.`,
@@ -186,6 +215,46 @@ function viewMessage(view: Exclude<CanvasView, { kind: "image" }>, path: string)
         "Use space_canvas_read for a text description instead.",
       ].join("\n");
   }
+}
+
+/** The real path of `path`, resolving symlinks in the part that exists. */
+async function realTarget(path: string): Promise<string> {
+  let existing = path;
+  const rest: string[] = [];
+  for (;;) {
+    try {
+      return posix.join(await realpath(existing), ...rest.reverse());
+    } catch {
+      const parent = posix.dirname(existing);
+      if (parent === existing) return path;
+      rest.push(posix.basename(existing));
+      existing = parent;
+    }
+  }
+}
+
+function insideSpace(path: string, root: string): boolean {
+  return path === root || path.startsWith(`${root}/`) || path.split("/").includes(".bb-space");
+}
+
+/**
+ * Refuses a --png target inside a space: by name anywhere, and by the
+ * resolved path (relative paths, `..`, symlinks) on the space's own host.
+ */
+async function refuseSpaceTarget(
+  space: ProjectSpace,
+  path: string,
+  hostId: string | undefined,
+): Promise<void> {
+  const refuse = () =>
+    new PluginCliError("canvas pictures are not written into the space", {
+      code: "invalid_path",
+      hint: "Write the PNG outside .bb-space/, e.g. /tmp/canvas.png.",
+    });
+  if (insideSpace(path, space.rootPath)) throw refuse();
+  // The server can only resolve symlinks on its own disk.
+  if (!space.isLocal || (hostId !== undefined && hostId !== space.hostId)) return;
+  if (insideSpace(await realTarget(path), await realTarget(space.rootPath))) throw refuse();
 }
 
 /** `bb space canvas <path> --png <out>`: writes the picture, returns what to print. */
@@ -196,27 +265,34 @@ export async function canvasPngCommand(
   out: string,
   ctx: { cwd?: string; threadId?: string; signal?: AbortSignal },
 ): Promise<string> {
-  // A path-segment check, so `my.bb-space-notes/` is fine.
-  if (out.split(/[\\/]/).includes(".bb-space")) {
-    throw new PluginCliError("canvas pictures are not written into the space", {
-      code: "invalid_path",
-      hint: "Write the PNG outside .bb-space/, e.g. /tmp/canvas.png.",
-    });
-  }
+  const target = posix.normalize(invokerPath(out, ctx, "--png"));
+  const host = await invokerHost(deps.bb, ctx);
+  await refuseSpaceTarget(await deps.resolveSpace(id), target, host.hostId);
   const view = await viewCanvas(deps, id, path, ctx.signal);
   if (view.kind !== "image") {
     throw new PluginCliError(viewMessage(view, path), {
       code: view.kind === "timeout" ? "render_timeout" : `canvas_${view.kind}`,
     });
   }
-  const written = await writeInvokerFile(deps.bb, out, view.pngBase64, ctx, "--png");
-  return `Wrote a picture of ${path} to ${written}`;
+  try {
+    await deps.bb.sdk.files.write({
+      ...host,
+      path: target,
+      content: view.pngBase64,
+      contentEncoding: "base64",
+      createParents: true,
+    });
+  } catch (cause) {
+    throw new PluginCliError(`cannot write ${target}: ${String(cause)}`, { code: "file_unwritable" });
+  }
+  return `Wrote a picture of ${path} to ${target}`;
 }
 
 export const canvasImageModule = defineModule({
   contract: canvasImageContract,
   register(ctx) {
     const store = imageStore(ctx.bb);
+    store.prune();
 
     ctx.bb.agents.registerTool({
       name: "space_canvas_view",
@@ -251,8 +327,8 @@ export const canvasImageModule = defineModule({
     });
 
     const rpc: PluginRpcHandlers<typeof canvasImageContract> = {
-      space_canvas_image_put: ({ projectId: id, path, sha256, pngBase64 }) => {
-        store.put(id, path, sha256, pngBase64);
+      space_canvas_image_put: ({ projectId: id, path, sha256, pngBase64, error }) => {
+        store.put(id, path, sha256, pngBase64, error);
         return { ok: true as const };
       },
     };

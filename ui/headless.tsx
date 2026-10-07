@@ -22,7 +22,7 @@ import {
 } from "tldraw";
 import type { PluginAppBuilder } from "@get-bb/plugin-sdk/app";
 import type { DrawBatch, SpaceFile } from "../server";
-import { postCanvasImage } from "./canvas-image";
+import { postCanvasError, postCanvasImage } from "./canvas-image";
 import { applyBatches, isRenderOnly, waitForFonts } from "./draw-queue";
 import { isTldrawDevelopmentOrigin } from "./TldrawView";
 
@@ -84,13 +84,19 @@ function HeadlessRenderer({
         file = null; // removed since it was queued: draw onto a new board
       }
       await waitForFonts(editor);
+      const parsed =
+        file !== null && file.content.trim() !== ""
+          ? parseTldrawJsonFile({ json: file.content, schema: editor.store.schema })
+          : null;
+      /** Why the file could not be loaded; the board is then blank. */
+      const unreadable =
+        parsed !== null && !parsed.ok
+          ? `it is not a readable tldraw document (${parsed.error.type})`
+          : null;
       editor.store.mergeRemoteChanges(() => {
         if (blank.current) loadSnapshot(editor.store, { document: blank.current });
-        if (file !== null && file.content.trim() !== "") {
-          const parsed = parseTldrawJsonFile({ json: file.content, schema: editor.store.schema });
-          if (parsed.ok) {
-            loadSnapshot(editor.store, { document: getSnapshot(parsed.value).document });
-          }
+        if (parsed?.ok) {
+          loadSnapshot(editor.store, { document: getSnapshot(parsed.value).document });
         }
       });
       const put = (input: unknown) => rpc("space_canvas_image_put", input);
@@ -98,8 +104,15 @@ function HeadlessRenderer({
       const renders = batches.filter(isRenderOnly).map((batch) => batch.id);
       if (draws.length === 0) {
         // Only pictures asked for: show the file as it is, without writing.
-        if (file !== null) await postCanvasImage(put, editor, { projectId, path, sha256: file.sha256 });
-        await rpc("space_draw_ack", { ids: renders });
+        // A file that cannot be loaded is reported, not pictured as blank.
+        // Unless the server has the answer, keep the request for next poll.
+        const target = file === null ? null : { projectId, path, sha256: file.sha256 };
+        const posted =
+          target === null ||
+          (unreadable === null
+            ? await postCanvasImage(put, editor, target)
+            : await postCanvasError(put, target, unreadable));
+        if (posted) await rpc("space_draw_ack", { ids: renders });
         return;
       }
       const done = applyBatches(editor, draws);

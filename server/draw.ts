@@ -79,6 +79,8 @@ const MIGRATIONS = [
        updated_at INTEGER NOT NULL,
        PRIMARY KEY (project_id, path)
      )`,
+  // Why a canvas could not be pictured (a file tldraw cannot load).
+  `ALTER TABLE canvas_images ADD COLUMN error TEXT`,
 ];
 
 /** How long a draw call waits for a renderer to land its batch. */

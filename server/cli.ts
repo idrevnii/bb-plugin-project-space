@@ -32,7 +32,7 @@ export function requireProject(
 }
 
 /** An absolute path for a file named on the command line by `flag`. */
-function invokerPath(file: string, ctx: { cwd?: string }, flag: string): string {
+export function invokerPath(file: string, ctx: { cwd?: string }, flag: string): string {
   if (file.startsWith("/")) return file;
   if (ctx.cwd) return `${ctx.cwd.replace(/\/+$/, "")}/${file}`;
   throw new PluginCliError(`relative ${flag} without a working directory`, {
@@ -42,7 +42,7 @@ function invokerPath(file: string, ctx: { cwd?: string }, flag: string): string 
 }
 
 /** The host of the calling thread's environment, if there is one. */
-async function invokerHost(
+export async function invokerHost(
   bb: BbPluginApi,
   ctx: { threadId?: string },
 ): Promise<{ hostId?: string }> {
@@ -71,32 +71,6 @@ export async function readInvokerFile(
   } catch (cause) {
     throw new PluginCliError(`cannot read ${path}: ${String(cause)}`, { code: "file_unreadable" });
   }
-}
-
-/**
- * Writes base64 content to a file named on the command line by `flag`, on the
- * machine that ran `bb`. Returns the absolute path written.
- */
-export async function writeInvokerFile(
-  bb: BbPluginApi,
-  file: string,
-  base64: string,
-  ctx: { cwd?: string; threadId?: string },
-  flag: string,
-): Promise<string> {
-  const path = invokerPath(file, ctx, flag);
-  try {
-    await bb.sdk.files.write({
-      ...(await invokerHost(bb, ctx)),
-      path,
-      content: base64,
-      contentEncoding: "base64",
-      createParents: true,
-    });
-  } catch (cause) {
-    throw new PluginCliError(`cannot write ${path}: ${String(cause)}`, { code: "file_unwritable" });
-  }
-  return path;
 }
 
 const link = cliCommand({
