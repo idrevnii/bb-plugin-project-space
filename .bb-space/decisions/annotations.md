@@ -9,9 +9,9 @@ route.
 has acted on it==.
 
 > [!NOTE] Status
-> Accepted. The data layer — model, anchoring, storage, RPC — is built
-> ([architecture](../architecture/annotations.md)). The Review tab,
-> *Send to…* and the agent CLI are tasks T30–T34.
+> Accepted and built for Markdown pages, HTML pages and canvases: the data
+> layer, the Review tab, *Send to…* and the agent CLI
+> ([architecture](../architecture/annotations.md)).
 
 ## Why
 

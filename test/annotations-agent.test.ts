@@ -97,7 +97,7 @@ async function load() {
       files: {
         read: async ({ path }: { path: string }) => {
           const content = disk.get(path);
-          if (content === undefined) throw new Error(`ENOENT ${path}`);
+          if (content === undefined) throw Object.assign(new Error(`HTTP 404: Path does not exist: ${path}`), { status: 404 });
           return { content, contentEncoding: "utf8", sha256: sha(content) };
         },
         write: async ({ path, content, expectedSha256 }: { path: string; content: string; expectedSha256?: string | null }) => {
@@ -127,7 +127,7 @@ async function load() {
   })) as { annotation: Annotation };
   const cli = (...argv: string[]) => harness.runCli(["annotations", ...argv], { projectId: "proj_1" });
   const tool = (input: object) => harness.callAgentTool("space_annotations", input, { projectId: "proj_1" });
-  return { harness, cli, tool, id: created.annotation.id };
+  return { harness, cli, tool, disk, id: created.annotation.id };
 }
 
 const textOf = (result: unknown) =>
@@ -185,5 +185,38 @@ describe("space_annotations tool", () => {
     const result = (await tool({ action: "show" })) as { isError?: boolean };
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain("needs an id");
+  });
+});
+
+describe("reading a canvas with comments", () => {
+  const CANVAS = JSON.stringify({
+    tldrawFileFormatVersion: 1,
+    records: [{ typeName: "shape", id: "shape:node-api", type: "geo", x: 0, y: 0, props: { geo: "rectangle", w: 100, h: 50 } }],
+  });
+
+  it("prints the comment under its shape in `bb space canvas` and space_canvas_read", async () => {
+    const { harness, disk } = await load();
+    disk.set(`${ROOT}/c.tldr`, CANVAS);
+    const { annotation } = (await harness.callRpc("annotations_create", {
+      projectId: "proj_1",
+      path: "c.tldr",
+      anchor: { kind: "shapes", shapeIds: ["shape:node-api"] },
+      comment: "Rename to gateway",
+    })) as { annotation: Annotation };
+    const line = `    ↳ comment ${annotation.id} [open]: "Rename to gateway"`;
+    const cli = (await harness.runCli(["canvas", "c.tldr"], { projectId: "proj_1" })).stdout;
+    expect(cli.split("\n")).toContain(line);
+    expect(cli.split("\n").indexOf(line) - 1).toBe(cli.split("\n").findIndex((each) => each.startsWith('- id "api"')));
+    const tool = textOf(await harness.callAgentTool("space_canvas_read", { path: "c.tldr" }, { projectId: "proj_1" }));
+    expect(tool).toContain(line);
+  });
+
+  it("still describes the canvas when its annotation file is broken", async () => {
+    const { harness, disk } = await load();
+    disk.set(`${ROOT}/c.tldr`, CANVAS);
+    disk.set(`${ROOT}/.space/annotations/c.tldr.json`, "{broken");
+    const out = (await harness.runCli(["canvas", "c.tldr"], { projectId: "proj_1" })).stdout;
+    expect(out).toContain('- id "api"');
+    expect(out).toContain("Its comments could not be read: Annotation file for c.tldr is unreadable");
   });
 });

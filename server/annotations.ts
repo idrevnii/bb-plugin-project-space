@@ -24,7 +24,7 @@ import {
 } from "../lib/annotations";
 import { normalizeSpacePath } from "../lib/space";
 import { defineModule } from "./context";
-import { absolute, nonRootSpacePath, projectId, type ProjectSpace } from "./space";
+import { absolute, isMissing, nonRootSpacePath, projectId, type ProjectSpace } from "./space";
 
 const anchorSchema = z.discriminatedUnion("kind", [
   z.object({
@@ -120,8 +120,9 @@ export function annotationStore(files: Files, space: ProjectSpace) {
         path: at(annotationFilePath(path)),
         rootPath: space.rootPath,
       });
-    } catch {
-      return { annotations: [], sha256: null };
+    } catch (error) {
+      if (isMissing(error)) return { annotations: [], sha256: null };
+      throw new Error(`Annotation file for ${path} could not be read: ${String(error)}`);
     }
     const text =
       file.contentEncoding === "utf8"

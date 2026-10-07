@@ -160,7 +160,7 @@ export function showText(annotation: Annotation, text: string | null): string {
   } else if (anchor.kind === "shapes") {
     out.push(
       `Anchor: ${anchor.shapeIds.length === 1 ? "shape" : "shapes"} ${clip(anchor.shapeIds.join(", "), SHOW_CLIP)}`,
-      `Read the canvas with \`bb space canvas ${annotation.path}\` to see them.`,
+      `Read the canvas with \`bb space canvas ${annotation.path}\`; it prints open comments under their shapes.`,
     );
   } else {
     out.push("Quote:", indent(clip(anchor.exact, SHOW_CLIP)), "");

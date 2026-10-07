@@ -13,14 +13,15 @@
 
   <section class="verdict">
     <strong>On track.</strong> The MVP and wave 1 are merged with <code>npm run check</code> green.
-    What is left: the annotations UI (T30–T34, ready to start) and the UI QA sweep (T21, not started).
+    The annotations UI works on Markdown pages and canvases (T30–T33).
+    What is left: annotating HTML pages (T34, ready to start).
   </section>
 
   <div class="grid">
     <div class="stat"><b id="done">0</b><span>milestones shipped</span><div class="bar"><i id="progress"></i></div></div>
     <div class="stat"><b id="next">0</b><span>milestones open</span></div>
     <div class="stat"><b>98 %</b><span>line coverage of <code>lib/</code></span></div>
-    <div class="stat"><b>15</b><span>end-to-end scripts</span></div>
+    <div class="stat"><b>26</b><span>end-to-end scripts</span></div>
   </div>
 
   <h2>Milestones</h2>
@@ -31,8 +32,12 @@
     <button data-filter="done" aria-pressed="false">Shipped</button>
   </div>
   <ul class="items" id="items">
-    <li class="next"><span class="tag">OPEN</span>Annotations UI: Markdown, Review tab, agent API, tldraw, HTML <small>T30–T34</small></li>
-    <li class="next"><span class="tag">OPEN</span>UI QA sweep <small>T21</small></li>
+    <li class="next"><span class="tag">OPEN</span>Annotate HTML pages <small>T34</small></li>
+    <li class="done"><span class="tag">DONE</span>Annotate canvases <small>T33</small></li>
+    <li class="done"><span class="tag">DONE</span>Annotations for agents: <code>bb space annotations</code> <small>T32</small></li>
+    <li class="done"><span class="tag">DONE</span>Review tab and sending annotations to a thread <small>T31</small></li>
+    <li class="done"><span class="tag">DONE</span>Annotate Markdown pages <small>T30</small></li>
+    <li class="done"><span class="tag">DONE</span>UI QA sweep <small>T21</small></li>
     <li class="done"><span class="tag">DONE</span>Annotations data layer <small>T10</small></li>
     <li class="done"><span class="tag">DONE</span>Callouts, highlights, footnotes, safe HTML in Markdown</li>
     <li class="done"><span class="tag">DONE</span>Reading styles and bb themes (Blue Topaz, Things)</li>

@@ -96,13 +96,16 @@ not clickable; hover it to see why.
 
 ## Annotations
 
-Leave a comment on a passage of a Markdown page while reading it.
+Leave a comment on a passage of a Markdown page while reading it, on a
+passage of an HTML page ([below](#comments-on-an-html-page)), or on shapes in
+a canvas ([below](#comments-on-a-canvas)).
 
 1. Select the text; a **Comment** button appears under the selection.
 2. Write the comment and save with **Save** or
    <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd>; <kbd>Esc</kbd> cancels.
 3. The passage stays highlighted. Click it to read the comment, **Edit** it,
-   **Resolve** (or **Reopen**) it, or **Delete** it.
+   **Resolve** (or **Reopen**) it, or **Delete** it. <kbd>Esc</kbd> while
+   editing leaves editing and keeps the comment open.
 
 The highlight follows the passage when the page is edited, by you or an
 agent, as long as the passage is still roughly there. A resolved comment is
@@ -117,11 +120,44 @@ Selecting text while editing does not offer *Comment*: press **Done** first.
 Comments live in `.bb-space/.space/annotations/` and move with the page when
 you rename or move it in the tree.
 
+### Comments on an HTML page
+
+Press **Annotate** in the toolbar first. Then comment as on a Markdown page:
+select text, press **Comment**, save. Highlights and comments whose text is
+gone show only while **Annotate** is on; they are listed above the page.
+
+The page's own scripts keep running in **Annotate** mode, and it still
+cannot reach bb. Opening a comment from the **Review** tab turns
+**Annotate** on by itself.
+
+### Comments on a canvas
+
+On a canvas, a comment points at shapes instead of text.
+
+1. Select one or more shapes; a **Comment** button appears under the
+   selection. Right-clicking the selection offers **Comment** too.
+2. Write the comment and save, as on a page.
+3. ==A numbered badge sits on the top-right corner of the shapes== and moves
+   with them and with the view. Click it to read, edit, resolve or delete
+   the comment; a dashed frame shows which shapes it is on.
+
+A comment stays on its shapes when they are moved, resized or restyled, and
+when an agent redraws the same node ids. It is lost only when every shape it
+points at is deleted.
+
+> [!NOTE] When the shapes are gone
+> The comment is kept and listed in the board's top-left corner as *comment
+> whose shapes are gone*. Click it to edit or delete it. Undoing the delete
+> brings the badge back.
+
+Agents see canvas comments too: `bb space canvas` prints each one under the
+shape it points at.
+
 ### Review and send to an agent
 
 The **Review** tab in the right panel lists the project's comments by file:
 open ones first, then sent, then resolved. Click a comment to open its page
-scrolled to it.
+scrolled to it, or its canvas centered on its shapes.
 
 1. Every open comment is ticked. Untick the ones to leave out.
 2. Press **Send to…** and pick where the review goes:

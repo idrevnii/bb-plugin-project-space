@@ -20,7 +20,7 @@ function memoryFiles() {
   const files = {
     async read({ path }: { path: string }) {
       const content = disk.get(path);
-      if (content === undefined) throw new Error(`ENOENT ${path}`);
+      if (content === undefined) throw Object.assign(new Error(`HTTP 404: Path does not exist: ${path}`), { status: 404 });
       return { content, contentEncoding: "utf8", sha256: sha(content) };
     },
     async write({ path, content, expectedSha256 }: { path: string; content: string; expectedSha256?: string | null }) {
@@ -48,7 +48,7 @@ function memoryFiles() {
       return { ok: true };
     },
   };
-  return { disk, store: annotationStore(files as never, space) };
+  return { disk, files, store: annotationStore(files as never, space) };
 }
 
 const quote = { kind: "text-quote", exact: "route back", prefix: "an explicit ", suffix: " to an agent" } as const;
@@ -74,6 +74,16 @@ describe("annotationStore", () => {
     expect(await store.remove(a.id)).toBe("guides/a.md");
     expect((await store.list()).map((each) => each.id)).toEqual([b.id]);
     await expect(store.update(a.id, { comment: "x" })).rejects.toThrow(/No annotation/);
+  });
+
+  it("reads a missing annotation file as none, but fails on any other read error", async () => {
+    const { disk, files, store } = memoryFiles();
+    expect(await store.list("missing.md")).toEqual([]);
+    disk.set(`${ROOT}/.space/annotations/a.md.json`, "{}");
+    files.read = async () => {
+      throw Object.assign(new Error("HTTP 403: Permission denied"), { status: 403 });
+    };
+    await expect(store.list("a.md")).rejects.toThrow("Annotation file for a.md could not be read: Error: HTTP 403");
   });
 
   it("retries a write that lost a compare-and-swap race", async () => {

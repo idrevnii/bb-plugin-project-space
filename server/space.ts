@@ -45,6 +45,17 @@ export function absolute(space: ProjectSpace, path: string): string {
   return path === "" ? space.rootPath : `${space.rootPath}/${path}`;
 }
 
+/**
+ * Whether `bb.sdk.files` failed because the path does not exist. The host
+ * throws a BbHttpError with status 404; anything else (permissions, a host
+ * that is down) is a real failure the caller must not read as "no file".
+ */
+export function isMissing(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  if ((error as { status?: unknown }).status === 404) return true;
+  return error instanceof Error && /\bHTTP 404\b/.test(error.message);
+}
+
 export function checkoutOf(space: ProjectSpace): string {
   return space.rootPath.slice(0, -SPACE_DIR.length - 1);
 }

@@ -2,8 +2,9 @@
 
 Comment on shapes in a tldraw canvas.
 
-> [!todo] Ready to start
-> Wave 2 · depends on: T10. T10 is merged.
+> [!success] Done 2026-10-07
+> Wave 2 · depends on: T10. Documented in [Using the space → Comments on a canvas](../guides/using-the-space.md#comments-on-a-canvas)
+> and [Annotations → Canvases](../architecture/annotations.md#canvases).
 
 ## Read first
 
@@ -23,10 +24,29 @@ Comment on shapes in a tldraw canvas.
 
 ## Acceptance
 
-- [ ] e2e: select two boxes → comment → reload → badge present; move the
+- [x] e2e: select two boxes → comment → reload → badge present; move the
       boxes → badge follows; delete them → orphaned.
-- [ ] `bb space canvas` output shows the comment beside the node.
-- [ ] `npm run check` passes.
+- [x] `bb space canvas` output shows the comment beside the node.
+- [x] `npm run check` passes.
+
+## Notes
+
+- Code: [`ui/annotate/tldraw.tsx`](../../ui/annotate/tldraw.tsx) (button,
+  context-menu item, badges, corner list), wired in
+  [`ui/TldrawView.tsx`](../../ui/TldrawView.tsx); comments in the text an
+  agent reads in [`lib/canvas/read.ts`](../../lib/canvas/read.ts), fed by
+  [`server/draw.ts`](../../server/draw.ts). Checked by
+  `test/canvas-read.test.ts`, `test/annotations-agent.test.ts` and
+  `scripts/e2e/annotations-canvas.mjs`.
+- The comment editor and card moved from `ui/annotate/markdown.tsx` to
+  [`ui/annotate/comment.tsx`](../../ui/annotate/comment.tsx), shared by both
+  annotators.
+- Both *Comment* entry points are built: a button under the selection and
+  an item in tldraw's context menu.
+- Clicking a canvas comment in the Review tab centers the board on its
+  shapes and opens it.
+- Resolved comments are only counted in `bb space canvas`, to keep the
+  description short.
 
 ## Docs
 

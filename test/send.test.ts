@@ -36,7 +36,7 @@ async function load() {
       files: {
         read: async ({ path }: { path: string }) => {
           const content = disk.get(path);
-          if (content === undefined) throw new Error(`ENOENT ${path}`);
+          if (content === undefined) throw Object.assign(new Error(`HTTP 404: Path does not exist: ${path}`), { status: 404 });
           return { content, contentEncoding: "utf8", sha256: sha(content) };
         },
         write: async ({ path, content, expectedSha256 }: { path: string; content: string; expectedSha256?: string | null }) => {

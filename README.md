@@ -28,7 +28,7 @@ app.tsx              Space page (navPanel), Files tab, thread-header button, ::s
 ui/page/             routing, project picker, toolbar, text / HTML / binary documents
 ui/FileTree.tsx      tree with create / rename / delete
 ui/MarkdownView.tsx  Markdown reader
-ui/annotate/         annotations in the reader: selection, highlights, comments
+ui/annotate/         annotations in the reader and on canvases: selection, highlights, badges, comments
 ui/markdown-plugins  reader pipeline: callouts, ==highlight==, sanitized raw HTML
 lib/callouts.ts      `> [!type]` callout markers, shared by reader and editor
 ui/reading-style*    reading styles (Blue Topaz, Things) for reader and editor

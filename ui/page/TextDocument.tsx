@@ -6,6 +6,8 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { baseName, fileKind } from "../../lib/space";
 import type { SpaceFile } from "../../server";
+import { useAnnotationFocus } from "../annotate/focus";
+import { AnnotatedHtml } from "../annotate/html";
 import { AnnotatedMarkdown } from "../annotate/markdown";
 import { errorMessage, type SpaceRpc } from "../data";
 import { MarkdownView } from "../MarkdownView";
@@ -50,6 +52,13 @@ export function TextDocument({
   /** Bumped when the draft is replaced from outside, so the editor reloads it. */
   const [editorKey, setEditorKey] = useState(0);
   const wysiwyg = editing && kind === "markdown" && !source;
+  /** HTML only: render through the annotation bridge instead of the plain preview. */
+  const [annotate, setAnnotate] = useState(false);
+  // The Review tab opening a comment on this page switches it on.
+  const focusId = useAnnotationFocus(projectId, file.path);
+  useEffect(() => {
+    if (focusId !== null && kind === "html" && !editing) setAnnotate(true);
+  }, [focusId, kind, editing]);
   /** The reader's scroll container, for the Outline tab's highlight. */
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   useHeadingTracker(
@@ -136,10 +145,18 @@ export function TextDocument({
           </Button>
         </>
       ) : (
-        <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
+        <>
+          {kind === "html" ? (
+            <Button size="sm" variant="ghost" aria-pressed={annotate} onClick={() => setAnnotate(!annotate)}>
+              <Icon name="MessageSquare" className="size-3.5" />
+              Annotate
+            </Button>
+          ) : null}
+          <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
           <Icon name="Edit" className="size-3.5" />
           Edit
-        </Button>
+          </Button>
+        </>
       )}
     </>
   );
@@ -193,7 +210,11 @@ export function TextDocument({
         )}
       </div>
     ) : kind === "html" ? (
-      <HtmlFrame baseUrl={previewBaseUrl} file={file} />
+      annotate ? (
+        <AnnotatedHtml key={file.path} projectId={projectId} file={file} rpc={rpc} baseUrl={previewBaseUrl} />
+      ) : (
+        <HtmlFrame baseUrl={previewBaseUrl} file={file} />
+      )
     ) : (
       <div className="p-4 text-[13px]">
         <SourceCode content={file.content} path={file.path} overflow="wrap" />

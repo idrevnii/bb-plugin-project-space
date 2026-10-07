@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import type { Anchor, Annotation } from "../lib/annotations";
 import { describeTldr, drawnNodeIds, plainText, tldrRecords } from "../lib/canvas/read";
 
 const fixture = readFileSync(new URL("./fixtures/diagram.tldr", import.meta.url), "utf8");
@@ -105,6 +106,82 @@ describe("describeTldr edge cases", () => {
       "a.tldr",
     );
     expect(text).toContain("- Alpha -> shape:b");
+  });
+});
+
+describe("describeTldr with comments", () => {
+  let seq = 0;
+  const note = (anchor: Anchor, comment: string, status: Annotation["status"] = "open"): Annotation => ({
+    id: `ann_${++seq}`,
+    path: "a.tldr",
+    anchor,
+    comment,
+    status,
+    author: "user",
+    createdAt: seq,
+    updatedAt: seq,
+  });
+  const shapes = (...shapeIds: string[]): Anchor => ({ kind: "shapes", shapeIds });
+  const board = file([
+    { typeName: "shape", id: "shape:node-api", type: "geo", x: 0, y: 0, props: { geo: "rectangle", w: 100, h: 50, richText: rich("API") } },
+    { typeName: "shape", id: "shape:node-db", type: "geo", x: 0, y: 200, props: { geo: "rectangle", w: 100, h: 50, richText: rich("DB") } },
+    { typeName: "shape", id: "shape:edge-q", type: "arrow", props: {} },
+    { typeName: "binding", type: "arrow", fromId: "shape:edge-q", toId: "shape:node-api", props: { terminal: "start" } },
+    { typeName: "binding", type: "arrow", fromId: "shape:edge-q", toId: "shape:node-db", props: { terminal: "end" } },
+    { typeName: "shape", id: "shape:d1", type: "draw", props: {} },
+  ]);
+
+  it("prints a comment under the shape it points at", () => {
+    const text = describeTldr(board, "a.tldr", [note(shapes("shape:node-db"), "Use  Postgres\nhere")]);
+    const lines = text.split("\n");
+    const at = lines.findIndex((line) => line.startsWith('- id "db"'));
+    expect(lines[at + 1]).toBe('    ↳ comment ann_1 [open]: "Use Postgres here"');
+  });
+
+  it("puts a comment on several shapes under the first and names the others", () => {
+    const text = describeTldr(board, "a.tldr", [
+      note(shapes("shape:gone", "shape:node-api", "shape:node-db", "shape:edge-q"), "Merge these"),
+    ]);
+    const lines = text.split("\n");
+    const at = lines.findIndex((line) => line.startsWith('- id "api"'));
+    expect(lines[at + 1]).toMatch(/^ {4}↳ comment ann_\d+ \[open\] \(also on db, q\): "Merge these"$/);
+    expect(text.match(/Merge these/g)).toHaveLength(1);
+  });
+
+  it("puts comments on arrows under the arrow", () => {
+    const text = describeTldr(board, "a.tldr", [note(shapes("shape:edge-q"), "Label this")]);
+    expect(text).toMatch(/- api -> db\n {4}↳ comment ann_\d+ \[open\]: "Label this"/);
+  });
+
+  it("lists comments on uncounted, missing shapes and the whole file at the end", () => {
+    const text = describeTldr(board, "a.tldr", [
+      note(shapes("shape:d1"), "Scribble"),
+      note(shapes("shape:gone"), "Was here"),
+      note({ kind: "file" }, "Overall"),
+    ]);
+    const comments = text.split("Comments:\n")[1]!.split("\n");
+    expect(comments).toEqual([
+      expect.stringMatching(/^- on a draw shape \(shape:d1\): comment ann_\d+ \[open\]: "Scribble"$/),
+      expect.stringMatching(/^- on a shape no longer on the board: comment ann_\d+ \[open\]: "Was here"$/),
+      expect.stringMatching(/^- on the whole canvas: comment ann_\d+ \[open\]: "Overall"$/),
+    ]);
+  });
+
+  it("leaves resolved comments out but counts them, and clips long ones", () => {
+    const text = describeTldr(board, "a.tldr", [
+      note(shapes("shape:node-api"), "Done", "resolved"),
+      note(shapes("shape:node-api"), "x".repeat(400), "sent"),
+    ]);
+    expect(text).not.toContain('"Done"');
+    expect(text).toContain("1 resolved comment(s) not shown; `bb space annotations list --path a.tldr --status resolved`");
+    expect(text).toMatch(/\[sent\]: "x{299}…"/);
+  });
+
+  it("lists comments on an empty canvas as gone", () => {
+    expect(describeTldr("", "a.tldr", [note(shapes("shape:a", "shape:b"), "Hm")])).toMatch(
+      /^a\.tldr — an empty canvas; nothing is drawn yet\.\n\nComments:\n- on shapes no longer on the board: comment ann_\d+ \[open\]: "Hm"$/,
+    );
+    expect(describeTldr("", "a.tldr", [])).toBe("a.tldr — an empty canvas; nothing is drawn yet.");
   });
 });
 

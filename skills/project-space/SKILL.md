@@ -278,7 +278,9 @@ when the tool is not available). The spec:
   into a new path.
 - The result text describes the canvas afterwards. Before changing a diagram
   the user may have edited, read it with `space_canvas_read`
-  (`bb space canvas <path.tldr>`).
+  (`bb space canvas <path.tldr>`). The user's comments on shapes appear
+  under the shape they point at (`↳ comment ann_… [open]: "…"`); keep those
+  node ids when you redraw, or the comments lose their shapes.
 - Link the diagram from the relevant Markdown page.
 - To look at the result, call `space_canvas_view` (or
   `bb space canvas <path.tldr> --png /tmp/canvas.png`): a PNG of the canvas as
@@ -308,6 +310,9 @@ through them one at a time:
   `bb space annotations reply <id> "…"` keeps it open with your question.
 - `show` says when a quote is *orphaned* (no longer in the file); check
   whether someone already changed that text before acting.
+- A comment on a canvas points at shapes, not text: read the canvas with
+  `space_canvas_read` (`bb space canvas <path.tldr>`), which prints each
+  comment under its shape, then change the diagram with `space_draw`.
 - `bb space annotations list --status open` (or `action: "list"`) shows what
   is still open; `--path` narrows it to one file. Output stays under 60 KB
   and says when lines were cut.

@@ -30,8 +30,10 @@ Version `0.1.0`, updated 2026-10-07. Everything in the MVP and wave 1 is
 merged: pages and folders with drag and drop, search and an outline; WYSIWYG
 Markdown with callouts, Mermaid and links into the code; sandboxed HTML;
 tldraw canvases that agents draw on, lint and see as PNGs; live refresh;
-worktree awareness; unit and e2e tests.
+worktree awareness; unit and e2e tests; a UI QA sweep. Annotations work on
+Markdown pages and canvases: comments gather in the Review tab, go to a
+thread, and agents resolve them with `bb space annotations`.
 
 > [!IMPORTANT] Next up
-> The annotations UI (T30–T34) and the UI QA sweep (T21). The annotations
-> data layer they build on is already merged. See the [roadmap](roadmap.md).
+> Annotating HTML pages (T34), the last task of the annotations UI. See the
+> [roadmap](roadmap.md).

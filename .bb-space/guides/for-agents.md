@@ -19,7 +19,7 @@ this page is the short version.
 | `bb space search <text>` | finds pages by name, then by text inside |
 | `bb space link <path> --title "…"` | prints a `::space` directive that shows the page as a card in chat |
 | `bb space draw <path.tldr> --spec-file spec.json` | draws a boxes-and-arrows diagram |
-| `bb space canvas <path.tldr>` | reads a canvas back as text |
+| `bb space canvas <path.tldr>` | reads a canvas back as text, with the user's comments under the shapes they point at |
 | `bb space canvas <path.tldr> --png /tmp/d.png` | saves a PNG of the canvas, as the user sees it |
 | `bb space annotations list [--path p] [--status open\|sent\|resolved]` | the user's comments, one line each with its `ann_…` id |
 | `bb space annotations show <id>` | one comment with the quoted passage and 3 lines of the file around it |
@@ -57,6 +57,18 @@ each id:
 ==Each output stays under 60 KB==; `list` ends with `… N more not shown`
 when it is cut, so narrow it with `--path` or `--status`.
 
+A comment on a canvas points at shapes. `bb space canvas <path.tldr>` prints
+it under the first of them, with the others named:
+
+```text
+- id "api" [rectangle] "API" at (0, 0) 160x80
+    ↳ comment ann_k2… [sent] (also on db): "These two should be one service"
+```
+
+Comments whose shapes are gone, are only hand-drawn, or are on the whole
+canvas follow in a closing *Comments* section; resolved ones are only
+counted. The `space_draw` result prints them the same way.
+
 ## Tools
 
 In new threads the same drawing, and the annotations, are available as agent tools.
@@ -64,7 +76,7 @@ In new threads the same drawing, and the annotations, are available as agent too
 | Tool | Does |
 | --- | --- |
 | `space_draw` | draws or updates a diagram from a spec; the result ends with an *Overlaps* section to fix |
-| `space_canvas_read` | the canvas as text: nodes, arrows, text, hand-drawn shapes |
+| `space_canvas_read` | the canvas as text: nodes, arrows, text, hand-drawn shapes, and comments under their shapes |
 | `space_canvas_view` | a PNG of the canvas (light theme, at most 1600 px wide) |
 | `space_annotations` | `action: list \| show \| resolve`, the same as the `bb space annotations` commands |
 

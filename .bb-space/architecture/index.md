@@ -32,8 +32,8 @@ state.
 | [`ui/page/MarkdownEditor.tsx`](../../ui/page/MarkdownEditor.tsx) | TipTap WYSIWYG; schema in `markdown-extensions.ts` |
 | [`ui/MarkdownView.tsx`](../../ui/MarkdownView.tsx) | the reader: links, `MermaidBlock.tsx`, plugins in `markdown-plugins.ts` |
 | [`ui/reading-style.ts`](../../ui/reading-style.ts) | the *Reading style* setting; CSS in `ui/reading-styles/` |
-| [`ui/page/HtmlFrame.tsx`](../../ui/page/HtmlFrame.tsx) | HTML in a sandboxed iframe |
-| [`ui/TldrawView.tsx`](../../ui/TldrawView.tsx) | `.tldr` canvases with autosave |
+| [`ui/page/HtmlFrame.tsx`](../../ui/page/HtmlFrame.tsx) | HTML in a sandboxed iframe; comments in *Annotate* mode in `ui/annotate/html.tsx` ([annotations](annotations.md#html-pages)) |
+| [`ui/TldrawView.tsx`](../../ui/TldrawView.tsx) | `.tldr` canvases with autosave; comments on shapes in `ui/annotate/tldraw.tsx` ([annotations](annotations.md#canvases)) |
 | [`ui/FileTree.tsx`](../../ui/FileTree.tsx) | the tree; `tree-move.ts` for drag and drop, `SearchBox.tsx` |
 | [`ui/OutlineTab.tsx`](../../ui/OutlineTab.tsx) | headings of the open page (`outline.ts`) |
 | [`ui/ReviewTab.tsx`](../../ui/ReviewTab.tsx) | the project's annotations and *Send to…* — see [annotations](annotations.md#review-and-send-to) |
@@ -116,8 +116,9 @@ sequenceDiagram
 2. Otherwise every bb window keeps an off-screen editor
    ([`ui/headless.tsx`](../../ui/headless.tsx)) that polls the queue.
 3. The tool waits up to **12 s** for the ack and answers with the canvas as
-   text ([`lib/canvas/read.ts`](../../lib/canvas/read.ts)), ending with an
-   *Overlaps* section from [`lib/canvas/lint.ts`](../../lib/canvas/lint.ts).
+   text ([`lib/canvas/read.ts`](../../lib/canvas/read.ts)), with the user's
+   comments under the shapes they point at, ending with an *Overlaps* section
+   from [`lib/canvas/lint.ts`](../../lib/canvas/lint.ts).
 
 Shape ids derive from spec ids (`shape:node-<id>`), so re-sending a node
 updates it and a double apply converges. Editors run without a current tldraw
@@ -156,5 +157,44 @@ HTML and images load from `bb.sdk.files.createPreview` — a temporary,
 path-shaped URL confined to the space, so relative assets resolve.
 
 > [!CAUTION] Keep the iframe sandbox without `allow-same-origin`
-> HTML pages run scripts but cannot reach bb. Annotating HTML (T34) has to
-> work through `postMessage`, not by touching the frame's DOM.
+> HTML pages run scripts but cannot reach bb. Annotating them works through
+> `postMessage`, never by touching the frame's DOM.
+
+The plain view loads the preview URL as is. Two views render the file
+through `srcdoc` instead, with `<base href>` set to the file's folder on the
+preview URL so relative assets still resolve: the edit preview (the unsaved
+draft) and *Annotate* mode (the saved file plus the bridge).
+
+### The annotation bridge
+
+In *Annotate* mode [`html-bridge.ts`](../../ui/annotate/html-bridge.ts)
+injects a small script at the top of `<head>`. **The bridge only reports and
+paints; nothing the page sends can write an annotation.**
+
+| Direction | Message | Meaning |
+| --- | --- | --- |
+| page → bb | `text` | the page's rendered text, again whenever it changes |
+| page → bb | `selection` / `unselect` | the user's selection as `{ exact, prefix, suffix, rect }`, or that it is gone |
+| page → bb | `click` | a highlight was clicked (or revealed): open comment `id` |
+| bb → page | `highlight` | paint these `{ id, start, end, state }` offsets into the last `text` |
+| bb → page | `reveal` / `unselect` | scroll to a highlight; clear the selection after a save |
+
+The security rules, each checked in code:
+
+- **Source** — bb accepts a message only when `event.source` is that
+  frame's `contentWindow`; the bridge accepts only messages from
+  `window.parent`.
+- **Token** — every message to bb carries a random token minted per mount.
+  The bridge runs before the page's own scripts, keeps the token in a
+  closure and removes its `<script>`, so the page cannot read it.
+- **Schema** — `parseBridgeMessage` checks the channel, the token and the
+  shape with zod (finite rects, `ann_` ids, quotes up to 4000 characters).
+- **Trusted input** — the bridge reports a selection only on a `mouseup` or
+  `keyup` whose `isTrusted` is true, so a page script that selects text and
+  dispatches events gets nothing.
+- **Gesture in bb** — a selection only shows *Comment*. Creating needs a
+  click on that button and a comment typed and saved in bb's own popover;
+  a page cannot click or type into bb's document.
+
+The page can read what bb sends it: ids and offsets of its own comments,
+never their text.

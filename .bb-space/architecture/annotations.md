@@ -5,22 +5,26 @@ edits to that file. This page is the contract the Review tab, *Send to…* and
 the agent CLI build on (T30–T34); why annotations exist is in the
 [decision](../decisions/annotations.md).
 
-> [!NOTE] Built so far: the data layer, Markdown pages, the Review tab and the agent side
+> [!NOTE] Built: every file type
 > Model, anchoring, storage and RPC (T10), annotating Markdown pages in the
-> reader (T30), the Review tab with *Send to…* (T31), and
-> `bb space annotations` with the `space_annotations` tool (T32). HTML and
-> canvases are still to come — see the [roadmap](../roadmap.md).
+> reader (T30), the Review tab with *Send to…* (T31),
+> `bb space annotations` with the `space_annotations` tool (T32),
+> annotating canvases (T33) and HTML pages (T34).
 
 | Piece | Where |
 | --- | --- |
 | model and anchoring (pure, shared by server and app) | [`lib/annotations.ts`](../../lib/annotations.ts) |
 | storage, RPC, following moves | [`server/annotations.ts`](../../server/annotations.ts) |
 | Markdown reader: selecting, highlights, the comment popover | [`ui/annotate/markdown.tsx`](../../ui/annotate/markdown.tsx), rendered text ↔ DOM in [`ui/annotate/text.ts`](../../ui/annotate/text.ts) |
+| canvases: *Comment* on a selection, badges, orphans | [`ui/annotate/tldraw.tsx`](../../ui/annotate/tldraw.tsx) |
+| HTML pages: *Annotate* mode over the sandboxed frame | [`ui/annotate/html.tsx`](../../ui/annotate/html.tsx); the script inside the frame in [`ui/annotate/html-bridge.ts`](../../ui/annotate/html-bridge.ts) |
+| the popover's editor and card, shared by all three | [`ui/annotate/comment.tsx`](../../ui/annotate/comment.tsx) |
 | Review tab and *Send to…* | [`ui/ReviewTab.tsx`](../../ui/ReviewTab.tsx); grouping and the message in [`lib/review.ts`](../../lib/review.ts) |
 | sending and marking sent | [`server/send.ts`](../../server/send.ts) |
 | `bb space annotations` and the `space_annotations` tool | [`server/annotations-agent.ts`](../../server/annotations-agent.ts); the text they print in [`lib/annotation-text.ts`](../../lib/annotation-text.ts) |
-| tests | `test/annotations.test.ts`, `test/annotations-store.test.ts`, `test/annotate-text.test.ts`, `test/review.test.ts`, `test/send.test.ts`, `test/annotations-agent.test.ts` |
-| live checks | `scripts/e2e/annotations.mjs`, `scripts/e2e/annotations-markdown.mjs`, `scripts/e2e/review.mjs`, `scripts/e2e/annotations-agent.mjs` |
+| canvas comments as text for agents | [`lib/canvas/read.ts`](../../lib/canvas/read.ts) (`describeTldr`) |
+| tests | `test/annotations.test.ts`, `test/annotations-store.test.ts`, `test/annotate-text.test.ts`, `test/review.test.ts`, `test/send.test.ts`, `test/annotations-agent.test.ts`, `test/canvas-read.test.ts`, `test/html-bridge.test.ts` |
+| live checks | `scripts/e2e/annotations.mjs`, `scripts/e2e/annotations-markdown.mjs`, `scripts/e2e/annotations-canvas.mjs`, `scripts/e2e/annotations-html.mjs`, `scripts/e2e/review.mjs`, `scripts/e2e/annotations-agent.mjs` |
 
 ## The model
 
@@ -76,8 +80,8 @@ order:
 3. **Null.** The quote is gone; the UI shows the annotation as *orphaned* and
    keeps it.
 
-Shape anchors are resolved by the canvas (missing ids → orphaned); `file`
-anchors always resolve.
+Shape anchors are resolved by the canvas (all ids missing → orphaned, see
+[Canvases](#canvases)); `file` anchors always resolve.
 
 ## Markdown pages
 
@@ -108,6 +112,77 @@ wraps `MarkdownView` only while the page is read, never while it is edited.
   anchors.
 - **Live** — `useAnnotations` in [`ui/data.ts`](../../ui/data.ts) refetches
   on `space-annotations-changed` for the page and on reconnect.
+
+## Canvases
+
+[`ui/annotate/tldraw.tsx`](../../ui/annotate/tldraw.tsx) draws a canvas's
+comments over the board. tldraw's component slots take no props, so
+`TldrawView` wraps `<Tldraw>` in `<CanvasAnnotations>` (the file's
+annotations via `useAnnotations`, and which popover is open) and passes
+`canvasAnnotationComponents`, whose slots read that context.
+
+- **Creating** — while shapes are selected and the select tool is idle, a
+  *Comment* button sits under the selection's bounds; tldraw's context menu
+  gets a *Comment* item too (`ContextMenu` slot). Both save
+  `{ kind: "shapes", shapeIds }` with the selected ids.
+- **Badges** — in the `InFrontOfTheCanvas` slot. ==A `useValue` computes each
+  comment's place from the editor's signals==, so badges re-render when the
+  camera or a shape moves. The place is the union page bounds of the shapes
+  that exist on the current page, turned into viewport pixels with
+  `pageToViewport`; the badge sits on its top-right corner. Badges on the
+  same corner line up leftwards. The number is the comment's position among
+  the file's comments, oldest first.
+- **Opening** — a badge opens the shared `CommentCard` in an `EditorPortal`
+  above tldraw's panels, with a dashed frame round the shapes.
+- **Orphans** — a comment whose shapes are all gone is listed in the
+  top-left corner (*comments whose shapes are gone*), with `file` and
+  `text-quote` anchors as *comments on the whole canvas*. Shapes that exist
+  on another tldraw page are neither drawn nor listed.
+- **Not before the load** — `ready` is false until `TldrawView` has loaded
+  the file, and while it cannot load it, so a board that is still empty
+  does not list everything as orphaned.
+- **Review tab** — a focus request centers the camera on the shapes and
+  opens the comment.
+
+Shape ids from `space_draw` derive from node ids (`shape:node-<id>`), so a
+redraw of the same nodes, even with `clear: true`, keeps the comments on
+them.
+
+## HTML pages
+
+An HTML page runs in a sandbox without `allow-same-origin`, so bb cannot
+read or mark its DOM. ==Comments on it go through a bridge script that only
+*Annotate* mode injects==; the plain view stays the bare preview URL. The
+messages and the security rules are in
+[Architecture → The annotation bridge](index.md#the-annotation-bridge).
+
+- **Annotate mode** — the *Annotate* toggle in the toolbar makes
+  `HtmlFrame` render the saved file through `srcdoc`, with `<base href>` on
+  the preview URL and the bridge first in `<head>`. The page's own scripts
+  run as usual. The toggle is per view and off by default.
+- **Rendered text** — the bridge joins the text nodes under `<body>`,
+  skipping `<script>`, `<style>`, `<noscript>` and `<template>`, and posts
+  it whenever it changes (a `MutationObserver`, throttled to once every
+  150 ms, so a page that never stops changing still sends its text).
+- **Creating** — on a trusted `mouseup`/`keyup` with a non-empty selection
+  the bridge posts the quote, trimmed of whitespace, with 32 characters of
+  context. bb shows *Comment* by the selection; the popover is the
+  Markdown reader's.
+- **Highlights** — bb locates every `text-quote` annotation in the reported
+  text with `locateQuote` (so fuzzy matching works as on Markdown pages) and
+  sends the offsets back. The bridge paints them with the CSS Custom
+  Highlight API, same names and colors as the reader. The offsets are into
+  the text last sent, so the bridge maps them through the text nodes of that
+  text, not the live DOM. There is no `<mark>` fallback: bb's Chromium has
+  the API.
+- **Opening** — a trusted click inside a highlight's rects (the shortest of
+  overlapping ones) posts `click`; links, buttons and form fields keep their
+  own clicks. Focus moving into the frame closes an open comment.
+- **Above the frame** — orphaned comments and `file` anchors are listed in a
+  strip over the page.
+- **Review tab** — a focus request switches *Annotate* on; the bridge
+  scrolls the passage into view and reports where it is, which opens the
+  comment.
 
 ## Review and *Send to…*
 
@@ -162,6 +237,15 @@ reader update live.
   comment and the quote to 4000 characters and each context line to 400.
 - **Orphans** — when the quote is no longer found, `show` says so instead of
   printing context. Shape anchors point at `bb space canvas <path>`.
+- **Canvases** — `describeTldr` takes the file's annotations, so
+  `bb space canvas`, `space_canvas_read` and the `space_draw` result print
+  each open or sent comment under the first described shape it points at
+  (`↳ comment ann_… [open] (also on db): "…"`, clipped to 300 characters).
+  Comments on shapes that are gone or only counted (hand-drawn), and `file`
+  anchors, go to a closing *Comments* section; resolved ones are counted. An
+  annotation file that cannot be read or parsed adds a note instead of
+  failing the read. Only a missing file (HTTP 404 from `bb.sdk.files`) means
+  "no comments"; any other read error is reported, never shown as none.
 - **Errors** — an unknown id fails with `No annotation <id>` (code
   `annotation_not_found`).
 

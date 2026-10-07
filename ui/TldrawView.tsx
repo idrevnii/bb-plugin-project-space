@@ -3,6 +3,7 @@
 // a compare-and-swap on the file's sha; an outside change (an agent rewriting
 // the file) reloads the board when there are no unsaved edits. Every save
 // also posts a picture of the board for agents (ui/canvas-image.ts).
+// Comments on shapes are drawn over the board by ui/annotate/tldraw.tsx.
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   Tldraw,
@@ -19,6 +20,7 @@ import { errorMessage, type SpaceRpc } from "./data";
 import { NO_USERS, serializeCanvas } from "./canvas-file";
 import { postCanvasError, postCanvasImage } from "./canvas-image";
 import { applyBatches, isRenderOnly, waitForFonts } from "./draw-queue";
+import { CanvasAnnotations, canvasAnnotationComponents } from "./annotate/tldraw";
 
 const SAVE_DELAY_MS = 800;
 
@@ -102,6 +104,8 @@ export function TldrawView({
     }
   }, []);
   const [saveError, setSaveError] = useState<string | null>(null);
+  /** The board has loaded the file once, so its shapes can be looked up. */
+  const [mounted, setMounted] = useState(false);
   const colorScheme = useHostColorScheme();
 
   const putImage = useCallback(
@@ -297,6 +301,7 @@ export function TldrawView({
         loading.current = false;
       }
       knownSha.current = file.sha256;
+      setMounted(true);
       // Open on the whole drawing, not wherever the origin happens to be.
       if (editor.getCurrentPageShapeIds().size > 0) {
         editor.zoomToFit({ animation: { duration: 0 } });
@@ -315,6 +320,7 @@ export function TldrawView({
       return () => {
         stop();
         editorRef.current = null;
+        setMounted(false);
       };
     },
     // The editor mounts once per file; later content arrives via the effect.
@@ -360,12 +366,15 @@ export function TldrawView({
 
   return (
     <div className="relative h-full w-full">
-      <Tldraw
-        onMount={handleMount}
-        users={NO_USERS}
-        colorScheme={colorScheme}
-        {...(licenseKey === "" ? {} : { licenseKey })}
-      />
+      <CanvasAnnotations projectId={projectId} path={file.path} rpc={rpc} ready={mounted && loadError === null}>
+        <Tldraw
+          onMount={handleMount}
+          users={NO_USERS}
+          colorScheme={colorScheme}
+          components={canvasAnnotationComponents}
+          {...(licenseKey === "" ? {} : { licenseKey })}
+        />
+      </CanvasAnnotations>
       <div className="pointer-events-none absolute right-3 top-3 z-[400] flex flex-col items-end gap-2">
         {status === "conflict" ? (
           <div className="pointer-events-auto flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-md">

@@ -89,6 +89,11 @@ await run(
     const card = body.getByRole("dialog", { name: "Comment" });
     await card.getByText("Name the fox").waitFor({ timeout: 5_000 });
     if ((await highlighted(page, "space-annotation-active")).join() !== PHRASE) fail("open comment is not marked active");
+    // Esc while editing leaves editing, not the card.
+    await card.getByRole("button", { name: "Edit" }).click();
+    await card.getByRole("textbox", { name: "Comment" }).press("Escape");
+    await card.getByRole("button", { name: "Edit" }).waitFor({ timeout: 5_000 });
+    ok("Esc while editing a comment keeps the card open");
     await card.getByRole("button", { name: "Edit" }).click();
     await card.getByRole("textbox", { name: "Comment" }).fill("Name the fox, please");
     await card.getByRole("button", { name: "Save" }).click();

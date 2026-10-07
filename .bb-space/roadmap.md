@@ -1,12 +1,12 @@
 # Roadmap
 
 What is built and what comes next, by milestone. ***The MVP and wave 1 are
-merged; the annotations UI is what is left.*** Each open item
+merged; of the annotations UI, only HTML pages are left.*** Each open item
 is a brief in [tasks](tasks/index.md), with its state in the
 [status table](tasks/index.md#status).
 
 > [!IMPORTANT] Open now
-> **Annotations UI**: T30–T32 are merged; T33 and T34 can start.
+> **Annotations UI**: T30–T33 are merged; T34 (HTML pages) can start.
 
 ## MVP (0.1)
 
@@ -59,7 +59,7 @@ See [the decision](decisions/annotations.md).
 - [x] Annotate Markdown pages (T30)
 - [x] Review tab and *Send to…* a thread (T31)
 - [x] `bb space annotations` and the agent tool (T32)
-- [ ] Annotate canvases (T33)
+- [x] Annotate canvases (T33)
 - [ ] Annotate HTML pages (T34)
 
 ## Later

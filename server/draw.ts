@@ -5,7 +5,8 @@
 // and tldraw runs in the browser. So a batch is queued here and applied by
 // whichever renderer gets it first: the open canvas, or the off-screen
 // editor every bb window keeps (ui/headless.tsx). The renderer saves the
-// .tldr file and acks the batch.
+// .tldr file and acks the batch. Reading a canvas back includes the comments
+// pinned to its shapes (lib/canvas/read.ts).
 import {
   PluginCliError,
   cliCommand,
@@ -13,14 +14,16 @@ import {
   type PluginRpcHandlers,
 } from "@get-bb/plugin-sdk";
 import { z } from "zod";
+import type { Annotation } from "../lib/annotations";
 import { LINT_HINT, lintTldr } from "../lib/canvas/lint";
 import { describeTldr, drawnNodeIds, tldrRecords } from "../lib/canvas/read";
 import { RENDER_ONLY_SPEC, drawSpecSchema, type DrawSpec } from "../lib/canvas/spec";
 import { fileKind } from "../lib/space";
+import { annotationStore } from "./annotations";
 import { canvasPngCommand } from "./canvas-image";
 import { projectOption, readInvokerFile, requireProject } from "./cli";
 import { defineModule } from "./context";
-import { absolute, checkoutOf, nonRootSpacePath, projectId } from "./space";
+import { absolute, checkoutOf, nonRootSpacePath, projectId, type ProjectSpace } from "./space";
 
 /** Realtime channel: payload `{ projectId, path }` — a drawing batch is queued. */
 export const SPACE_DRAW = "space-draw";
@@ -215,11 +218,24 @@ export const drawModule = defineModule({
       return [
         `Drew on ${path}. ${placement}`.trim(),
         "",
-        describeTldr(after, path),
+        await describe(space, path, after),
         ...(lintTldr(after).length > 0 ? [LINT_HINT] : []),
         "",
         "To see it as the user does, call space_canvas_view.",
       ].join("\n");
+    }
+
+    /** The canvas as text with the comments pinned to its shapes. */
+    async function describe(space: ProjectSpace, path: string, content: string): Promise<string> {
+      let annotations: Annotation[] = [];
+      let unread = "";
+      try {
+        annotations = await annotationStore(bb.sdk.files, space).list(path);
+      } catch (cause) {
+        // A broken annotation file must not hide the canvas itself.
+        unread = `\n\nIts comments could not be read: ${cause instanceof Error ? cause.message : String(cause)}`;
+      }
+      return describeTldr(content, path, annotations) + unread;
     }
 
     async function readCanvas(id: string, path: string): Promise<string> {
@@ -230,7 +246,7 @@ export const drawModule = defineModule({
         (batch) => batch.spec !== RENDER_ONLY_SPEC,
       ).length;
       return (
-        describeTldr(content, path) +
+        (await describe(space, path, content)) +
         (queued > 0 ? `\n\n${queued} drawing batch(es) are queued and not rendered yet.` : "")
       );
     }
@@ -263,7 +279,8 @@ export const drawModule = defineModule({
       name: "space_canvas_read",
       description:
         "Read a tldraw canvas (.tldr) in the project space as text: nodes with ids, labels, " +
-        "colors and positions, arrows between them, text, and shapes the user drew by hand. " +
+        "colors and positions, arrows between them, text, shapes the user drew by hand, and " +
+        "the user's comments under the shapes they point at. " +
         "Use it before updating a diagram the user may have edited.",
       presentation: {
         label: { pending: "Reading a canvas", completed: "Read a canvas" },
@@ -341,7 +358,7 @@ export const drawModule = defineModule({
         },
       }),
       canvas: cliCommand({
-        summary: "Describe a .tldr canvas in the space as text (nodes, arrows, text), or save a PNG of it with --png",
+        summary: "Describe a .tldr canvas in the space as text (nodes, arrows, text, comments), or save a PNG of it with --png",
         positionals: [
           { name: "path", description: "Space-relative canvas path ending in .tldr", required: true },
         ],
