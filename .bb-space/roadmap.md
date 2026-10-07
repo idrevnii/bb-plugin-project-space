@@ -38,7 +38,7 @@ is in [its status table](tasks/index.md#status).
   *Source* toggle (T11)
 - [ ] **Canvas checks for agents**
   - [x] Overlap lint after each draw (T17)
-  - [ ] `space_canvas_view`: a PNG of a canvas so agents can check their
+  - [x] `space_canvas_view`: a PNG of a canvas so agents can check their
     drawing (T18)
 - [x] **Mermaid** in Markdown code fences (T12)
 - [ ] **Tree and navigation**

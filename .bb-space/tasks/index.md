@@ -32,7 +32,7 @@ Updated 2026-10-07. "Merged" means in `main` with `npm run check` green.
 | T15 | merged |
 | T16 | merged |
 | T17 | merged |
-| T18 | in progress, uncommitted in its worktree |
+| T18 | merged |
 | T19 | not started |
 | T20 | in progress, uncommitted in its worktree |
 | T21 | not started |

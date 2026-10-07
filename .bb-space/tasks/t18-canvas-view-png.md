@@ -28,11 +28,37 @@ drawing the way the user sees it.
 
 ## Acceptance
 
-- [ ] Calling the tool right after `space_draw` returns an image of the new
+- [x] Calling the tool right after `space_draw` returns an image of the new
       drawing (report how you checked it).
-- [ ] With no bb window open it answers within 12 s with a clear message,
+- [x] With no bb window open it answers within 12 s with a clear message,
       not a hang.
-- [ ] `npm run check` passes.
+- [x] `npm run check` passes.
+
+## Result (2026-10-07)
+
+- `server/canvas-image.ts`: table `canvas_images` (appended to draw.ts's
+  migrations) keeps the latest PNG per project + path with the file sha it
+  was rendered from. `space_canvas_view` returns it when the sha matches the
+  file; otherwise it queues a render-only batch (spec `{}`, same queue as
+  drawing), pings `space-draw`, and polls for up to 12 s. A request nobody
+  answered is removed. Missing and empty canvases answer at once.
+- `bb space canvas <path> --png <out.png>` writes the picture on the machine
+  that ran `bb`; a path with a `.bb-space` segment is refused.
+- `ui/canvas-image.ts` exports the page with `editor.toImage` (png,
+  background, padding 32, light theme, scaled to at most 1600 px wide and
+  2400 px tall). The open canvas posts after every save; the off-screen
+  renderer posts after each write, before acking, and answers render-only
+  batches at once without writing the file. An open canvas whose file was
+  rewritten underneath it leaves the request to the off-screen renderer.
+- The `space_draw` result ends with a pointer to `space_canvas_view`.
+- Checked: the real `space_draw` tool, then `bb space canvas --png` right
+  after it (0.3 s) gave a picture of the new drawing. `space_canvas_view`
+  itself was not callable from the integrating thread (it registered after
+  the thread started); its output format and the 12 s timeout message are
+  unit-tested (`test/canvas-image.test.ts`, fake timers). The no-window case
+  was not reproduced live, since a bb window was open.
+- E2E: `scripts/e2e/canvas-view.mjs` (off-screen, stale-after-hand-edit, open
+  canvas); pictures in `scripts/e2e/out/canvas-view-*.png`.
 
 ## Out of scope
 
