@@ -88,6 +88,9 @@ when the tool is not available). The spec:
   each other and boxes whose label did not fit. Fix them before moving on —
   re-send those node ids with explicit `x`/`y` (and `w`/`h`), or redraw with
   `clear: true`.
+- `space_draw` refuses a canvas file tldraw cannot load rather than draw over
+  it; fix the file (it is often a bad hand edit or merge), delete it, or draw
+  into a new path.
 - The result text describes the canvas afterwards. Before changing a diagram
   the user may have edited, read it with `space_canvas_read`
   (`bb space canvas <path.tldr>`).
