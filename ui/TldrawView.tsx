@@ -1,7 +1,8 @@
 // A `.tldr` file as a live tldraw editor. The file on disk is tldraw's own
 // format, so it also opens on tldraw.com. Edits save after a short pause with
 // a compare-and-swap on the file's sha; an outside change (an agent rewriting
-// the file) reloads the board when there are no unsaved edits.
+// the file) reloads the board when there are no unsaved edits. Every save
+// also posts a picture of the board for agents (ui/canvas-image.ts).
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   Tldraw,
@@ -16,7 +17,8 @@ import { useRealtime } from "@get-bb/plugin-sdk/app";
 import { Button } from "@/components/ui/button";
 import type { SpaceFile } from "../server";
 import { errorMessage, type SpaceRpc } from "./data";
-import { applyBatches, waitForFonts } from "./draw-queue";
+import { postCanvasImage } from "./canvas-image";
+import { applyBatches, isRenderOnly, waitForFonts } from "./draw-queue";
 
 const SAVE_DELAY_MS = 800;
 
@@ -79,6 +81,12 @@ export function TldrawView({
   const [saveError, setSaveError] = useState<string | null>(null);
   const colorScheme = useHostColorScheme();
 
+  const putImage = useCallback(
+    (input: { projectId: string; path: string; sha256: string; pngBase64: string }) =>
+      rpc.call("space_canvas_image_put", input),
+    [rpc],
+  );
+
   /** Saves unsaved edits; true when the file now holds them. */
   const save = useCallback(async (): Promise<boolean> => {
     const editor = editorRef.current;
@@ -97,6 +105,11 @@ export function TldrawView({
         knownSha.current = result.sha256;
         setStatus(dirty.current ? "unsaved" : "saved");
         setSaveError(null);
+        await postCanvasImage(putImage, editor, {
+          projectId,
+          path: file.path,
+          sha256: result.sha256,
+        });
         return true;
       }
       dirty.current = true;
@@ -108,7 +121,7 @@ export function TldrawView({
       setSaveError(errorMessage(cause));
       return false;
     }
-  }, [rpc, projectId, file.path]);
+  }, [rpc, projectId, file.path, putImage]);
 
   // Agents' drawing batches for this file land here first while it is open;
   // the off-screen renderer only picks up what no open canvas took.
@@ -121,7 +134,23 @@ export function TldrawView({
       const { batches } = await rpc.call("space_draw_pending", { projectId, path: file.path });
       if (batches.length === 0) return;
       await waitForFonts(editor);
-      const done = applyBatches(editor, batches);
+      const draws = batches.filter((batch) => !isRenderOnly(batch));
+      const renders = batches.filter(isRenderOnly).map((batch) => batch.id);
+      if (draws.length === 0 && !dirty.current) {
+        // A picture request. The board shows the file only if nobody has
+        // rewritten it since we last loaded; otherwise leave the request to
+        // the off-screen renderer, which reads the file afresh.
+        const latest = await rpc.call("space_read", { projectId, path: file.path });
+        if (latest.sha256 !== knownSha.current) return;
+        await postCanvasImage(putImage, editor, {
+          projectId,
+          path: file.path,
+          sha256: knownSha.current,
+        });
+        await rpc.call("space_draw_ack", { ids: renders });
+        return;
+      }
+      const done = [...applyBatches(editor, draws), ...renders];
       dirty.current = true;
       if (saveTimer.current !== null) {
         clearTimeout(saveTimer.current);
@@ -133,7 +162,7 @@ export function TldrawView({
     } finally {
       applying.current = false;
     }
-  }, [rpc, projectId, file.path, save]);
+  }, [rpc, projectId, file.path, save, putImage]);
 
   useRealtime("space-draw", (payload) => {
     const signal = payload as { projectId?: unknown; path?: unknown } | null;

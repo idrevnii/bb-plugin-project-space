@@ -7,6 +7,9 @@
 // open canvas — which applies at once on the realtime signal — nearly always
 // wins. Deterministic shape ids make a double apply converge anyway, and the
 // compare-and-swap write keeps two windows from clobbering each other.
+//
+// It also answers render-only batches (a view asking for a picture of a
+// canvas, server/canvas-image.ts) and posts a picture after every write.
 import { StrictMode, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -19,7 +22,8 @@ import {
 } from "tldraw";
 import type { PluginAppBuilder } from "@get-bb/plugin-sdk/app";
 import type { DrawBatch, SpaceFile } from "../server";
-import { applyBatches, waitForFonts } from "./draw-queue";
+import { postCanvasImage } from "./canvas-image";
+import { applyBatches, isRenderOnly, waitForFonts } from "./draw-queue";
 import { isTldrawDevelopmentOrigin } from "./TldrawView";
 
 const POLL_MS = 3000;
@@ -89,15 +93,29 @@ function HeadlessRenderer({
           }
         }
       });
-      const done = applyBatches(editor, batches);
+      const put = (input: unknown) => rpc("space_canvas_image_put", input);
+      const draws = batches.filter((batch) => !isRenderOnly(batch));
+      const renders = batches.filter(isRenderOnly).map((batch) => batch.id);
+      if (draws.length === 0) {
+        // Only pictures asked for: show the file as it is, without writing.
+        if (file !== null) await postCanvasImage(put, editor, { projectId, path, sha256: file.sha256 });
+        await rpc("space_draw_ack", { ids: renders });
+        return;
+      }
+      const done = applyBatches(editor, draws);
       const result = (await rpc("space_write", {
         projectId,
         path,
         content: await serializeTldrawJson(editor),
         expectedSha256: file?.sha256 ?? null,
-      })) as { outcome: string };
+      })) as { outcome: string; sha256?: string };
       // A conflict means someone saved meanwhile; the next poll retries.
-      if (result.outcome === "written") await rpc("space_draw_ack", { ids: done });
+      if (result.outcome !== "written") return;
+      // Before the ack, so a view right after the draw finds the picture.
+      if (result.sha256 !== undefined) {
+        await postCanvasImage(put, editor, { projectId, path, sha256: result.sha256 });
+      }
+      await rpc("space_draw_ack", { ids: [...done, ...renders] });
     };
 
     const tick = async () => {
@@ -114,7 +132,9 @@ function HeadlessRenderer({
         }
         for (const [key, group] of groups) {
           if (stopped) break;
-          if (!seen.current.has(key)) continue; // give an open canvas the first go
+          // Give an open canvas the first go at drawing; a picture request is
+          // answered at once, since a view is waiting on it.
+          if (!seen.current.has(key) && !group.every(isRenderOnly)) continue;
           try {
             await render(editor, group);
           } catch (cause) {

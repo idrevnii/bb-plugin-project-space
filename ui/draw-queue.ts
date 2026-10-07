@@ -2,7 +2,7 @@
 // canvas (TldrawView) and the off-screen renderer (headless.tsx).
 import { allDefaultFontFaces, type Editor } from "tldraw";
 import type { DrawBatch } from "../server";
-import { drawSpecSchema } from "../lib/canvas/spec";
+import { RENDER_ONLY_SPEC, drawSpecSchema } from "../lib/canvas/spec";
 import { applyDrawSpec } from "./canvas-apply";
 
 /**
@@ -30,4 +30,9 @@ export function applyBatches(editor: Editor, batches: readonly DrawBatch[]): num
     done.push(batch.id);
   }
   return done;
+}
+
+/** Render-only batches ask for a picture and draw nothing. */
+export function isRenderOnly(batch: DrawBatch): boolean {
+  return batch.spec === RENDER_ONLY_SPEC;
 }

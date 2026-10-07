@@ -15,8 +15,9 @@ import {
 import { z } from "zod";
 import { LINT_HINT, lintTldr } from "../lib/canvas/lint";
 import { describeTldr, drawnNodeIds } from "../lib/canvas/read";
-import { drawSpecSchema, type DrawSpec } from "../lib/canvas/spec";
+import { RENDER_ONLY_SPEC, drawSpecSchema, type DrawSpec } from "../lib/canvas/spec";
 import { fileKind } from "../lib/space";
+import { canvasPngCommand } from "./canvas-image";
 import { projectOption, readInvokerFile, requireProject } from "./cli";
 import { defineModule } from "./context";
 import { absolute, checkoutOf, nonRootSpacePath, projectId } from "./space";
@@ -68,6 +69,15 @@ const MIGRATIONS = [
        path TEXT NOT NULL,
        spec TEXT NOT NULL,
        created_at INTEGER NOT NULL
+     )`,
+  // Canvas pictures (server/canvas-image.ts).
+  `CREATE TABLE IF NOT EXISTS canvas_images (
+       project_id TEXT NOT NULL,
+       path TEXT NOT NULL,
+       sha256 TEXT NOT NULL,
+       png TEXT NOT NULL,
+       updated_at INTEGER NOT NULL,
+       PRIMARY KEY (project_id, path)
      )`,
 ];
 
@@ -178,6 +188,8 @@ export const drawModule = defineModule({
         "",
         describeTldr(after, path),
         ...(lintTldr(after).length > 0 ? [LINT_HINT] : []),
+        "",
+        "To see it as the user does, call space_canvas_view.",
       ].join("\n");
     }
 
@@ -185,7 +197,9 @@ export const drawModule = defineModule({
       const space = await resolveSpace(id);
       const content = await readText(space, path);
       if (content === null) return `${path} does not exist in the space.`;
-      const queued = listPending({ projectId: space.projectId, path }).length;
+      const queued = listPending({ projectId: space.projectId, path }).filter(
+        (batch) => batch.spec !== RENDER_ONLY_SPEC,
+      ).length;
       return (
         describeTldr(content, path) +
         (queued > 0 ? `\n\n${queued} drawing batch(es) are queued and not rendered yet.` : "")
@@ -298,14 +312,26 @@ export const drawModule = defineModule({
         },
       }),
       canvas: cliCommand({
-        summary: "Describe a .tldr canvas in the space as text (nodes, arrows, text)",
+        summary: "Describe a .tldr canvas in the space as text (nodes, arrows, text), or save a PNG of it with --png",
         positionals: [
           { name: "path", description: "Space-relative canvas path ending in .tldr", required: true },
         ],
-        options: { project: projectOption },
+        options: {
+          project: projectOption,
+          png: {
+            type: "string",
+            description: "Write a PNG picture of the canvas to this file (outside .bb-space/) instead. Needs a bb window open.",
+          },
+        },
         async run(input, ctx) {
           const id = requireProject(input.options.project, ctx);
           const path = parseCanvasPath(input.positionals.path);
+          if (input.options.png !== undefined) {
+            return {
+              exitCode: 0,
+              stdout: await canvasPngCommand({ bb, resolveSpace }, id, path, input.options.png, ctx),
+            };
+          }
           return { exitCode: 0, stdout: await readCanvas(id, path) };
         },
       }),

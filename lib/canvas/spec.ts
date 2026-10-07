@@ -72,3 +72,9 @@ export type DrawLayout = z.infer<typeof layoutSchema>;
 export type DrawNode = z.infer<typeof nodeSchema>;
 export type DrawEdge = z.infer<typeof edgeSchema>;
 export type DrawText = z.infer<typeof textSchema>;
+
+/**
+ * The spec of a render-only batch (server/canvas-image.ts): it draws nothing
+ * and asks the renderer for a fresh picture of the canvas.
+ */
+export const RENDER_ONLY_SPEC = "{}";
