@@ -13,9 +13,9 @@ brief says what to build, which files it owns, and how to prove it works.
 | 1 | in parallel, after T01 | [T10](t10-annotations-core.md) · [T11](t11-wysiwyg-markdown.md) · [T12](t12-mermaid.md) · [T13](t13-tree-dnd.md) · [T14](t14-outline-tab.md) · [T15](t15-space-search.md) · [T16](t16-outside-links.md) · [T17](t17-canvas-lint.md) · [T18](t18-canvas-view-png.md) · [T19](t19-worktree-awareness.md) · [T20](t20-unit-tests.md) · [T21](t21-ui-qa-sweep.md) |
 | 2 | in parallel, after T10 | [T30](t30-annotations-markdown.md) · [T31](t31-annotations-review-tab.md) · [T32](t32-annotations-agent-api.md) · [T33](t33-annotations-tldraw.md) · [T34](t34-annotations-html.md) |
 
-Wave 0 exists so wave 1 can run without merge pain: today `server.ts` and
-`ui/SpacePage.tsx` hold almost everything, and the directory is not a git
-repository yet, so there are no worktrees.
+Wave 0 existed so wave 1 could run without merge pain: before it,
+`server.ts` and `ui/SpacePage.tsx` held almost everything and the directory
+was not a git repository, so there were no worktrees.
 
 ## Status
 
@@ -34,7 +34,7 @@ Updated 2026-10-07. "Merged" means in `main` with `npm run check` green.
 | T17 | merged |
 | T18 | merged |
 | T19 | merged |
-| T20 | in progress, uncommitted in its worktree |
+| T20 | merged |
 | T21 | not started |
 | T30–T34 | waiting for wave 2 (T10 is merged, so they can start) |
 

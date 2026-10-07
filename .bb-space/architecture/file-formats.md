@@ -2,7 +2,7 @@
 
 | Extension | Opens as | Edited by |
 |---|---|---|
-| `.md`, `.markdown`, `.mdx` | Rendered document | Source + live preview |
+| `.md`, `.markdown`, `.mdx` | Rendered document | In place (WYSIWYG), or *Source* + live preview |
 | `.html`, `.htm` | Live page in a sandboxed iframe | Source + live preview |
 | `.tldr` | tldraw canvas | tldraw, autosaved |
 | `.png`, `.jpg`, `.gif`, `.webp`, `.avif`, `.svg` | Image | — |
@@ -35,4 +35,4 @@ Any diagram type mermaid supports works (`sequenceDiagram`, `classDiagram`,
 Space page but only initialised when a page first contains a diagram.
 
 Dot-prefixed files and folders are hidden from the tree. `.bb-space/.space/`
-is reserved for the plugin's own bookkeeping (annotations, later).
+is reserved for the plugin's own bookkeeping (today: [annotations](annotations.md)).

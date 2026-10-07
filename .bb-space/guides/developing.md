@@ -19,11 +19,21 @@ Unit tests are `test/*.test.ts` (vitest), one file per module under test:
 
 | File | Covers |
 |---|---|
-| `space.test.ts`, `links.test.ts` | `lib/space.ts`: path normalization, link resolution, file kinds, names |
+| `space.test.ts`, `links.test.ts` | `lib/space.ts`: path normalization, link resolution (inside the space and out to checkout files, `#L` line hashes), file kinds, names |
 | `canvas-layout.test.ts` | `lib/canvas/layout.ts`: box sizes, `lr`/`tb` layering, cycles, anchoring, title placement |
 | `canvas-read.test.ts` | `lib/canvas/read.ts` against `test/fixtures/diagram.tldr` (a copy of the architecture diagram), plus empty and broken files |
 | `canvas-spec.test.ts` | `lib/canvas/spec.ts`: colors, shapes and size limits |
+| `canvas-lint.test.ts` | `lib/canvas/lint.ts`: overlapping shapes and labels that do not fit |
+| `canvas-image.test.ts` | `server/canvas-image.ts`: `space_canvas_view` and `bb space canvas --png` |
+| `annotations.test.ts` | `lib/annotations.ts`: `quoteSelector`, `locateQuote` (exact and fuzzy) |
+| `annotations-store.test.ts` | `server/annotations.ts`: storage, conflicts, following moves and removes |
 | `files-rpc.test.ts` | `space_write` / `space_read` handlers on the SDK's fake host (`@get-bb/plugin-sdk/testing`) with `bb.sdk.files` stubbed over a Map: conflicts and path rejection |
+| `search.test.ts` | `lib/search.ts`: text and canvas matching, snippets, which files are read; `headingAtLine` |
+| `outline.test.ts` | `ui/outline.ts`: headings and ids that match the rendered page |
+| `tree-move.test.ts` | `ui/tree-move.ts`: legal moves and the open document following them |
+| `markdown-roundtrip.test.ts` | the TipTap schema (`ui/page/markdown-extensions.ts`): Markdown in, the same Markdown out |
+| `watch-tree.test.ts` | `server/watch-tree.ts`: new directories and files replaced by rename are seen |
+| `worktrees.test.ts` | `lib/worktrees.ts` and `?env=` in the route |
 
 Pure `lib/` code is tested directly. Server handlers run on
 `createFakePluginHost`, stubbing only the `bb.sdk` calls they make. Keep
@@ -46,11 +56,14 @@ The scripts live in `scripts/e2e/` and run one after another:
 
 | Script | Proves |
 |---|---|
-| `smoke.mjs` | `index.md`, an HTML report, and a `.tldr` canvas open without page errors |
+| `smoke.mjs` | `index.md`, an HTML report, and a `.tldr` canvas open without page errors; opening the canvas leaves its file untouched |
 | `live-refresh.mjs` | text appended to a page on disk shows up without a reload |
 | `draw.mjs` | `bb space draw` lands with the canvas closed and with it open |
+| `annotations.mjs` | the `annotations_*` RPC: create, list, update; annotations follow `space_move` and go with `space_remove` (no browser) |
 | `markdown-editor.mjs` | editing a table cell, ticking a task and adding a link in the WYSIWYG editor save to disk; *Source* shows the same text |
 | `mermaid.mjs` | mermaid blocks render (two diagrams, one parse error) in light and dark, and re-render on a theme flip |
+| `draw-lint.mjs` | an overlapping draw ends with an *Overlaps* section and the fix hint; a clean redraw reports none |
+| `outline.mjs` | the Outline tab lists the page's headings, a click scrolls to one, scrolling moves the highlight; a canvas has no outline |
 | `tree-dnd.mjs` | drag and drop and *Move to…* in the Files tree; the open document follows; illegal drops are refused |
 | `search.mjs` | `bb space search` finds pages by name, text and canvas label; the Files search box replaces the tree, Esc clears, Enter opens, a text hit scrolls to its section |
 | `outside-links.mjs` | a link out of the space opens the checkout file in bb's preview at its line or range; a link escaping the checkout is plain text; space links still route |

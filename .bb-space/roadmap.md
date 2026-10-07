@@ -36,15 +36,18 @@ is in [its status table](tasks/index.md#status).
   - [ ] Markdown, review tab, agent API, tldraw, HTML (T30–T34)
 - [x] **WYSIWYG Markdown** — TipTap editing in place of the source pane, with a
   *Source* toggle (T11)
-- [ ] **Canvas checks for agents**
+- [x] **Canvas checks for agents**
   - [x] Overlap lint after each draw (T17)
   - [x] `space_canvas_view`: a PNG of a canvas so agents can check their
     drawing (T18)
 - [x] **Mermaid** in Markdown code fences (T12)
-- [ ] **Tree and navigation**
+- [x] **Tree and navigation**
   - [x] Drag and drop in the tree, plus *Move to…* (T13)
   - [x] Outline tab (T14)
   - [x] Search across the space (T15)
   - [x] Links to project files outside the space (T16)
 - [x] **Worktree awareness**: show when a thread's worktree has unmerged space
   edits (T19)
+- [x] **Unit tests** for the pure core and `space_write`; `lib/` line
+  coverage 98% (T20)
+- [ ] **UI QA sweep** across the Space page (T21)

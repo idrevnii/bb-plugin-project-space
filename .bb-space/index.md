@@ -23,5 +23,9 @@ checkout, so it lives in git next to the code it describes.
 
 ## Status
 
-MVP — `0.1.0`. Pages, folders, Markdown reading and editing, sandboxed HTML,
-tldraw canvases, live refresh when agents write. Annotations are next.
+`0.1.0`, updated 2026-10-07. Pages and folders with drag and drop, search and
+an outline; WYSIWYG Markdown with mermaid diagrams and links into the code;
+sandboxed HTML; tldraw canvases that agents draw on, lint, and see as PNGs;
+live refresh; worktree awareness; unit and e2e tests. The annotations data
+layer is built; its UI, agent CLI, and the UI QA sweep are next — see the
+[roadmap](roadmap.md).

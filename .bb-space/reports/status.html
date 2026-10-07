@@ -9,7 +9,7 @@
 <body>
 <main>
   <h1>Project Space — status</h1>
-  <p class="sub">MVP 0.1 · rendered from <code>.bb-space/reports/status.html</code> with a sibling stylesheet</p>
+  <p class="sub">0.1 · updated 2026-10-07 · rendered from <code>.bb-space/reports/status.html</code> with a sibling stylesheet</p>
   <div class="grid">
     <div class="stat"><b id="done">0</b><span>features shipped</span><div class="bar"><i id="progress" style="width:0"></i></div></div>
     <div class="stat"><b>3</b><span>file kinds rendered (md · html · tldr)</span></div>
@@ -21,16 +21,22 @@
 <script>
   const items = [
     ["done", "Full-screen Space page with deep links"],
-    ["done", "File tree in the right panel"],
-    ["done", "Markdown reader and editor"],
+    ["done", "File tree in the right panel, drag and drop, Move to…"],
+    ["done", "Markdown reader and WYSIWYG editor"],
+    ["done", "Mermaid diagrams in Markdown"],
+    ["done", "Links to project files outside the space"],
+    ["done", "Outline tab"],
+    ["done", "Search across the space"],
     ["done", "Sandboxed HTML with relative assets"],
     ["done", "tldraw canvases with autosave"],
     ["done", "Live refresh on agent writes"],
-    ["done", "Agent drawing on canvases"],
-    ["next", "Annotations → threads"],
-    ["next", "WYSIWYG Markdown"],
-
-    ["next", "Mermaid diagrams"],
+    ["done", "Agent drawing on canvases, with overlap lint"],
+    ["done", "Canvas pictures for agents (PNG)"],
+    ["done", "Worktree awareness"],
+    ["done", "Unit tests for the pure core"],
+    ["done", "Annotations data layer"],
+    ["next", "Annotations: Markdown, Review tab, agent API, tldraw, HTML"],
+    ["next", "UI QA sweep"],
   ];
   const list = document.getElementById("items");
   for (const [state, text] of items) {
