@@ -69,7 +69,6 @@ const MAX_FILES = 100;
 /** Without git (or when its diff fails), compare whole trees up to this size. */
 const FALLBACK_FILE_LIMIT = 2000;
 const CONCURRENCY = 4;
-const CACHE_MS = 5000;
 const THREAD_LIMIT = 10;
 
 type Environment = Awaited<ReturnType<BbPluginApi["sdk"]["environments"]["list"]>>[number];
@@ -252,7 +251,8 @@ export const worktreesModule = defineModule({
       return { environmentId: env.id, branch: env.branchName, threads, files, truncated };
     }
 
-    const cache = new Map<string, { at: number; result: Promise<SpaceWorktreesOutput> }>();
+    /** Calls in flight, so windows asking at once share one computation. */
+    const inFlight = new Map<string, Promise<SpaceWorktreesOutput>>();
 
     async function worktrees(id: string): Promise<SpaceWorktreesOutput> {
       const space = await resolveSpace(id);
@@ -272,17 +272,16 @@ export const worktreesModule = defineModule({
       };
     }
 
-    function cachedWorktrees(id: string): Promise<SpaceWorktreesOutput> {
-      const hit = cache.get(id);
-      if (hit !== undefined && Date.now() - hit.at < CACHE_MS) return hit.result;
-      const result = worktrees(id);
-      cache.set(id, { at: Date.now(), result });
-      result.catch(() => cache.delete(id));
+    function sharedWorktrees(id: string): Promise<SpaceWorktreesOutput> {
+      const pending = inFlight.get(id);
+      if (pending !== undefined) return pending;
+      const result = worktrees(id).finally(() => inFlight.delete(id));
+      inFlight.set(id, result);
       return result;
     }
 
     const rpc: PluginRpcHandlers<typeof worktreesContract> = {
-      space_worktrees: ({ projectId: id }) => cachedWorktrees(id),
+      space_worktrees: ({ projectId: id }) => sharedWorktrees(id),
       space_worktree_read: async ({ projectId: id, environmentId: envId, path }) => {
         const space = await resolveSpace(id);
         const env = await bb.sdk.environments.get({ environmentId: envId });

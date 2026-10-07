@@ -57,8 +57,6 @@ await run(
     ok("a ?env= link opens the worktree's copy");
 
     rmSync(scratch);
-    // Past the server's short cache, a fresh page no longer lists it.
-    await new Promise((resolve) => setTimeout(resolve, 6000));
     await page.goto(spaceUrl("index.md"));
     await root.locator("article h1").first().waitFor({ timeout: 20_000 });
     await waitFor("the badge to settle", async () => {
