@@ -9,7 +9,6 @@ import {
   getSnapshot,
   loadSnapshot,
   parseTldrawJsonFile,
-  serializeTldrawJson,
   type Editor,
 } from "tldraw";
 import "tldraw/tldraw.css";
@@ -17,6 +16,7 @@ import { useRealtime } from "@get-bb/plugin-sdk/app";
 import { Button } from "@/components/ui/button";
 import type { SpaceFile } from "../server";
 import { errorMessage, type SpaceRpc } from "./data";
+import { NO_USERS, serializeCanvas } from "./canvas-file";
 import { postCanvasError, postCanvasImage } from "./canvas-image";
 import { applyBatches, isRenderOnly, waitForFonts } from "./draw-queue";
 
@@ -113,7 +113,7 @@ export function TldrawView({
     dirty.current = false;
     setStatus("saving");
     try {
-      const content = await serializeTldrawJson(editor);
+      const content = await serializeCanvas(editor);
       const result = await rpc.call("space_write", {
         projectId,
         path: file.path,
@@ -234,12 +234,17 @@ export function TldrawView({
       setStatus("conflict");
       return;
     }
+    const wasUnreadable = unreadable.current !== null;
     loading.current = true;
     try {
       setLoadError(loadInto(editor, file.content));
       knownSha.current = file.sha256;
     } finally {
       loading.current = false;
+    }
+    // A board that could not load showed nothing; frame the drawing as on open.
+    if (wasUnreadable && unreadable.current === null && editor.getCurrentPageShapeIds().size > 0) {
+      editor.zoomToFit({ animation: { duration: 0 } });
     }
   }, [file]);
 
@@ -317,6 +322,7 @@ export function TldrawView({
     <div className="relative h-full w-full">
       <Tldraw
         onMount={handleMount}
+        users={NO_USERS}
         colorScheme={colorScheme}
         {...(licenseKey === "" ? {} : { licenseKey })}
       />

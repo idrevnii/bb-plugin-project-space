@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { baseName, fileKind } from "../../lib/space";
 import type { SpaceFile } from "../../server";
+import { NO_USERS } from "../canvas-file";
 import { useWorktreeFile } from "../data";
 import { MarkdownView } from "../MarkdownView";
 import { isTldrawDevelopmentOrigin, loadInto, useHostColorScheme } from "../TldrawView";
@@ -35,6 +36,7 @@ function ReadOnlyCanvas({ file, licenseKey }: { file: SpaceFile; licenseKey: str
     <Tldraw
       key={file.sha256}
       onMount={handleMount}
+      users={NO_USERS}
       colorScheme={colorScheme}
       {...(licenseKey === "" ? {} : { licenseKey })}
     />

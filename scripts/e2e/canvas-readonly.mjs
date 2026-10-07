@@ -15,7 +15,8 @@ const onDisk = () => readFileSync(join(SPACE, PATH), "utf8");
 async function drawBox(page) {
   const board = page.locator(".tl-container").first();
   const box = await board.boundingBox();
-  await board.click({ position: { x: 20, y: 20 } });
+  // Focus the board on empty canvas, clear of the page menu in its corner.
+  await board.click({ position: { x: box.width / 2, y: box.height - 120 } });
   await page.keyboard.press("r");
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
@@ -50,6 +51,7 @@ await run(
     await drawBox(page);
     await waitFor("the fixed canvas to save a hand-drawn box", () => onDisk() !== valid);
     if (!onDisk().includes('"geo"')) fail("saved canvas has no geo shape");
+    if (onDisk().includes('"typeName":"user"')) fail("saved canvas holds a browser user record");
     ok("once the file is fixed the board loads and saves again");
   },
   () => {

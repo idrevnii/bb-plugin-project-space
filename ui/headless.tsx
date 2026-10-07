@@ -17,11 +17,11 @@ import {
   getSnapshot,
   loadSnapshot,
   parseTldrawJsonFile,
-  serializeTldrawJson,
   type Editor,
 } from "tldraw";
 import type { PluginAppBuilder } from "@get-bb/plugin-sdk/app";
 import type { DrawBatch, SpaceFile } from "../server";
+import { NO_USERS, serializeCanvas } from "./canvas-file";
 import { postCanvasError, postCanvasImage } from "./canvas-image";
 import { applyBatches, isRenderOnly, waitForFonts } from "./draw-queue";
 import { isTldrawDevelopmentOrigin } from "./TldrawView";
@@ -128,7 +128,7 @@ function HeadlessRenderer({
       const result = (await rpc("space_write", {
         projectId,
         path,
-        content: await serializeTldrawJson(editor),
+        content: await serializeCanvas(editor),
         expectedSha256: file?.sha256 ?? null,
       })) as { outcome: string; sha256?: string };
       // A conflict means someone saved meanwhile; the next poll retries.
@@ -187,6 +187,7 @@ function HeadlessRenderer({
   return (
     <Tldraw
       hideUi
+      users={NO_USERS}
       onMount={(editor) => {
         editorRef.current = editor;
         blank.current = getSnapshot(editor.store).document;
