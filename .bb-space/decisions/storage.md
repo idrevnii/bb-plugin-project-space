@@ -16,3 +16,13 @@ the file tools they already use — no special API to learn or fail at.
 
 **Consequence.** Threads in worktrees would write a separate copy. `bb space
 root` points agents at the main checkout so edits are visible immediately.
+When a worktree thread writes its own `.bb-space/` anyway, the Space page
+says so instead of losing it: a toolbar badge ("2 worktrees changed the
+space") lists each live worktree's branch, its threads, and the space files
+its branch changed (git's diff since the merge base, committed or not) that
+still differ from the main space by sha256 — added, modified, or deleted. A
+branch that is merely behind main is not listed. A file opens read-only from
+its worktree (`?env=<environmentId>` on the route) under a "Viewing branch X
+— not the main space" banner. Bounded to the 20 most recently active
+worktrees; a project without worktrees costs one environment listing.
+Nothing is merged or copied back; that lands with the branch, or by hand.

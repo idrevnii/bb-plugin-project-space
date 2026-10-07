@@ -12,6 +12,7 @@ import type {
   SpaceFile,
   SpaceInfo,
   SpaceTreeEntry,
+  SpaceWorktree,
   rpcContract,
 } from "../server";
 
@@ -185,4 +186,81 @@ export function useSpacePreview(projectId: string | null) {
     };
   }, [rpc, projectId]);
   return baseUrl;
+}
+
+const WORKTREES_POLL_MS = 60_000;
+
+/**
+ * Worktrees whose space differs from the main one. Worktrees are not
+ * watched, so this polls (gently) on top of the main space's change signal.
+ * With no worktrees the server answers from one environment listing.
+ */
+export function useSpaceWorktrees(projectId: string) {
+  const rpc = useSpaceRpc();
+  const [worktrees, setWorktrees] = useState<SpaceWorktree[]>([]);
+  const refetch = useCallback(() => {
+    rpc.call("space_worktrees", { projectId }).then(
+      (result) =>
+        // A new but equal answer would re-render the whole page every poll.
+        setWorktrees((previous) =>
+          JSON.stringify(previous) === JSON.stringify(result.worktrees) ? previous : result.worktrees,
+        ),
+      () => {
+        // Keep the last answer; the badge is advisory.
+      },
+    );
+  }, [rpc, projectId]);
+  const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const soon = useCallback(() => {
+    if (pending.current !== null) clearTimeout(pending.current);
+    pending.current = setTimeout(() => {
+      pending.current = null;
+      refetch();
+    }, 1000);
+  }, [refetch]);
+  useEffect(() => {
+    refetch();
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") refetch();
+    }, WORKTREES_POLL_MS);
+    return () => {
+      clearInterval(timer);
+      if (pending.current !== null) clearTimeout(pending.current);
+    };
+  }, [refetch]);
+  // Main-space edits can settle a difference too; polling covers the rest.
+  useSpaceChanges(projectId, true, soon);
+  return worktrees;
+}
+
+/** A worktree's copy of a space file, re-read every few seconds while visible. */
+export function useWorktreeFile(projectId: string, environmentId: string, path: string) {
+  const rpc = useSpaceRpc();
+  const [state, setState] = useState<{
+    file: SpaceFile;
+    branch: string | null;
+    checkout: { hostId: string; path: string };
+  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const refetch = useCallback(() => {
+    if (path === "") return;
+    rpc.call("space_worktree_read", { projectId, environmentId, path }).then(
+      (next) => {
+        setState((previous) =>
+          previous !== null && previous.file.path === next.file.path && previous.file.sha256 === next.file.sha256
+            ? previous
+            : { file: next.file, branch: next.branch, checkout: { hostId: next.hostId, path: next.checkoutPath } },
+        );
+        setError(null);
+      },
+      (cause) => setError(errorMessage(cause)),
+    );
+  }, [rpc, projectId, environmentId, path]);
+  useEffect(() => {
+    setState(null);
+    setError(null);
+    refetch();
+  }, [refetch]);
+  useSpaceChanges(projectId, false, refetch);
+  return { ...(state ?? { file: null, branch: null, checkout: null }), error };
 }

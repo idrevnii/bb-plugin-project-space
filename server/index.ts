@@ -16,6 +16,7 @@ import { drawModule } from "./draw";
 import { filesModule } from "./files";
 import { searchModule } from "./search";
 import { createSpaces } from "./space";
+import { worktreesModule } from "./worktrees";
 
 export { SPACE_CHANGED } from "./space";
 export { SPACE_DRAW, type DrawBatch } from "./draw";
@@ -26,6 +27,7 @@ export type {
   SpaceWriteResult,
 } from "./files";
 export type { SpaceSearchOutput, SpaceSearchResult } from "./search";
+export type { SpaceWorktree, SpaceWorktreesOutput } from "./worktrees";
 
 export { SPACE_ANNOTATIONS_CHANGED } from "../lib/annotations";
 
@@ -35,6 +37,7 @@ const modules = [
   canvasImageModule,
   annotationsModule,
   searchModule,
+  worktreesModule,
 ] as const;
 
 type UnionToIntersection<U> = (

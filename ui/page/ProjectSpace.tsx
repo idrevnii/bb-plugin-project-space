@@ -1,18 +1,27 @@
 // A project's space: picks the document for the route and lays it out with
-// the toolbar and, when the tree sits on the left, the file tree.
+// the toolbar and, when the tree sits on the left, the file tree. With an
+// `env` in the route the document is a worktree's copy, read-only.
 import { useCallback, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useSettings } from "@get-bb/plugin-sdk/app";
 import { Button } from "@/components/ui/button";
 import { fileKind, isBinaryKind } from "../../lib/space";
 import type { SpaceInfo } from "../../server";
-import { useSpaceFile, useSpacePreview, useSpaceRpc, useSpaceTree } from "../data";
+import {
+  useSpaceFile,
+  useSpacePreview,
+  useSpaceRpc,
+  useSpaceTree,
+  useSpaceWorktrees,
+} from "../data";
 import { FileTree } from "../FileTree";
 import { TldrawView } from "../TldrawView";
 import { BinaryDocument } from "./BinaryDocument";
 import { Centered } from "./Centered";
 import { TextDocument } from "./TextDocument";
 import { Toolbar } from "./Toolbar";
+import { WorktreeBadge } from "./WorktreeBadge";
+import { WorktreeDocument } from "./WorktreeDocument";
 import { useSpaceNavigation } from "./routing";
 
 function pickDefaultFile(paths: string[]): string | null {
@@ -28,10 +37,13 @@ function pickDefaultFile(paths: string[]): string | null {
 export function ProjectSpace({
   info,
   path,
+  env = null,
   treePosition,
 }: {
   info: SpaceInfo;
   path: string;
+  /** A worktree environment to show `path` from, read-only. */
+  env?: string | null;
   treePosition: "left" | "right";
 }) {
   const rpc = useSpaceRpc();
@@ -41,7 +53,13 @@ export function ProjectSpace({
   const tree = useSpaceTree(info.projectId, info.watching);
   const isDirectory = tree.entries?.some((entry) => entry.path === path && entry.kind === "directory") ?? false;
   const filePath = path === "" || isDirectory ? null : path;
-  const { file, error, missing } = useSpaceFile(info.projectId, filePath, info.watching);
+  const worktreeView = env !== null && filePath !== null;
+  const { file, error, missing } = useSpaceFile(
+    info.projectId,
+    worktreeView ? null : filePath,
+    info.watching,
+  );
+  const worktrees = useSpaceWorktrees(info.projectId);
 
   // A folder or the root opens its index (or the first readable page).
   useEffect(() => {
@@ -82,12 +100,30 @@ export function ProjectSpace({
       path={filePath ?? path}
       treePosition={treePosition}
     >
+      <WorktreeBadge
+        projectId={info.projectId}
+        worktrees={worktrees}
+        activeEnv={env}
+        activePath={filePath}
+      />
       {controls}
     </Toolbar>
   );
 
   let body: ReactNode;
-  if (filePath === null) {
+  if (worktreeView) {
+    body = (
+      <WorktreeDocument
+        key={`${env}/${filePath}`}
+        projectId={info.projectId}
+        environmentId={env}
+        path={filePath}
+        previewBaseUrl={previewBaseUrl}
+        licenseKey={settingsTldrawLicenseKey}
+        toolbar={toolbar}
+      />
+    );
+  } else if (filePath === null) {
     body = (
       <div className="flex h-full min-h-0 flex-1 flex-col">
         {toolbar(null)}

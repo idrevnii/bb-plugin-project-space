@@ -39,13 +39,13 @@ function subscribeToHostTheme(onChange: () => void): () => void {
   return () => observer.disconnect();
 }
 
-function useHostColorScheme(): "dark" | "light" {
+export function useHostColorScheme(): "dark" | "light" {
   return useSyncExternalStore(subscribeToHostTheme, () =>
     document.documentElement.classList.contains("dark") ? "dark" : "light",
   );
 }
 
-function loadInto(editor: Editor, json: string): string | null {
+export function loadInto(editor: Editor, json: string): string | null {
   if (json.trim() === "") return null;
   const parsed = parseTldrawJsonFile({ json, schema: editor.store.schema });
   if (!parsed.ok) {
