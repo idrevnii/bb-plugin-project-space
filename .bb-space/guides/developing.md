@@ -67,6 +67,7 @@ stubbing only the `bb.sdk` calls they make. **Keep `lib/` line coverage above
 | `canvas-lint.test.ts` | `lib/canvas/lint.ts`: overlapping shapes, labels that do not fit |
 | `canvas-image.test.ts` | `server/canvas-image.ts`: `space_canvas_view` and `bb space canvas --png` |
 | `annotations.test.ts` | `lib/annotations.ts`: `quoteSelector`, `locateQuote` (exact and fuzzy) |
+| `annotate-text.test.ts` | `ui/annotate/text.ts`: rendered text, selections to offsets and back, the `<mark>` fallback |
 | `annotations-store.test.ts` | `server/annotations.ts`: storage, conflicts, following moves and removes |
 | `files-rpc.test.ts` | `space_write` / `space_read` on the SDK's fake host with `bb.sdk.files` over a Map: conflicts, path rejection |
 | `search.test.ts` | `lib/search.ts`: text and canvas matching, snippets, which files are read; `headingAtLine` |
@@ -93,6 +94,7 @@ fail.
 | `live-refresh.mjs` | text appended to a page on disk shows up without a reload |
 | `draw.mjs` | `bb space draw` lands with the canvas closed and with it open |
 | `annotations.mjs` | `annotations_*` RPC: create, list, update; annotations follow `space_move` and go with `space_remove` (no browser) |
+| `annotations-markdown.mjs` | a selected phrase gets a comment and a highlight that survives a reload and an edit moving it; clicking it edits and resolves; deleting the phrase lists it as orphaned under the title; edit mode offers no *Comment* |
 | `markdown-editor.mjs` | editing a table cell, ticking a task and adding a link in the WYSIWYG editor save to disk; *Source* shows the same text |
 | `mermaid.mjs` | two diagrams and one parse error render in light and dark, and re-render on a theme flip |
 | `formatting.mjs` | callouts (one foldable), highlights, `<kbd>`/`<mark>`/`<details>` and footnotes render; `<script>` is dropped; the editor keeps them on save |

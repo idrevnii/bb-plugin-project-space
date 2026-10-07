@@ -1,0 +1,22 @@
+/* The <mark> fallback for annotation highlights (ui/annotate/markdown.tsx),
+   for browsers without the CSS Custom Highlight API. The ::highlight() rules
+   are in HIGHLIGHT_CSS there: the build's CSS optimizer warns on them. */
+mark[data-annotation-mark] {
+  color: inherit;
+  border-radius: 0;
+  padding: 0;
+}
+
+mark[data-annotation-mark].space-annotation {
+  background-color: rgb(250 204 21 / 0.3);
+}
+
+mark[data-annotation-mark].space-annotation-active {
+  background-color: rgb(250 204 21 / 0.6);
+}
+
+mark[data-annotation-mark].space-annotation-resolved {
+  background-color: transparent;
+  text-decoration: underline dotted rgb(250 204 21 / 0.8);
+  text-decoration-thickness: 2px;
+}

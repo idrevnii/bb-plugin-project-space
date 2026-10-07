@@ -8,6 +8,7 @@ import {
   useRealtimeConnectionState,
   useRpc,
 } from "@get-bb/plugin-sdk/app";
+import { SPACE_ANNOTATIONS_CHANGED, type Annotation } from "../lib/annotations";
 import type {
   SpaceFile,
   SpaceInfo,
@@ -186,6 +187,43 @@ export function useSpacePreview(projectId: string | null) {
     };
   }, [rpc, projectId]);
   return baseUrl;
+}
+
+/**
+ * A file's annotations, oldest first. Refetches on `space-annotations-changed`
+ * for the file and on reconnect; `null` until the first answer.
+ */
+export function useAnnotations(projectId: string, path: string) {
+  const rpc = useSpaceRpc();
+  const [annotations, setAnnotations] = useState<Annotation[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const refetch = useCallback(() => {
+    rpc.call("annotations_list", { projectId, path }).then(
+      (result) => {
+        setAnnotations(result.annotations as Annotation[]);
+        setError(null);
+      },
+      (cause) => setError(errorMessage(cause)),
+    );
+  }, [rpc, projectId, path]);
+  useEffect(() => {
+    setAnnotations(null);
+    setError(null);
+    refetch();
+  }, [refetch]);
+  const latest = useRef(refetch);
+  latest.current = refetch;
+  useRealtime(SPACE_ANNOTATIONS_CHANGED, (payload) => {
+    const change = payload as { projectId?: unknown; path?: unknown } | null;
+    if (change?.projectId === projectId && change.path === path) latest.current();
+  });
+  const connection = useRealtimeConnectionState();
+  const wasConnected = useRef(connection === "connected");
+  useEffect(() => {
+    if (connection === "connected" && !wasConnected.current) latest.current();
+    wasConnected.current = connection === "connected";
+  }, [connection]);
+  return { annotations, error, refetch };
 }
 
 const WORKTREES_POLL_MS = 60_000;

@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import { baseName, fileKind } from "../../lib/space";
 import type { SpaceFile } from "../../server";
+import { AnnotatedMarkdown } from "../annotate/markdown";
 import { errorMessage, type SpaceRpc } from "../data";
 import { MarkdownView } from "../MarkdownView";
 import { outlineKey, useHeadingTracker } from "../outline";
@@ -169,17 +170,27 @@ export function TextDocument({
       </div>
     ) : null;
 
+  const markdown = (annotate?: { articleRef: (element: HTMLElement | null) => void; titleSlot: ReactNode }) => (
+    <MarkdownView
+      content={editing ? draft : file.content}
+      path={file.path}
+      previewBaseUrl={previewBaseUrl}
+      onOpenSpacePath={onOpenSpacePath}
+      checkout={checkout}
+      spaceHas={spaceHas}
+      {...annotate}
+    />
+  );
   const reader =
     kind === "markdown" ? (
       <div className="mx-auto w-full max-w-3xl px-6 py-8 md:px-10">
-        <MarkdownView
-          content={editing ? draft : file.content}
-          path={file.path}
-          previewBaseUrl={previewBaseUrl}
-          onOpenSpacePath={onOpenSpacePath}
-          checkout={checkout}
-          spaceHas={spaceHas}
-        />
+        {editing ? (
+          markdown()
+        ) : (
+          <AnnotatedMarkdown key={file.path} projectId={projectId} path={file.path} rpc={rpc}>
+            {markdown}
+          </AnnotatedMarkdown>
+        )}
       </div>
     ) : kind === "html" ? (
       <HtmlFrame baseUrl={previewBaseUrl} file={file} />

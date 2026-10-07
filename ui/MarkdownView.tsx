@@ -2,8 +2,9 @@
 // blocks through BB's own source viewer, links between space files routed
 // inside the space, links to other project files opened in BB's file
 // preview, images served from the space preview URL.
-import { Children, isValidElement, useMemo } from "react";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { Children, createContext, isValidElement, useContext, useMemo } from "react";
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
+import type { Element, Root } from "hast";
 import ReactMarkdown, { type Components } from "react-markdown";
 import {
   UrlLink,
@@ -26,6 +27,34 @@ export interface MarkdownViewProps {
   checkout?: { hostId: string; path: string } | null;
   /** Whether the space has a file; decides where `/path` links point. */
   spaceHas?: (path: string) => boolean;
+  /** The rendered `<article>`, for viewers that work on the page's text. */
+  articleRef?: Ref<HTMLElement>;
+  /**
+   * Shown right under the page's first top-level `# heading` (at the top
+   * when it has none), marked `data-annotate-skip`.
+   */
+  titleSlot?: ReactNode;
+}
+
+const TitleSlot = createContext<ReactNode>(null);
+
+/** Puts an empty slot element after the first top-level h1, or first. */
+function rehypeTitleSlot() {
+  return (tree: Root) => {
+    const slot: Element = {
+      type: "element",
+      tagName: "div",
+      properties: { dataTitleSlot: "" },
+      children: [],
+    };
+    const title = tree.children.findIndex((child) => child.type === "element" && child.tagName === "h1");
+    tree.children.splice(title + 1, 0, slot);
+  };
+}
+
+function TitleSlotContent() {
+  const content = useContext(TitleSlot);
+  return content == null ? null : <div data-annotate-skip="">{content}</div>;
 }
 
 const LINK_CLASSES =
@@ -143,6 +172,13 @@ const HEADINGS: Components = {
   h4: (props) => <Heading level={4} {...props} />,
   h5: (props) => <Heading level={5} {...props} />,
   h6: (props) => <Heading level={6} {...props} />,
+  div: ({ node: _node, ...props }) =>
+    "data-title-slot" in props ? <TitleSlotContent /> : <div {...props} />,
+};
+
+const READER_OPTIONS = {
+  ...readerMarkdownOptions,
+  rehypePlugins: [...readerMarkdownOptions.rehypePlugins, rehypeTitleSlot],
 };
 
 export function MarkdownView({
@@ -152,6 +188,8 @@ export function MarkdownView({
   onOpenSpacePath,
   checkout,
   spaceHas,
+  articleRef,
+  titleSlot,
 }: MarkdownViewProps) {
   const readingStyle = useReadingStyle();
   const components = useMemo<Components>(
@@ -333,10 +371,12 @@ export function MarkdownView({
   );
 
   return (
-    <article className="text-[15px] text-foreground" data-reading-style={readingStyle}>
-      <ReactMarkdown {...readerMarkdownOptions} components={components}>
-        {content}
-      </ReactMarkdown>
+    <article ref={articleRef} className="text-[15px] text-foreground" data-reading-style={readingStyle}>
+      <TitleSlot.Provider value={titleSlot}>
+        <ReactMarkdown {...READER_OPTIONS} components={components}>
+          {content}
+        </ReactMarkdown>
+      </TitleSlot.Provider>
     </article>
   );
 }

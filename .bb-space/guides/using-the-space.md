@@ -94,6 +94,29 @@ open the file in bb's preview panel on the right with the line or range
 (`#L10-L24`) highlighted. A link that points above the project checkout is
 not clickable; hover it to see why.
 
+## Annotations
+
+Leave a comment on a passage of a Markdown page while reading it.
+
+1. Select the text; a **Comment** button appears under the selection.
+2. Write the comment and save with **Save** or
+   <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd>; <kbd>Esc</kbd> cancels.
+3. The passage stays highlighted. Click it to read the comment, **Edit** it,
+   **Resolve** (or **Reopen**) it, or **Delete** it.
+
+The highlight follows the passage when the page is edited, by you or an
+agent, as long as the passage is still roughly there. A resolved comment is
+underlined instead of filled.
+
+> [!NOTE] When the text is gone
+> If the passage is deleted or rewritten beyond recognition, the comment is
+> kept and listed under the page title as *comment whose text is gone*.
+> Click it to edit or delete it.
+
+Selecting text while editing does not offer *Comment*: press **Done** first.
+Comments live in `.bb-space/.space/annotations/` and move with the page when
+you rename or move it in the tree. Sending them to a thread is still to come.
+
 ## HTML pages and canvases
 
 HTML files render like a browser page, scripts included, in a sandbox that

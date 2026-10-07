@@ -2,8 +2,9 @@
 
 Select text in a rendered Markdown page, write a comment, see it highlighted.
 
-> [!todo] Ready to start
-> Wave 2 · depends on: T10. T10 is merged.
+> [!success] Done 2026-10-07
+> Wave 2 · depends on: T10. Documented in [Using the space → Annotations](../guides/using-the-space.md#annotations)
+> and [Annotations → Markdown pages](../architecture/annotations.md#markdown-pages).
 
 ## Read first
 
@@ -26,11 +27,11 @@ Select text in a rendered Markdown page, write a comment, see it highlighted.
 
 ## Acceptance
 
-- [ ] e2e: annotate a phrase, reload — highlight is there; edit the page so
+- [x] e2e: annotate a phrase, reload — highlight is there; edit the page so
       the phrase moves — still highlighted; delete the phrase — listed as
       orphaned.
-- [ ] Selecting text in edit mode does not offer *Comment*.
-- [ ] `npm run check` passes.
+- [x] Selecting text in edit mode does not offer *Comment*.
+- [x] `npm run check` passes.
 
 ## Out of scope
 

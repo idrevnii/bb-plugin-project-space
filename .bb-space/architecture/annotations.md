@@ -5,16 +5,18 @@ edits to that file. This page is the contract the Review tab, *Send to…* and
 the agent CLI build on (T30–T34); why annotations exist is in the
 [decision](../decisions/annotations.md).
 
-> [!NOTE] Built so far: the data layer only
-> Model, anchoring, storage and RPC are merged (T10). There is no UI or agent
-> command yet — see the [roadmap](../roadmap.md).
+> [!NOTE] Built so far: the data layer and Markdown pages
+> Model, anchoring, storage and RPC (T10), and annotating Markdown pages in
+> the reader (T30). The Review tab, HTML, canvases and the agent command are
+> still to come — see the [roadmap](../roadmap.md).
 
 | Piece | Where |
 | --- | --- |
 | model and anchoring (pure, shared by server and app) | [`lib/annotations.ts`](../../lib/annotations.ts) |
 | storage, RPC, following moves | [`server/annotations.ts`](../../server/annotations.ts) |
-| tests | `test/annotations.test.ts`, `test/annotations-store.test.ts` |
-| live check | `scripts/e2e/annotations.mjs` |
+| Markdown reader: selecting, highlights, the comment popover | [`ui/annotate/markdown.tsx`](../../ui/annotate/markdown.tsx), rendered text ↔ DOM in [`ui/annotate/text.ts`](../../ui/annotate/text.ts) |
+| tests | `test/annotations.test.ts`, `test/annotations-store.test.ts`, `test/annotate-text.test.ts` |
+| live checks | `scripts/e2e/annotations.mjs`, `scripts/e2e/annotations-markdown.mjs` |
 
 ## The model
 
@@ -53,8 +55,9 @@ stateDiagram-v2
 
 `quoteSelector(text, start, end)` returns `{ exact, prefix, suffix }` with 32
 characters (`QUOTE_CONTEXT`) of context on each side, clamped at the ends.
-`text` is whatever the viewer anchors against — the Markdown source, or the
-rendered text for HTML — and must be the same kind when locating.
+`text` is whatever the viewer anchors against and must be the same kind when
+locating. Markdown and HTML pages both anchor against the **rendered text**,
+not the source, so a quote never contains Markdown syntax.
 
 `locateQuote(text, selector)` returns `{ start, end }` or `null`, trying in
 order:
@@ -71,6 +74,36 @@ order:
 
 Shape anchors are resolved by the canvas (missing ids → orphaned); `file`
 anchors always resolve.
+
+## Markdown pages
+
+The reader ([`ui/annotate/markdown.tsx`](../../ui/annotate/markdown.tsx))
+wraps `MarkdownView` only while the page is read, never while it is edited.
+
+- **Rendered text** — the article's text nodes joined in order, which is its
+  `textContent` minus the plugin's own UI inside it (marked
+  `data-annotate-skip`). [`ui/annotate/text.ts`](../../ui/annotate/text.ts)
+  maps DOM selections to offsets in that text and offsets back to `Range`s.
+- **Creating** — a non-empty selection inside the article shows *Comment*;
+  the popover saves `quoteSelector(text, start, end)` with surrounding
+  whitespace trimmed.
+- **Highlights** — after every render (a `MutationObserver` on the article
+  also catches code blocks and diagrams that fill in later) each `text-quote`
+  annotation is located with `locateQuote` and painted with the CSS Custom
+  Highlight API: `space-annotation`, `space-annotation-resolved`, and
+  `space-annotation-active` for the open one (the rules are injected at
+  runtime: the build's CSS optimizer warns on `::highlight()`). The page's DOM is not touched. Without that API
+  the ranges are wrapped in `<mark data-annotation-mark>` and unwrapped
+  before the next pass.
+- **Opening** — a click whose point falls inside a highlight's client rects
+  opens that comment (the shortest of overlapping ones); links and buttons
+  keep their own clicks.
+- **Under the title** — `MarkdownView`'s `titleSlot` renders right after the
+  first top-level `# heading` (at the top when there is none). It lists
+  orphaned annotations (quote not found, or a `shapes` anchor) and `file`
+  anchors.
+- **Live** — `useAnnotations` in [`ui/data.ts`](../../ui/data.ts) refetches
+  on `space-annotations-changed` for the page and on reconnect.
 
 ## Where annotations are stored
 

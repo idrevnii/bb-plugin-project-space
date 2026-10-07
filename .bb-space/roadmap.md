@@ -6,8 +6,7 @@ is a brief in [tasks](tasks/index.md), with its state in the
 [status table](tasks/index.md#status).
 
 > [!IMPORTANT] Open now
-> **Annotations UI** (T30–T34) can start: the data layer (T10) they build on
-> is merged.
+> **Annotations UI**: T30 is merged; T31–T34 can start.
 
 ## MVP (0.1)
 
@@ -57,7 +56,7 @@ is a brief in [tasks](tasks/index.md), with its state in the
 Select text or shapes, comment, collect in a review tab, send to a thread.
 See [the decision](decisions/annotations.md).
 
-- [ ] Annotate Markdown pages (T30)
+- [x] Annotate Markdown pages (T30)
 - [ ] Review tab and *Send to…* a thread (T31)
 - [ ] `bb space annotations` and the agent tool (T32)
 - [ ] Annotate canvases (T33)
