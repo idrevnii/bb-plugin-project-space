@@ -79,10 +79,11 @@ function lineCount(label: string, w: number, charW: number): number {
     if (need <= perLine) {
       used = need;
     } else {
-      lines++;
+      if (used > 0) lines++;
       // A word longer than the line wraps mid-word onto further lines.
-      used = word.length % perLine;
-      lines += Math.floor(word.length / perLine);
+      const spans = Math.ceil(word.length / perLine);
+      lines += spans - 1;
+      used = word.length - (spans - 1) * perLine;
     }
   }
   return lines;
