@@ -49,7 +49,8 @@ function loadInto(editor: Editor, json: string): string | null {
   if (json.trim() === "") return null;
   const parsed = parseTldrawJsonFile({ json, schema: editor.store.schema });
   if (!parsed.ok) {
-    return `This file is not a readable tldraw document (${parsed.error.type}).`;
+    // Phrased to follow "cannot be pictured: " / "was not drawn on: ".
+    return `it is not a readable tldraw document (${parsed.error.type})`;
   }
   const snapshot = getSnapshot(parsed.value);
   // As a remote change, so the user-only save listener ignores the load.
@@ -163,6 +164,16 @@ export function TldrawView({
               )
             : await postCanvasError(putImage, target, unreadable.current);
         if (posted) await rpc.call("space_draw_ack", { ids: renders });
+        return;
+      }
+      if (unreadable.current !== null) {
+        // The board is blank because the file did not load; drawing on it
+        // and saving would overwrite the file. Report it instead.
+        await postCanvasError(
+          putImage,
+          { projectId, path: file.path, sha256: knownSha.current },
+          unreadable.current,
+        );
         return;
       }
       const done = [...applyBatches(editor, draws), ...renders];
@@ -315,7 +326,7 @@ export function TldrawView({
         )}
         {loadError ? (
           <span className="pointer-events-auto rounded-md bg-card px-2 py-1 text-xs text-destructive shadow-sm">
-            {loadError}
+            This file cannot be shown: {loadError}.
           </span>
         ) : null}
         {saveError ? (

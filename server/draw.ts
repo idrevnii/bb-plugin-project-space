@@ -14,7 +14,7 @@ import {
 } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 import { LINT_HINT, lintTldr } from "../lib/canvas/lint";
-import { describeTldr, drawnNodeIds } from "../lib/canvas/read";
+import { describeTldr, drawnNodeIds, tldrRecords } from "../lib/canvas/read";
 import { RENDER_ONLY_SPEC, drawSpecSchema, type DrawSpec } from "../lib/canvas/spec";
 import { fileKind } from "../lib/space";
 import { canvasPngCommand } from "./canvas-image";
@@ -86,6 +86,16 @@ const MIGRATIONS = [
 /** How long a draw call waits for a renderer to land its batch. */
 const DRAW_WAIT_MS = 12_000;
 
+/** Drawing never overwrites a canvas tldraw cannot load. */
+function unreadableCanvas(path: string, reason: string): PluginCliError {
+  // The tool shows only the message, so it carries the way out too.
+  return new PluginCliError(
+    `${path} was not drawn on: ${reason}, and drawing would overwrite it. ` +
+      "Fix the file (git diff / git checkout it), delete it, or draw into a new path.",
+    { code: "canvas_unreadable" },
+  );
+}
+
 function parseCanvasPath(value: string): string {
   const path = canvasPath.safeParse(value);
   if (!path.success) {
@@ -108,6 +118,13 @@ export const drawModule = defineModule({
     const pendingCount = db.prepare(
       `SELECT COUNT(*) AS n FROM pending_draws WHERE id <= ? AND project_id = ? AND path = ?`,
     );
+    // A renderer that cannot load the file reports it as a picture error
+    // (server/canvas-image.ts) instead of drawing over it.
+    const loadError = db.prepare(
+      `SELECT error FROM canvas_images
+        WHERE project_id = ? AND path = ? AND error IS NOT NULL AND updated_at >= ?`,
+    );
+    const removeDraw = db.prepare(`DELETE FROM pending_draws WHERE id = ?`);
 
     function listPending(filter: { projectId?: string; path?: string }): DrawBatch[] {
       const rows = db
@@ -137,6 +154,9 @@ export const drawModule = defineModule({
     ): Promise<string> {
       const space = await resolveSpace(id);
       const before = await readText(space, path);
+      if (before !== null && before.trim() !== "" && tldrRecords(before) === null) {
+        throw unreadableCanvas(path, "it is not a tldraw JSON document");
+      }
       if (before === null) {
         // A new canvas: an empty file is a blank board.
         await bb.sdk.files.write({
@@ -151,9 +171,9 @@ export const drawModule = defineModule({
       }
       const drawn = drawnNodeIds(before ?? "");
       const resent = (spec.nodes ?? []).filter((node) => drawn.has(node.id)).length;
+      const queuedAt = Date.now();
       const batchId = Number(
-        insertDraw.run(space.projectId, path, JSON.stringify(spec), Date.now())
-          .lastInsertRowid,
+        insertDraw.run(space.projectId, path, JSON.stringify(spec), queuedAt).lastInsertRowid,
       );
       bb.realtime.publish(SPACE_DRAW, { projectId: space.projectId, path });
 
@@ -164,6 +184,13 @@ export const drawModule = defineModule({
         if (n === 0) {
           applied = true;
           break;
+        }
+        const refused = loadError.get(space.projectId, path, queuedAt) as
+          | { error: string }
+          | undefined;
+        if (refused !== undefined) {
+          removeDraw.run(batchId);
+          throw unreadableCanvas(path, refused.error);
         }
         await new Promise((resolve) => setTimeout(resolve, 300));
       }
