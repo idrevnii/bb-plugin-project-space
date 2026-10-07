@@ -9,47 +9,70 @@
 <body>
 <main>
   <h1>Project Space — status</h1>
-  <p class="sub">0.1 · updated 2026-10-07 · rendered from <code>.bb-space/reports/status.html</code> with a sibling stylesheet</p>
+  <p class="sub">Version 0.1 · updated 2026-10-07 · source <code>.bb-space/reports/status.html</code> with a sibling stylesheet</p>
+
+  <section class="verdict">
+    <strong>On track.</strong> The MVP and wave 1 are merged with <code>npm run check</code> green.
+    What is left: the annotations UI (T30–T34, ready to start) and the UI QA sweep (T21, not started).
+  </section>
+
   <div class="grid">
-    <div class="stat"><b id="done">0</b><span>features shipped</span><div class="bar"><i id="progress" style="width:0"></i></div></div>
-    <div class="stat"><b>3</b><span>file kinds rendered (md · html · tldr)</span></div>
-    <div class="stat"><b id="next">0</b><span>items on the roadmap</span></div>
+    <div class="stat"><b id="done">0</b><span>milestones shipped</span><div class="bar"><i id="progress"></i></div></div>
+    <div class="stat"><b id="next">0</b><span>milestones open</span></div>
+    <div class="stat"><b>98 %</b><span>line coverage of <code>lib/</code></span></div>
+    <div class="stat"><b>15</b><span>end-to-end scripts</span></div>
   </div>
-  <h2>Milestones <small style="color:var(--muted);font-weight:400">(click an item — scripts run in the sandbox)</small></h2>
-  <ul class="items" id="items"></ul>
+
+  <h2>Milestones</h2>
+  <p class="hint">Filter the list — the page's own scripts run in the sandbox.</p>
+  <div class="filters" role="group" aria-label="Filter milestones">
+    <button data-filter="all" aria-pressed="true">All</button>
+    <button data-filter="next" aria-pressed="false">Open</button>
+    <button data-filter="done" aria-pressed="false">Shipped</button>
+  </div>
+  <ul class="items" id="items">
+    <li class="next"><span class="tag">OPEN</span>Annotations UI: Markdown, Review tab, agent API, tldraw, HTML <small>T30–T34</small></li>
+    <li class="next"><span class="tag">OPEN</span>UI QA sweep <small>T21</small></li>
+    <li class="done"><span class="tag">DONE</span>Annotations data layer <small>T10</small></li>
+    <li class="done"><span class="tag">DONE</span>Callouts, highlights, footnotes, safe HTML in Markdown</li>
+    <li class="done"><span class="tag">DONE</span>Reading styles and bb themes (Blue Topaz, Things)</li>
+    <li class="done"><span class="tag">DONE</span>Unit tests for the pure core <small>T20</small></li>
+    <li class="done"><span class="tag">DONE</span>Worktree awareness <small>T19</small></li>
+    <li class="done"><span class="tag">DONE</span>Canvas pictures for agents (PNG) <small>T18</small></li>
+    <li class="done"><span class="tag">DONE</span>Overlap lint after agent drawing <small>T17</small></li>
+    <li class="done"><span class="tag">DONE</span>Links to project files outside the space <small>T16</small></li>
+    <li class="done"><span class="tag">DONE</span>Search across the space <small>T15</small></li>
+    <li class="done"><span class="tag">DONE</span>Outline tab <small>T14</small></li>
+    <li class="done"><span class="tag">DONE</span>Drag and drop, <em>Move to…</em> <small>T13</small></li>
+    <li class="done"><span class="tag">DONE</span>Mermaid diagrams in Markdown <small>T12</small></li>
+    <li class="done"><span class="tag">DONE</span>WYSIWYG Markdown editor <small>T11</small></li>
+    <li class="done"><span class="tag">DONE</span>Agent drawing on canvases <small>MVP</small></li>
+    <li class="done"><span class="tag">DONE</span>Live refresh on agent writes <small>MVP</small></li>
+    <li class="done"><span class="tag">DONE</span>tldraw canvases with autosave <small>MVP</small></li>
+    <li class="done"><span class="tag">DONE</span>Sandboxed HTML with relative assets <small>MVP</small></li>
+    <li class="done"><span class="tag">DONE</span>Full-screen Space page, file tree, Markdown reader <small>MVP</small></li>
+  </ul>
+
+  <h2>Where to read more</h2>
+  <p>The <a href="../roadmap.md">roadmap</a> lists every item; the task briefs are in <a href="../tasks/index.md">tasks</a>.</p>
 </main>
 <script>
-  const items = [
-    ["done", "Full-screen Space page with deep links"],
-    ["done", "File tree in the right panel, drag and drop, Move to…"],
-    ["done", "Markdown reader and WYSIWYG editor"],
-    ["done", "Mermaid diagrams in Markdown"],
-    ["done", "Links to project files outside the space"],
-    ["done", "Outline tab"],
-    ["done", "Search across the space"],
-    ["done", "Sandboxed HTML with relative assets"],
-    ["done", "tldraw canvases with autosave"],
-    ["done", "Live refresh on agent writes"],
-    ["done", "Agent drawing on canvases, with overlap lint"],
-    ["done", "Canvas pictures for agents (PNG)"],
-    ["done", "Worktree awareness"],
-    ["done", "Unit tests for the pure core"],
-    ["done", "Annotations data layer"],
-    ["next", "Annotations: Markdown, Review tab, agent API, tldraw, HTML"],
-    ["next", "UI QA sweep"],
-  ];
-  const list = document.getElementById("items");
-  for (const [state, text] of items) {
-    const li = document.createElement("li");
-    li.className = state;
-    li.innerHTML = `<span class="tag">${state === "done" ? "DONE" : "NEXT"}</span>${text}`;
-    li.onclick = () => li.classList.toggle("open");
-    list.append(li);
-  }
-  const done = items.filter(([s]) => s === "done").length;
+  const items = [...document.querySelectorAll("#items li")];
+  const done = items.filter((li) => li.classList.contains("done")).length;
   document.getElementById("done").textContent = done;
   document.getElementById("next").textContent = items.length - done;
-  requestAnimationFrame(() => document.getElementById("progress").style.width = `${Math.round(done / items.length * 100)}%`);
+  requestAnimationFrame(() => {
+    document.getElementById("progress").style.width = `${Math.round((done / items.length) * 100)}%`;
+  });
+  for (const button of document.querySelectorAll("[data-filter]")) {
+    button.addEventListener("click", () => {
+      const filter = button.dataset.filter;
+      for (const other of document.querySelectorAll("[data-filter]")) {
+        other.setAttribute("aria-pressed", String(other === button));
+      }
+      for (const li of items) li.hidden = filter !== "all" && !li.classList.contains(filter);
+    });
+  }
 </script>
 </body>
 </html>

@@ -1,47 +1,60 @@
 # Tasks
 
 The [roadmap](../roadmap.md) cut into briefs an agent can take alone. Each
-brief says what to build, which files it owns, and how to prove it works.
+brief says what to build, which files it owns, and how to prove it works; the
+rules every task follows are in [Developing → Work in parallel](../guides/developing.md#work-in-parallel).
 
-**Dependency map:** [tasks.tldr](tasks.tldr)
+> [!IMPORTANT] Open now
+> T21 has not started. T30–T34 can start: T10, which they build on, is
+> merged.
 
 ## Waves
 
+The [dependency map](tasks.tldr) shows which task must be merged before
+which; grey boxes are merged, blue ones are open.
+
 | Wave | Runs | Tasks |
-|---|---|---|
+| --- | --- | --- |
 | 0 | one after another, one agent | [T00](t00-repo-baseline.md) → [T01](t01-split-modules.md) |
 | 1 | in parallel, after T01 | [T10](t10-annotations-core.md) · [T11](t11-wysiwyg-markdown.md) · [T12](t12-mermaid.md) · [T13](t13-tree-dnd.md) · [T14](t14-outline-tab.md) · [T15](t15-space-search.md) · [T16](t16-outside-links.md) · [T17](t17-canvas-lint.md) · [T18](t18-canvas-view-png.md) · [T19](t19-worktree-awareness.md) · [T20](t20-unit-tests.md) · [T21](t21-ui-qa-sweep.md) |
 | 2 | in parallel, after T10 | [T30](t30-annotations-markdown.md) · [T31](t31-annotations-review-tab.md) · [T32](t32-annotations-agent-api.md) · [T33](t33-annotations-tldraw.md) · [T34](t34-annotations-html.md) |
 
-Wave 0 existed so wave 1 could run without merge pain: before it,
-`server.ts` and `ui/SpacePage.tsx` held almost everything and the directory
-was not a git repository, so there were no worktrees.
+Wave 0 existed so wave 1 could run without merge pain: before it, `server.ts`
+and `ui/SpacePage.tsx` held almost everything and the directory was not a git
+repository, so there were no worktrees.
 
 ## Status
 
-Updated 2026-10-07. "Merged" means in `main` with `npm run check` green.
+Updated 2026-10-07. A ticked task is merged into `main` with
+`npm run check` green.
 
-| Task | State |
-|---|---|
-| T00, T01 | merged |
-| T10 | merged |
-| T11 | merged |
-| T12 | merged |
-| T13 | merged |
-| T14 | merged |
-| T15 | merged |
-| T16 | merged |
-| T17 | merged |
-| T18 | merged |
-| T19 | merged |
-| T20 | merged |
-| T21 | not started |
-| T30–T34 | waiting for wave 2 (T10 is merged, so they can start) |
+- [x] T00 Repository baseline
+- [x] T01 Split the server and page into modules
+- [x] T10 Annotations: model, anchoring, storage, RPC
+- [x] T11 WYSIWYG Markdown editing
+- [x] T12 Mermaid diagrams in Markdown
+- [x] T13 Drag and drop in the file tree
+- [x] T14 Outline tab
+- [x] T15 Search across the space
+- [x] T16 Links to project files outside the space
+- [x] T17 Overlap lint for canvases
+- [x] T18 Let agents see a canvas (PNG)
+- [x] T19 Worktree awareness
+- [x] T20 Unit tests for the pure core
+- [ ] T21 UI QA sweep — not started
+- [ ] T30 Annotate Markdown pages — ready to start
+- [ ] T31 Review tab and sending annotations to a thread — ready to start
+- [ ] T32 Annotations for agents — ready to start
+- [ ] T33 Annotate canvases — ready to start
+- [ ] T34 Annotate HTML pages — ready to start
 
 ## Who touches what
 
-| Task | Owns (creates or mainly edits) | Also touches (small, additive) |
-|---|---|---|
+A brief *owns* the files it creates or mainly edits; anything else it touches
+stays small and additive.
+
+| Task | Owns | Also touches |
+| --- | --- | --- |
 | T10 | `lib/annotations.ts`, `server/annotations.ts` | `server/index.ts` (register) |
 | T11 | `ui/page/MarkdownEditor.tsx` | `ui/page/TextDocument.tsx`, `package.json` |
 | T12 | `ui/MermaidBlock.tsx` | `ui/MarkdownView.tsx` (code block branch), `package.json` |
@@ -60,29 +73,19 @@ Updated 2026-10-07. "Merged" means in `main` with `npm run check` green.
 | T33 | `ui/annotate/tldraw.tsx` | `ui/TldrawView.tsx` |
 | T34 | `ui/annotate/html-bridge.ts` | `ui/page/HtmlFrame.tsx` |
 
-Known overlaps: T12/T16/T30 edit different branches of `MarkdownView.tsx`;
-T17/T18 both add a line to the draw result in `server/draw.ts`; T14/T31 each
-add one fixed tab in `app.tsx`. All are small, additive merges.
+> [!NOTE] Known overlaps, all small
+> T30 edits a different branch of `MarkdownView.tsx` than T12 and T16 did;
+> T31 adds a fixed tab in `app.tsx` next to T14's.
 
-## Rules for every task
+## The shape of a brief
 
-1. **Work in your own worktree**, on branch `task/<id>`. Keep the diff inside
-   the files your brief owns; if you must touch another, keep it additive and
-   say so in your report.
-2. **Verify locally:** `npm run typecheck`, `npm test`, `bb plugin build`.
-   UI tasks also add or extend a script under `scripts/e2e/` that exercises
-   the feature.
-3. **Do not run `bb plugin install` or `bb plugin reload` from a worktree.**
-   The installed plugin points at the main checkout; reinstalling from a
-   worktree swaps it out under every other agent. Live checks happen at
-   integration, one branch at a time, with the e2e scripts.
-4. **Docs:** update or add the space page your brief names. Do not edit
-   `roadmap.md` or this index; the integrator does.
-5. **Report:** what changed (files), how you verified it, anything left
-   undone, and screenshots for UI.
+Every brief has the same sections, so an agent knows where to look:
 
-## Integrating
-
-Merge in wave order. After each merge, in the main checkout:
-`bb plugin build && bb plugin reload project-space`, run `npm run e2e`, then
-tick the roadmap.
+| Section | Holds |
+| --- | --- |
+| lead and status callout | the goal in a sentence; merged, ready, or not started |
+| *Read first* | pages and files to read before starting |
+| *Do* | numbered steps |
+| *Acceptance* | a task list the report has to answer |
+| *Result* | what was built and measured, added at integration |
+| *Out of scope*, *Docs* | what not to do; which space page to update |

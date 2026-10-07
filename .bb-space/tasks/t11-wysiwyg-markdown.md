@@ -1,11 +1,10 @@
 # T11 · WYSIWYG Markdown editing
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 Edit Markdown in place, looking like the reader, instead of a source pane.
 Keep a *Source* toggle for raw editing.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [Using the space → Edit a Markdown page](../guides/using-the-space.md#edit-a-markdown-page).
 
 ## Read first
 

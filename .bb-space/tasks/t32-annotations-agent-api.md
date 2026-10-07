@@ -1,10 +1,9 @@
 # T32 · Annotations for agents
 
-**Wave 2 · depends on: T10**
-
-## Goal
-
 Agents can list, answer and resolve annotations, closing the loop T31 opens.
+
+> [!todo] Ready to start
+> Wave 2 · depends on: T10. T10 is merged.
 
 ## Read first
 

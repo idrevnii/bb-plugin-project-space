@@ -1,11 +1,10 @@
 # T31 · Review tab and sending annotations to a thread
 
-**Wave 2 · depends on: T10**
-
-## Goal
-
 Collect open annotations and send them to an agent in one message: the bridge
 from the full-screen space back to threads.
+
+> [!todo] Ready to start
+> Wave 2 · depends on: T10. T10 is merged.
 
 ## Read first
 

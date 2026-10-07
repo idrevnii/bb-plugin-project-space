@@ -1,53 +1,71 @@
 # Roadmap
 
-## Done — MVP (0.1)
+What is built and what comes next, by milestone. ***The MVP and wave 1 are
+merged; annotations UI and a UI QA sweep are what is left.*** Each open item
+is a brief in [tasks](tasks/index.md), with its state in the
+[status table](tasks/index.md#status).
+
+> [!IMPORTANT] Open now
+> - **Annotations UI** (T30–T34) can start: the data layer (T10) they build on
+>   is merged.
+> - **UI QA sweep** (T21) has not started; several flows have never been
+>   checked live.
+
+## MVP (0.1)
 
 - [x] Full-screen **Space** page (`navPanel`) with a deep link per file:
   `/plugins/project-space/space/<projectId>/<path>`
 - [x] File tree in the host's right panel (**Files** tab), or beside the
-  document via the *File tree position* setting
-- [x] Create pages, canvases, HTML files, and folders; rename; delete
-- [x] Markdown reader with document typography, GFM tables and task lists,
-  code blocks through bb's own source viewer, links between pages
-- [x] Markdown/HTML/text editing: source on the left, live preview on the
-  right, `Ctrl/⌘+S`, compare-and-swap saves with a conflict banner
-- [x] HTML rendered in a sandboxed iframe from a bb file-preview URL, so
-  relative assets load
+  document via *File tree position*
+- [x] Create pages, canvases, HTML files and folders; rename; delete
+- [x] Markdown reader: GFM tables and task lists, code blocks through bb's
+  source viewer, links between pages
+- [x] Editing with <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>S</kbd> and
+  compare-and-swap saves with a conflict banner
+- [x] HTML in a sandboxed iframe from a bb file-preview URL, so relative
+  assets load
 - [x] `.tldr` canvases with autosave; agent rewrites reload the board
-- [x] Live refresh: server-side `fs.watch` → realtime `space-changed`;
-  polling fallback for spaces on remote machines
-- [x] `bb space root | init | tree | link`, agent skill, `::space` chat card,
-  **Space** button in thread headers
-- [x] **Agent drawing** — `space_draw` / `space_canvas_read` tools and
-  `bb space draw | canvas`: a boxes-and-arrows spec with auto-layout, queued
-  on the server and rendered by the open canvas or an off-screen tldraw in any
-  bb window (ported from
+- [x] Live refresh: server-side watcher → realtime `space-changed`; polling
+  for spaces on remote machines
+- [x] `bb space root | init | tree | link`, the agent skill, the `::space`
+  chat card, the **Space** button in thread headers
+- [x] **Agent drawing**: `space_draw` / `space_canvas_read` and
+  `bb space draw | canvas`, rendered by the open canvas or an off-screen
+  tldraw in any bb window (ported from
   [bb-plugin-canvas](https://github.com/Borjampm/bb-plugin-canvas))
 
-## Next
+## Wave 1 — editing, navigation, canvas checks
 
-Broken down into parallel briefs in [tasks](tasks/index.md); progress per task
-is in [its status table](tasks/index.md#status).
-
-- [ ] **Annotations** — select text (Markdown/HTML) or shapes (tldraw), comment,
-  collect in a review tray, send to a thread. See
-  [the annotations decision](decisions/annotations.md).
-  - [x] Data layer: model, text-quote anchoring, storage, RPC (T10)
-  - [ ] Markdown, review tab, agent API, tldraw, HTML (T30–T34)
-- [x] **WYSIWYG Markdown** — TipTap editing in place of the source pane, with a
-  *Source* toggle (T11)
-- [x] **Canvas checks for agents**
-  - [x] Overlap lint after each draw (T17)
-  - [x] `space_canvas_view`: a PNG of a canvas so agents can check their
-    drawing (T18)
+- [x] **WYSIWYG Markdown** — TipTap editing in place, with a *Source* toggle (T11)
 - [x] **Mermaid** in Markdown code fences (T12)
 - [x] **Tree and navigation**
   - [x] Drag and drop in the tree, plus *Move to…* (T13)
   - [x] Outline tab (T14)
   - [x] Search across the space (T15)
   - [x] Links to project files outside the space (T16)
-- [x] **Worktree awareness**: show when a thread's worktree has unmerged space
-  edits (T19)
-- [x] **Unit tests** for the pure core and `space_write`; `lib/` line
-  coverage 98% (T20)
+- [x] **Canvas checks for agents**
+  - [x] Overlap lint after each draw (T17)
+  - [x] `space_canvas_view`: a PNG of a canvas (T18)
+- [x] **Worktree awareness**: show worktrees that changed the space (T19)
+- [x] **Unit tests** for the pure core and `space_write`; `lib/` line coverage
+  98 % (T20)
+- [x] **Annotations data layer**: model, text-quote anchoring, storage, RPC (T10)
+- [x] **Reading styles** (Blue Topaz, Things, plain) and two bb themes
+- [x] **Rich Markdown**: callouts, highlights, footnotes, safe inline HTML
 - [ ] **UI QA sweep** across the Space page (T21)
+
+## Wave 2 — annotations UI
+
+Select text or shapes, comment, collect in a review tab, send to a thread.
+See [the decision](decisions/annotations.md).
+
+- [ ] Annotate Markdown pages (T30)
+- [ ] Review tab and *Send to…* a thread (T31)
+- [ ] `bb space annotations` and the agent tool (T32)
+- [ ] Annotate canvases (T33)
+- [ ] Annotate HTML pages (T34)
+
+## Later
+
+- [ ] Copy a worktree's space edits into the main space from the badge
+  (follow-up to T19)

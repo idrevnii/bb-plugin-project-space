@@ -1,82 +1,130 @@
 # Using the space
 
-## Open it
+How to open a project's space, find and organize pages, and read and edit
+them. Everything here happens in bb's full-screen **Space** page; the files
+behind it are the project's `.bb-space/` folder.
 
-- **Sidebar → Space.** Opens the last project you looked at.
-- **Space** button in a thread's header — opens that thread's project.
+## Open the space
+
+- **Sidebar → Space** opens the last project you looked at.
+- The **Space** button in a thread's header opens that thread's project.
 - A `::space` card an agent posted in chat → **Open in space**.
 
 Switch projects with the selector in the page's title bar.
 
-## Files
+## Create, rename and delete pages
 
-The **Files** tab in the right panel is the tree (toggle the panel with the
-folder button at the top right of the document). Use **+** for a new page,
-canvas, HTML file, or folder; hover a row to rename or delete it. A folder's
-`index.md` opens when you pick the folder.
+The **Files** tab in the right panel is the tree; the folder button at the top
+right of the document shows and hides the panel.
+
+1. Click **+** for a new page, canvas, HTML file or folder.
+2. Hover a row to rename or delete it.
+3. Pick a folder to open its `index.md`.
+
+> [!TIP] Tree on the left
+> Settings → Plugins → Project Space → *File tree position* → `left` keeps the
+> tree beside the document instead of in the panel.
+
+## Move files
 
 Drag a file or folder onto a folder to move it there, or onto the empty area
 below the tree to move it to the space root. Dropping on a file moves into
 that file's folder, and a closed folder opens after you hover it for a moment.
-From the keyboard, use the row's **Move to…** action and pick a folder (arrow
-keys, Enter). A folder can't move into itself, and a move onto an existing
-name is refused. If the open document moves, it stays open at its new path.
+If the open document moves, it stays open at its new path.
 
-The **search box** above the tree finds pages as you type: first files
-whose name matches (fuzzy), then lines that contain the text, in any case,
-in Markdown, HTML and other text files, plus the labels on canvases. The
-results replace the tree until you clear the box (**Esc** or ×). Arrow keys
-pick a result and **Enter** (or a click) opens it; a text hit in a Markdown
-page scrolls to the section it is in. Search reads files as you type and
-stops after about two seconds or 50 results; a note says when there were
-more, so narrow the query.
+From the keyboard, use the row's **Move to…** action and pick a folder with
+the arrow keys and <kbd>Enter</kbd>.
 
-Prefer the tree beside the document? Settings → Plugins → Project Space →
-*File tree position* → `left`.
+> [!NOTE] Refused moves
+> A folder cannot move into itself, and a move onto an existing name is
+> refused.
 
-## Outline
+## Find a page
 
-The **Outline** tab, next to *Files* in the right panel, lists the open
-Markdown page's headings. Click one to scroll the page to it; the heading
-you are reading is highlighted as you scroll. Other files (HTML, canvases)
-have no outline.
+The **search box** above the tree finds pages as you type: first files whose
+name matches (fuzzy), then lines containing the text, in any case — in
+Markdown, HTML and other text files, plus the labels on canvases.
 
-## Reading and editing
+| Key | Does |
+| --- | --- |
+| <kbd>↑</kbd> <kbd>↓</kbd> | pick a result |
+| <kbd>Enter</kbd> or a click | open it; a text hit in a Markdown page scrolls to its section |
+| <kbd>Esc</kbd> or × | clear the box and bring the tree back |
 
-Markdown opens as a document. **Edit** makes the page itself editable, with
-the same typography as reading. The bar above it formats text (bold,
-italic, strikethrough, ==highlight==, code), makes lists,
-task lists, quotes, code blocks, links and tables (row and column buttons
-appear while the cursor is in a table); tick tasks right in the page. Markdown
-shortcuts work as you type (`## `, `- `, `1. `, `[ ] `, `` ` ``, `**`).
-**Source** switches to the raw text with a live preview, and back.
+Search stops after about two seconds or 50 results; a note says when there
+were more, so narrow the query.
 
-Save with **Save** or `Ctrl/⌘+S`, then **Done**. If an agent changed the file
-while you were editing, a banner lets you keep theirs or overwrite.
+## Jump within a page
 
-Saving from the editor writes normalized Markdown: paragraphs on one line,
+The **Outline** tab, next to *Files*, lists the open Markdown page's headings.
+Click one to scroll to it; the heading you are reading is highlighted as you
+scroll. HTML pages and canvases have no outline.
+
+## Edit a Markdown page
+
+Markdown opens as a document; **Edit** makes the page itself editable, with
+the same look as reading.
+
+1. Format with the bar above the page: bold, italic, strikethrough,
+   highlight, code, lists, task lists, quotes, code blocks, links and tables
+   (row and column buttons appear while the cursor is in a table). Tick tasks
+   right in the page.
+2. Or type Markdown shortcuts: `## `, `- `, `1. `, `[ ] `, `` ` ``, `**`.
+3. **Source** switches to the raw text with a live preview, and back.
+4. Save with **Save** or <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>S</kbd>, then
+   **Done**.
+
+> [!WARNING] An agent may have changed the file meanwhile
+> If so, saving shows a banner: keep their version (*Discard mine*) or
+> *Overwrite*. Nothing is merged for you.
+
+Saving from the editor writes *normalized* Markdown: paragraphs on one line,
 `-` bullets, `| --- |` table rules. The page renders the same; only the
 source layout changes, and only once you edit. Frontmatter and raw HTML
 (shown as grey chips) are kept as written. A callout shows its title above
-its body; edit the body in place, the `> [!type] Title` line in *Source*.
-Footnote references show as small chips and their notes stay where they are
+its body: edit the body in place, the `> [!type] Title` line in *Source*.
+Footnote references show as small chips, and their notes stay where they are
 written.
 
-Links to code elsewhere in the project (`../../server/index.ts#L10`) open
-the file in bb's preview panel on the right, with the line or range
+### Links to code
+
+Links to files elsewhere in the project, like `../../server/index.ts#L10`,
+open the file in bb's preview panel on the right with the line or range
 (`#L10-L24`) highlighted. A link that points above the project checkout is
 not clickable; hover it to see why.
 
-HTML files render like a browser page. Canvases are full tldraw boards and
-save themselves.
+## HTML pages and canvases
+
+HTML files render like a browser page, scripts included, in a sandbox that
+cannot reach bb. Canvases are full tldraw boards and save themselves 800 ms
+after the last edit. A canvas whose file tldraw cannot load opens read-only,
+with the reason, until the file is fixed.
 
 ## Worktrees
 
-The space you see is the one in the project's main checkout. A thread that
-runs in a worktree and writes its own `.bb-space/` there shows up as a badge
-in the bar above the page: "1 worktree changed the space". Click it for each
-worktree's branch, its threads, and the files it added (**A**), changed
-(**M**) or deleted (**D**). A file opens read-only from that worktree under
-a "Viewing branch … — not the main space" banner; **Open main version**
-goes back. Nothing is copied into the main space — that happens when the
-branch is merged.
+The space you see is the one in the project's **main checkout**. A thread
+that runs in a worktree and writes its own `.bb-space/` there shows up as a
+badge in the bar above the page: "1 worktree changed the space".
+
+1. Click the badge to see each worktree's branch, its threads, and the files
+   it added (**A**), changed (**M**) or deleted (**D**).
+2. Click a file to open it read-only from that worktree, under a "Viewing
+   branch … — not the main space" banner.
+3. **Open main version** goes back.
+
+> [!IMPORTANT] Nothing is copied into the main space
+> Those edits arrive when the branch is merged. Why it works this way:
+> [storage decision](../decisions/storage.md).
+
+## Settings
+
+Settings → Plugins → Project Space:
+
+| Setting | Values | Does |
+| --- | --- | --- |
+| *File tree position* | `right` (default), `left` | tree in the page's side panel, or beside the document |
+| *Reading style* | `blue-topaz` (default), `things`, `plain` | how Markdown pages look — see the [decision](../decisions/reading-styles.md) |
+| *tldraw license key* | a key, or empty | only needed when bb is opened over a non-local https address, such as bb connect |
+
+The **Blue Topaz** and **Things** themes in Settings → Appearance give agent
+replies and file previews the same Markdown look.

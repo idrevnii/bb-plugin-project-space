@@ -1,10 +1,9 @@
 # T33 · Annotate canvases
 
-**Wave 2 · depends on: T10**
-
-## Goal
-
 Comment on shapes in a tldraw canvas.
+
+> [!todo] Ready to start
+> Wave 2 · depends on: T10. T10 is merged.
 
 ## Read first
 

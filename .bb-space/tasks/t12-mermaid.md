@@ -1,11 +1,10 @@
 # T12 · Mermaid diagrams in Markdown
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 Fenced ` ```mermaid ` blocks render as diagrams in the reader, because agents
 write them constantly.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [File formats → Mermaid diagrams](../architecture/file-formats.md#mermaid-diagrams).
 
 ## Read first
 

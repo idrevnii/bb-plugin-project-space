@@ -1,10 +1,9 @@
 # T30 · Annotate Markdown pages
 
-**Wave 2 · depends on: T10**
-
-## Goal
-
 Select text in a rendered Markdown page, write a comment, see it highlighted.
+
+> [!todo] Ready to start
+> Wave 2 · depends on: T10. T10 is merged.
 
 ## Read first
 

@@ -1,11 +1,10 @@
 # T14 · Outline tab
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 A second fixed tab in the right panel, *Outline*, listing the headings of the
 open Markdown page, so long documents are navigable.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [Using the space → Jump within a page](../guides/using-the-space.md#jump-within-a-page).
 
 ## Read first
 

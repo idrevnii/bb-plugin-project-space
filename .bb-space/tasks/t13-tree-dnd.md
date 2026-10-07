@@ -1,10 +1,9 @@
 # T13 · Drag and drop in the file tree
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 Move files and folders by dragging them in the Files tree.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [Using the space → Move files](../guides/using-the-space.md#move-files).
 
 ## Read first
 

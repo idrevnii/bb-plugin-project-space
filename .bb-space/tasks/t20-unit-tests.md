@@ -1,11 +1,10 @@
 # T20 · Unit tests for the pure core
 
-**Wave 1 · depends on: T00 (harness), T01 (paths)**
-
-## Goal
-
 Cover the code everything else relies on, so parallel work can refactor
 safely.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T00 (harness), T01 (paths). Documented now in [Developing → Unit tests](../guides/developing.md#unit-tests).
 
 ## Do
 

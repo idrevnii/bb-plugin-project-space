@@ -1,11 +1,10 @@
 # T19 · Worktree awareness
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 The Space page shows the main checkout. When threads in worktrees have
 changed their own `.bb-space/`, say so, so nothing written there is lost.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [Storage decision → Consequences](../decisions/storage.md#consequences) and [Using the space → Worktrees](../guides/using-the-space.md#worktrees).
 
 ## Read first
 

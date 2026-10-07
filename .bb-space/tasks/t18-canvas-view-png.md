@@ -1,11 +1,10 @@
 # T18 · Let agents see a canvas (PNG)
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 `space_canvas_view` returns a picture of a canvas, so an agent can check its
 drawing the way the user sees it.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [Architecture → canvas pictures](../architecture/index.md#plugin-sqlite-canvas-pictures).
 
 ## Read first
 

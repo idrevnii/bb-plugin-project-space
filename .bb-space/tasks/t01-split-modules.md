@@ -1,12 +1,11 @@
 # T01 · Split the server and page into modules
 
-**Wave 0 · depends on: T00 · blocks: all of wave 1**
-
-## Goal
-
 Pure refactor so features can be added in separate files. Today
 `server.ts` (~900 lines) and `ui/SpacePage.tsx` (~760 lines) hold nearly
 everything; every wave-1 task would collide there.
+
+> [!success] Merged 2026-10-07
+> Wave 0 · depends on: T00 · blocks: all of wave 1. Documented now in [Architecture → Server modules](../architecture/index.md#server-modules).
 
 ## Read first
 

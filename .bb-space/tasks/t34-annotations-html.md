@@ -1,11 +1,10 @@
 # T34 · Annotate HTML pages
 
-**Wave 2 · depends on: T10**
-
-## Goal
-
 Select text in a rendered HTML page and comment on it, without giving the
 page access to bb.
+
+> [!todo] Ready to start
+> Wave 2 · depends on: T10. T10 is merged.
 
 ## Read first
 

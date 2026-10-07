@@ -1,12 +1,11 @@
 # T10 · Annotations: model, anchoring, storage, RPC
 
-**Wave 1 · depends on: T01 · blocks: T30–T34**
-
-## Goal
-
 The data layer for annotations, with no UI: a comment pinned to a place in a
 space file that survives edits to that file. Every wave-2 task builds on the
 contract defined here, so get the types right and document them.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01 · blocks: T30–T34. Documented now in [Annotations](../architecture/annotations.md).
 
 ## Read first
 

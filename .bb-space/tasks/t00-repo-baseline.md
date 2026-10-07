@@ -1,11 +1,10 @@
 # T00 · Repository baseline
 
-**Wave 0 · depends on: nothing · blocks: everything**
-
-## Goal
-
 Make the plugin a git repository with tests and an end-to-end harness, so
 later tasks can run in parallel worktrees and prove their work.
+
+> [!success] Merged 2026-10-07
+> Wave 0 · depends on: nothing · blocks: everything. Documented now in [Developing](../guides/developing.md).
 
 ## Read first
 

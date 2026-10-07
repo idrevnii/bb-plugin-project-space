@@ -1,12 +1,11 @@
 # T16 · Links to project files outside the space
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 A link in a space page to code in the repository (`../../server.ts`,
 `/src/app.ts#L40`) opens that file in bb instead of going nowhere. Docs that
 point at code are the whole point of a project space.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [Using the space → Links to code](../guides/using-the-space.md#links-to-code).
 
 ## Read first
 

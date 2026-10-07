@@ -1,11 +1,10 @@
 # T17 · Overlap lint for canvases
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 After an agent draws, tell it which shapes overlap so it can fix its own
 diagram. Server-side and tldraw-free.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [Architecture → agent drawing](../architecture/index.md#off-screen-tldraw-agent-drawing).
 
 ## Read first
 

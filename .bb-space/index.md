@@ -1,31 +1,37 @@
 # Project Space
 
 A bb plugin that gives every project a full-screen documentation **space**:
-Markdown pages, browser-rendered HTML, and tldraw canvases that agents and
-people edit together. The space is the `.bb-space/` folder in the project's
-checkout, so it lives in git next to the code it describes.
+Markdown pages, browser-rendered HTML and tldraw canvases that agents and
+people edit together. ***The space is the `.bb-space/` folder in the project's
+checkout, so it lives in git next to the code it describes.***
 
-> This space documents the plugin itself — it is built and read with the
-> plugin it describes.
+> [!NOTE] This space documents the plugin itself
+> It is written and read with the plugin it describes, so every page here is
+> also a live test of the reader.
 
-## Start here
+## Where to start
 
-| Page | What it covers |
-|---|---|
-| [Architecture](architecture/index.md) | How the page, panel, server, and files fit together |
-| [Using the space](guides/using-the-space.md) | Opening a space, creating pages, editing, canvases |
-| [For agents](guides/for-agents.md) | How agents find and write the space |
-| [Developing](guides/developing.md) | Checks, e2e scripts, and rules for parallel work |
-| [Decisions](decisions/index.md) | Why things are the way they are |
-| [Roadmap](roadmap.md) | What is done, what is next |
-| [Tasks](tasks/index.md) | The roadmap cut into briefs agents can take in parallel |
-| [Status report](reports/status.html) | A visual HTML page, rendered like a browser |
+| Page | Read it when you want to |
+| --- | --- |
+| [Using the space](guides/using-the-space.md) | open a space, create pages, edit, search, move files |
+| [For agents](guides/for-agents.md) | know which `bb space` commands and tools an agent has |
+| [Architecture](architecture/index.md) | see how the page, server and files fit together |
+| [File formats](architecture/file-formats.md) | look up what each extension opens as, and the Markdown syntax |
+| [Annotations](architecture/annotations.md) | build on the annotation model, storage and RPC |
+| [Developing](guides/developing.md) | run the checks and e2e scripts, or work in parallel |
+| [Decisions](decisions/index.md) | find out why something is the way it is |
+| [Roadmap](roadmap.md) | see what is done and what is next |
+| [Tasks](tasks/index.md) | pick up a brief an agent can take alone |
+| [Status report](reports/status.html) | glance at progress as a visual page |
 
-## Status
+## Where it stands
 
-`0.1.0`, updated 2026-10-07. Pages and folders with drag and drop, search and
-an outline; WYSIWYG Markdown with mermaid diagrams and links into the code;
-sandboxed HTML; tldraw canvases that agents draw on, lint, and see as PNGs;
-live refresh; worktree awareness; unit and e2e tests. The annotations data
-layer is built; its UI, agent CLI, and the UI QA sweep are next — see the
-[roadmap](roadmap.md).
+Version `0.1.0`, updated 2026-10-07. Everything in the MVP and wave 1 is
+merged: pages and folders with drag and drop, search and an outline; WYSIWYG
+Markdown with callouts, Mermaid and links into the code; sandboxed HTML;
+tldraw canvases that agents draw on, lint and see as PNGs; live refresh;
+worktree awareness; unit and e2e tests.
+
+> [!IMPORTANT] Next up
+> The annotations UI (T30–T34) and the UI QA sweep (T21). The annotations
+> data layer they build on is already merged. See the [roadmap](roadmap.md).

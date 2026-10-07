@@ -1,10 +1,9 @@
 # T15 · Search across the space
 
-**Wave 1 · depends on: T01**
-
-## Goal
-
 Find a page by name or by text inside it.
+
+> [!success] Merged 2026-10-07
+> Wave 1 · depends on: T01. Documented now in [Using the space → Find a page](../guides/using-the-space.md#find-a-page) and [For agents → Search output](../guides/for-agents.md#search-output).
 
 ## Read first
 
