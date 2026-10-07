@@ -31,40 +31,72 @@ export function requireProject(
   return id;
 }
 
+/** An absolute path for a file named on the command line by `flag`. */
+function invokerPath(file: string, ctx: { cwd?: string }, flag: string): string {
+  if (file.startsWith("/")) return file;
+  if (ctx.cwd) return `${ctx.cwd.replace(/\/+$/, "")}/${file}`;
+  throw new PluginCliError(`relative ${flag} without a working directory`, {
+    code: "invalid_path",
+    hint: "Pass an absolute path.",
+  });
+}
+
+/** The host of the calling thread's environment, if there is one. */
+async function invokerHost(
+  bb: BbPluginApi,
+  ctx: { threadId?: string },
+): Promise<{ hostId?: string }> {
+  if (!ctx.threadId) return {};
+  try {
+    const thread = await bb.sdk.threads.get({ threadId: ctx.threadId });
+    const hostId = (thread as { environment?: { hostId?: string } | null }).environment?.hostId;
+    return hostId ? { hostId } : {};
+  } catch {
+    return {};
+  }
+}
+
 /** Reads a file named on the command line from the machine that ran `bb`. */
 export async function readInvokerFile(
   bb: BbPluginApi,
   file: string,
   ctx: { cwd?: string; threadId?: string },
 ): Promise<string> {
-  const path = file.startsWith("/")
-    ? file
-    : ctx.cwd
-      ? `${ctx.cwd.replace(/\/+$/, "")}/${file}`
-      : null;
-  if (path === null) {
-    throw new PluginCliError("relative --spec-file without a working directory", {
-      code: "invalid_path",
-      hint: "Pass an absolute path.",
-    });
-  }
-  let hostId: string | undefined;
-  if (ctx.threadId) {
-    try {
-      const thread = await bb.sdk.threads.get({ threadId: ctx.threadId });
-      hostId = (thread as { environment?: { hostId?: string } | null }).environment?.hostId;
-    } catch {
-      hostId = undefined;
-    }
-  }
+  const path = invokerPath(file, ctx, "--spec-file");
   try {
-    const result = await bb.sdk.files.read({ ...(hostId ? { hostId } : {}), path });
+    const result = await bb.sdk.files.read({ ...(await invokerHost(bb, ctx)), path });
     return result.contentEncoding === "utf8"
       ? result.content
       : Buffer.from(result.content, "base64").toString("utf8");
   } catch (cause) {
     throw new PluginCliError(`cannot read ${path}: ${String(cause)}`, { code: "file_unreadable" });
   }
+}
+
+/**
+ * Writes base64 content to a file named on the command line by `flag`, on the
+ * machine that ran `bb`. Returns the absolute path written.
+ */
+export async function writeInvokerFile(
+  bb: BbPluginApi,
+  file: string,
+  base64: string,
+  ctx: { cwd?: string; threadId?: string },
+  flag: string,
+): Promise<string> {
+  const path = invokerPath(file, ctx, flag);
+  try {
+    await bb.sdk.files.write({
+      ...(await invokerHost(bb, ctx)),
+      path,
+      content: base64,
+      contentEncoding: "base64",
+      createParents: true,
+    });
+  } catch (cause) {
+    throw new PluginCliError(`cannot write ${path}: ${String(cause)}`, { code: "file_unwritable" });
+  }
+  return path;
 }
 
 const link = cliCommand({

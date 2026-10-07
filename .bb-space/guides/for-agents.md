@@ -10,6 +10,7 @@ bb space search annotations   # find pages by name, then by text inside
 bb space link architecture/index.md --title "Architecture"   # chat card
 bb space draw architecture/diagram.tldr --spec-file spec.json  # diagram
 bb space canvas architecture/diagram.tldr                      # read it back
+bb space canvas architecture/diagram.tldr --png /tmp/d.png     # see it as a PNG
 ```
 
 `bb space search` prints name matches first (one path per line), then text
@@ -19,8 +20,14 @@ seconds in all; a last line says when more were cut. `--json` gives
 `{ results: [{ path, kind, line?, snippet? }], truncated }`, `--limit` fewer.
 Search before writing a page so you extend the one that exists.
 
-In new threads the same drawing is available as the `space_draw` and
-`space_canvas_read` tools.
+In new threads the same drawing is available as the `space_draw`,
+`space_canvas_read` and `space_canvas_view` tools. `space_canvas_view` returns
+a PNG of the canvas (light theme, at most 1600 px wide) so you can check a
+drawing the way the user sees it. tldraw only runs in the browser, so the
+picture comes from an open bb window: every save posts one, and a stale one is
+re-rendered on request. With no window open the tool answers within 12 s that
+it could not render, rather than hanging. Pictures live in the plugin's
+database, never in `.bb-space/`.
 
 Write files at `bb space root` with ordinary tools. In a worktree that path is
 the main checkout, so the user sees changes at once.

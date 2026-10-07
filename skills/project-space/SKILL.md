@@ -92,6 +92,11 @@ when the tool is not available). The spec:
   the user may have edited, read it with `space_canvas_read`
   (`bb space canvas <path.tldr>`).
 - Link the diagram from the relevant Markdown page.
+- To look at the result, call `space_canvas_view` (or
+  `bb space canvas <path.tldr> --png /tmp/canvas.png`): a PNG of the canvas as
+  the user sees it, rendered by an open bb window. With no window open it says
+  so within about 12 s; fall back to `space_canvas_read`. Never save the PNG
+  into `.bb-space/`.
 
 ## Point the user at a page
 

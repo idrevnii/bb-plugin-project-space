@@ -9,6 +9,7 @@
 // and `bb space` subcommands register with the rest.
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
 import { annotationsModule } from "./annotations";
+import { canvasImageModule } from "./canvas-image";
 import { registerCli } from "./cli";
 import type { ServerContext } from "./context";
 import { drawModule } from "./draw";
@@ -28,7 +29,13 @@ export type { SpaceSearchOutput, SpaceSearchResult } from "./search";
 
 export { SPACE_ANNOTATIONS_CHANGED } from "../lib/annotations";
 
-const modules = [filesModule, drawModule, annotationsModule, searchModule] as const;
+const modules = [
+  filesModule,
+  drawModule,
+  canvasImageModule,
+  annotationsModule,
+  searchModule,
+] as const;
 
 type UnionToIntersection<U> = (
   U extends unknown ? (value: U) => void : never
