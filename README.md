@@ -22,6 +22,7 @@ server/index.ts      plugin factory: settings, module list, one rpcContract
 server/space.ts      project → space resolution, fs.watch → realtime
 server/files.ts      space_* file RPC, `bb space root|init|tree`
 server/draw.ts       draw queue, space_draw / space_canvas_read tools, `bb space draw|canvas`
+server/annotations-agent.ts  space_annotations tool, `bb space annotations list|show|resolve|reply`
 server/cli.ts        `bb space` command: merges module commands, shared helpers
 app.tsx              Space page (navPanel), Files tab, thread-header button, ::space directive
 ui/page/             routing, project picker, toolbar, text / HTML / binary documents

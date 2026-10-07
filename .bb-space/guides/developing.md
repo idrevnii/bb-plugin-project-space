@@ -69,6 +69,7 @@ stubbing only the `bb.sdk` calls they make. **Keep `lib/` line coverage above
 | `annotations.test.ts` | `lib/annotations.ts`: `quoteSelector`, `locateQuote` (exact and fuzzy) |
 | `annotate-text.test.ts` | `ui/annotate/text.ts`: rendered text, selections to offsets and back, the `<mark>` fallback |
 | `annotations-store.test.ts` | `server/annotations.ts`: storage, conflicts, following moves and removes |
+| `annotations-agent.test.ts` | `lib/annotation-text.ts` and `server/annotations-agent.ts`: `bb space annotations` and `space_annotations`, output under 64 KB |
 | `files-rpc.test.ts` | `space_write` / `space_read` on the SDK's fake host with `bb.sdk.files` over a Map: conflicts, path rejection |
 | `search.test.ts` | `lib/search.ts`: text and canvas matching, snippets, which files are read; `headingAtLine` |
 | `outline.test.ts` | `ui/outline.ts`: headings and ids that match the rendered page |
@@ -101,6 +102,7 @@ fail.
 | `tree-dnd.mjs` | drag and drop and *Move to…* in the tree; the open document follows; illegal drops are refused |
 | `draw-lint.mjs` | an overlapping draw ends with an *Overlaps* section and the fix hint; a clean redraw reports none |
 | `review.mjs` | the Review tab lists two comments with the open count; a click opens the page scrolled to one; *Send to → New thread* prefills the composer with the review message. With `REVIEW_THREAD_ID` set, sending to that thread posts the message and the tab shows them sent without a reload |
+| `annotations-agent.mjs` | a comment created over RPC shows in `bb space annotations list`; `show` prints the quote with three lines either side; a `reply` and then a `resolve` show in the open Review tab without a reload |
 | `outline.mjs` | the Outline tab lists headings, a click scrolls, scrolling moves the highlight; a canvas has no outline |
 | `search.mjs` | `bb space search` finds by name, text and canvas label; the search box replaces the tree, <kbd>Esc</kbd> clears, <kbd>Enter</kbd> opens, a text hit scrolls to its section |
 | `outside-links.mjs` | a link out of the space opens the checkout file at its line or range; a link escaping the checkout is plain text |

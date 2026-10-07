@@ -189,7 +189,7 @@ function ReviewItem({
         <span className={cn("line-clamp-2 text-sm", resolved ? "text-muted-foreground" : "text-foreground")}>
           {annotation.comment}
         </span>
-        {resolved && annotation.resolution ? (
+        {annotation.resolution ? (
           <span className="line-clamp-2 border-l-2 border-border pl-2 text-xs text-muted-foreground">
             {annotation.resolution}
           </span>

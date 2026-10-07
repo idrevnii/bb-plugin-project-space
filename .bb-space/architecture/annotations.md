@@ -5,10 +5,11 @@ edits to that file. This page is the contract the Review tab, *Send to…* and
 the agent CLI build on (T30–T34); why annotations exist is in the
 [decision](../decisions/annotations.md).
 
-> [!NOTE] Built so far: the data layer, Markdown pages and the Review tab
+> [!NOTE] Built so far: the data layer, Markdown pages, the Review tab and the agent side
 > Model, anchoring, storage and RPC (T10), annotating Markdown pages in the
-> reader (T30), and the Review tab with *Send to…* (T31). HTML, canvases and
-> the agent command are still to come — see the [roadmap](../roadmap.md).
+> reader (T30), the Review tab with *Send to…* (T31), and
+> `bb space annotations` with the `space_annotations` tool (T32). HTML and
+> canvases are still to come — see the [roadmap](../roadmap.md).
 
 | Piece | Where |
 | --- | --- |
@@ -17,8 +18,9 @@ the agent CLI build on (T30–T34); why annotations exist is in the
 | Markdown reader: selecting, highlights, the comment popover | [`ui/annotate/markdown.tsx`](../../ui/annotate/markdown.tsx), rendered text ↔ DOM in [`ui/annotate/text.ts`](../../ui/annotate/text.ts) |
 | Review tab and *Send to…* | [`ui/ReviewTab.tsx`](../../ui/ReviewTab.tsx); grouping and the message in [`lib/review.ts`](../../lib/review.ts) |
 | sending and marking sent | [`server/send.ts`](../../server/send.ts) |
-| tests | `test/annotations.test.ts`, `test/annotations-store.test.ts`, `test/annotate-text.test.ts`, `test/review.test.ts`, `test/send.test.ts` |
-| live checks | `scripts/e2e/annotations.mjs`, `scripts/e2e/annotations-markdown.mjs`, `scripts/e2e/review.mjs` |
+| `bb space annotations` and the `space_annotations` tool | [`server/annotations-agent.ts`](../../server/annotations-agent.ts); the text they print in [`lib/annotation-text.ts`](../../lib/annotation-text.ts) |
+| tests | `test/annotations.test.ts`, `test/annotations-store.test.ts`, `test/annotate-text.test.ts`, `test/review.test.ts`, `test/send.test.ts`, `test/annotations-agent.test.ts` |
+| live checks | `scripts/e2e/annotations.mjs`, `scripts/e2e/annotations-markdown.mjs`, `scripts/e2e/review.mjs`, `scripts/e2e/annotations-agent.mjs` |
 
 ## The model
 
@@ -37,7 +39,7 @@ interface Annotation {
   author: "user" | "agent";
   createdAt: number; updatedAt: number;   // ms since epoch
   sentTo?: { threadId: string; at: number };
-  resolution?: string;   // agent's note when resolving
+  resolution?: string;   // the agent's reply, then its note when resolving
 }
 ```
 
@@ -138,6 +140,30 @@ all three: a `message.dispatch` hook reads the ids back with
 sets `status: "sent"` and `sentTo: { threadId, at }`. Resolved comments stay
 resolved; a re-dispatch to the same thread writes nothing. The hook always
 proceeds and never throws, so it can't block a send.
+
+## For agents
+
+The agent closes the loop with `bb space annotations` or the
+`space_annotations` tool. Both read and write through the same store as the
+RPC and publish `space-annotations-changed`, so the Review tab and the
+reader update live.
+
+| Command | Tool action | Does |
+| --- | --- | --- |
+| `list [--path p] [--status s] [--json]` | `list` (`path?`, `status?`) | one line per annotation in the Review tab's order: `id  status  path — «quote» → comment` |
+| `show <id>` | `show` (`id`) | the comment, any reply, the anchor, and for a quote its lines in the file **as it reads now** (`locateQuote`), with 3 lines either side, the quote's lines marked `>` |
+| `resolve <id> [--note "…"]` | `resolve` (`id`, `note?`) | `status: "resolved"`, `resolution` = the note; without one an earlier reply is kept |
+| `reply <id> "…"` | — | sets `resolution` and leaves the status alone, for a question back to the user |
+
+- **Bounded** — every output stays under 60 KB (`MAX_OUTPUT_BYTES`): list
+  lines clip quote and comment to 160 characters and end with
+  `… N more not shown` when cut; `--json` gives `{ annotations, total,
+  truncated }` with as many whole annotations as fit; `show` clips the
+  comment and the quote to 4000 characters and each context line to 400.
+- **Orphans** — when the quote is no longer found, `show` says so instead of
+  printing context. Shape anchors point at `bb space canvas <path>`.
+- **Errors** — an unknown id fails with `No annotation <id>` (code
+  `annotation_not_found`).
 
 ## Where annotations are stored
 

@@ -6,7 +6,7 @@ is a brief in [tasks](tasks/index.md), with its state in the
 [status table](tasks/index.md#status).
 
 > [!IMPORTANT] Open now
-> **Annotations UI**: T30 and T31 are merged; T32–T34 can start.
+> **Annotations UI**: T30–T32 are merged; T33 and T34 can start.
 
 ## MVP (0.1)
 
@@ -58,7 +58,7 @@ See [the decision](decisions/annotations.md).
 
 - [x] Annotate Markdown pages (T30)
 - [x] Review tab and *Send to…* a thread (T31)
-- [ ] `bb space annotations` and the agent tool (T32)
+- [x] `bb space annotations` and the agent tool (T32)
 - [ ] Annotate canvases (T33)
 - [ ] Annotate HTML pages (T34)
 

@@ -21,6 +21,10 @@ this page is the short version.
 | `bb space draw <path.tldr> --spec-file spec.json` | draws a boxes-and-arrows diagram |
 | `bb space canvas <path.tldr>` | reads a canvas back as text |
 | `bb space canvas <path.tldr> --png /tmp/d.png` | saves a PNG of the canvas, as the user sees it |
+| `bb space annotations list [--path p] [--status open\|sent\|resolved]` | the user's comments, one line each with its `ann_…` id |
+| `bb space annotations show <id>` | one comment with the quoted passage and 3 lines of the file around it |
+| `bb space annotations resolve <id> --note "…"` | marks it done; the note shows in the Review tab |
+| `bb space annotations reply <id> "…"` | answers without resolving, e.g. a question back |
 
 ### Search output
 
@@ -39,15 +43,30 @@ no line.
 > [!TIP] Search before you write
 > Extend the page that exists rather than adding a near-duplicate.
 
+### When the user sends annotations
+
+The Review tab's *Send to…* posts a message that starts with
+`Review of the project space` and ends each line with an `ann_…` id. For
+each id:
+
+1. `bb space annotations show <id>` — read the comment and where the passage
+   is now.
+2. Change the file.
+3. `bb space annotations resolve <id> --note "…"` — one line on what changed.
+
+==Each output stays under 60 KB==; `list` ends with `… N more not shown`
+when it is cut, so narrow it with `--path` or `--status`.
+
 ## Tools
 
-In new threads the same drawing is available as agent tools.
+In new threads the same drawing, and the annotations, are available as agent tools.
 
 | Tool | Does |
 | --- | --- |
 | `space_draw` | draws or updates a diagram from a spec; the result ends with an *Overlaps* section to fix |
 | `space_canvas_read` | the canvas as text: nodes, arrows, text, hand-drawn shapes |
 | `space_canvas_view` | a PNG of the canvas (light theme, at most 1600 px wide) |
+| `space_annotations` | `action: list \| show \| resolve`, the same as the `bb space annotations` commands |
 
 tldraw runs only in the browser, so pictures come from an open bb window:
 every save posts one, and a stale one is re-rendered on request. ==With no

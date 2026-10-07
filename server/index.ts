@@ -9,6 +9,7 @@
 // and `bb space` subcommands register with the rest.
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
 import { annotationsModule } from "./annotations";
+import { annotationsAgentModule } from "./annotations-agent";
 import { canvasImageModule } from "./canvas-image";
 import { registerCli } from "./cli";
 import type { ServerContext } from "./context";
@@ -37,6 +38,7 @@ const modules = [
   drawModule,
   canvasImageModule,
   annotationsModule,
+  annotationsAgentModule,
   sendModule,
   searchModule,
   worktreesModule,

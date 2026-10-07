@@ -5,7 +5,7 @@ brief says what to build, which files it owns, and how to prove it works; the
 rules every task follows are in [Developing → Work in parallel](../guides/developing.md#work-in-parallel).
 
 > [!IMPORTANT] Open now
-> T32–T34 can start: T10, which they build on, is merged.
+> T33 and T34 can start: T10, which they build on, is merged.
 
 ## Waves
 
@@ -43,7 +43,7 @@ Updated 2026-10-07. A ticked task is merged into `main` with
 - [x] T21 UI QA sweep
 - [x] T30 Annotate Markdown pages
 - [x] T31 Review tab and sending annotations to a thread
-- [ ] T32 Annotations for agents — ready to start
+- [x] T32 Annotations for agents
 - [ ] T33 Annotate canvases — ready to start
 - [ ] T34 Annotate HTML pages — ready to start
 
@@ -68,7 +68,7 @@ stays small and additive.
 | T21 | `scripts/e2e/**` | bug fixes where found |
 | T30 | `ui/annotate/markdown.tsx` | `ui/MarkdownView.tsx` |
 | T31 | `ui/ReviewTab.tsx`, `server/send.ts` | `app.tsx`, `server/index.ts` |
-| T32 | `server/annotations-cli.ts` | `skills/project-space/SKILL.md` |
+| T32 | `server/annotations-agent.ts`, `lib/annotation-text.ts` | `skills/project-space/SKILL.md` |
 | T33 | `ui/annotate/tldraw.tsx` | `ui/TldrawView.tsx` |
 | T34 | `ui/annotate/html-bridge.ts` | `ui/page/HtmlFrame.tsx` |
 

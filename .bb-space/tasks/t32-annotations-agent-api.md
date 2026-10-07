@@ -2,8 +2,9 @@
 
 Agents can list, answer and resolve annotations, closing the loop T31 opens.
 
-> [!todo] Ready to start
-> Wave 2 · depends on: T10. T10 is merged.
+> [!success] Done 2026-10-07
+> Wave 2 · depends on: T10. Documented in [For agents → When the user sends annotations](../guides/for-agents.md#when-the-user-sends-annotations)
+> and [Annotations → For agents](../architecture/annotations.md#for-agents).
 
 ## Read first
 
@@ -23,10 +24,21 @@ Agents can list, answer and resolve annotations, closing the loop T31 opens.
 
 ## Acceptance
 
-- [ ] Round trip: create with RPC, `list` shows it, `show` prints context,
+- [x] Round trip: create with RPC, `list` shows it, `show` prints context,
       `resolve` flips it and the Review tab (if merged) reflects it live.
-- [ ] Bounded output (< 64 KB) for spaces with many annotations.
-- [ ] `npm run check` passes.
+- [x] Bounded output (< 64 KB) for spaces with many annotations.
+- [x] `npm run check` passes.
+
+## Notes
+
+- Code: [`server/annotations-agent.ts`](../../server/annotations-agent.ts)
+  (commands and tool), [`lib/annotation-text.ts`](../../lib/annotation-text.ts)
+  (what they print). Checked by `test/annotations-agent.test.ts` and
+  `scripts/e2e/annotations-agent.mjs`.
+- The Review tab now shows a reply under an open comment too, not only the
+  note of a resolved one.
+- Output is held under 60 KB, below the 64 KB the brief asks for, to leave
+  room for the CLI's own framing.
 
 ## Docs
 

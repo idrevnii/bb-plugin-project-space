@@ -286,6 +286,32 @@ when the tool is not available). The spec:
   so within about 12 s; fall back to `space_canvas_read`. Never save the PNG
   into `.bb-space/`.
 
+## When the user sends annotations
+
+The user comments on passages and canvas shapes in the Space page and sends
+them from its Review tab. The message starts with
+`Review of the project space` and ends each line with an `ann_…` id. Work
+through them one at a time:
+
+1. **Read** — `space_annotations` with `action: "show"` (or
+   `bb space annotations show <id>`) prints the comment, any earlier reply,
+   and the quoted passage with 3 lines of the file *as it reads now*, the
+   quote's lines marked `>` and numbered. The message's quote may be stale;
+   trust `show`.
+2. **Change the file** — at the path `bb space root` prints, with your
+   ordinary file tools.
+3. **Resolve** — `action: "resolve"` with a one-line `note` (or
+   `bb space annotations resolve <id> --note "…"`) saying what changed. The
+   user sees the note in the Review tab at once.
+
+- If a comment is unclear, answer instead of guessing:
+  `bb space annotations reply <id> "…"` keeps it open with your question.
+- `show` says when a quote is *orphaned* (no longer in the file); check
+  whether someone already changed that text before acting.
+- `bb space annotations list --status open` (or `action: "list"`) shows what
+  is still open; `--path` narrows it to one file. Output stays under 60 KB
+  and says when lines were cut.
+
 ## Point the user at a page
 
 After writing, show the page as a card in chat with the directive
