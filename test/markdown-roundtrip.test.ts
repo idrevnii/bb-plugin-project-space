@@ -6,7 +6,6 @@ import { join, relative } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/core";
 import type { Node as PmNode } from "@tiptap/pm/model";
@@ -17,6 +16,7 @@ import {
   splitFrontmatter,
   withTrailingNewline,
 } from "../ui/page/markdown-extensions";
+import { readerMarkdownOptions } from "../ui/markdown-plugins";
 
 const SPACE = join(import.meta.dirname, "..", ".bb-space");
 
@@ -31,7 +31,7 @@ function markdownFiles(dir: string): string[] {
 /** What the reader shows, with whitespace-only differences folded away. */
 function rendered(markdown: string): string {
   const html = renderToStaticMarkup(
-    createElement(ReactMarkdown, { remarkPlugins: [remarkGfm] }, markdown),
+    createElement(ReactMarkdown, readerMarkdownOptions, markdown),
   );
   return html.replace(/\s+/g, " ").replace(/> </g, "><").trim();
 }
@@ -50,6 +50,13 @@ const SAMPLES: Record<string, string> = {
   "soft break after a mark": "Text `code`\nnext, **bold**\nnext, [link](x)\nnext.\n",
   "code inside other marks": "[see `x` here](u) and *em `y` em*.\n",
   "tight list with a fence": "1. a:\n   ```\n   x\n   ```\n2. b\n",
+  "github alert": "> [!NOTE]\n> Body line\n> and more.\n",
+  "callout with title and fold": "> [!warning]- Mind the **gap**\n> First.\n>\n> Second.\n",
+  "callout title only": "> [!tip] Just a title\n",
+  "plain quote": "> [!not a marker]\n> text\n",
+  highlight: "Some ==marked **bold** text== and a == b.\n",
+  footnotes: "Claim[^1] and another[^note].\n\n[^1]: The source.\n\n[^note]: Two\n    paragraphs.\n\n    Second one.\n\nAfter.\n\n[^unused]: Kept.\n",
+  "mark and kbd": "Press <kbd>Ctrl</kbd>, see <mark>this</mark>.\n",
 };
 
 describe("markdown round trip", () => {

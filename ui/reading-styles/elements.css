@@ -1,0 +1,201 @@
+/* Elements every reading style shares, plain included: callouts
+   (`> [!NOTE]`, rendered as blockquote or, when foldable, details), raw
+   <details>, <kbd>, <mark>, and footnotes — in the reader and, where the
+   editor has them, in the WYSIWYG editor.
+
+   Callout colors follow GitHub's alerts. The rules are unlayered and beat
+   the reading styles' plain blockquote rules on specificity; <mark> sits in
+   :where() so Blue Topaz and Things keep their own highlight. */
+
+[data-reading-style] [data-callout] {
+  --callout: #0969da;
+  --callout-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4M12 8h.01'/%3E%3C/svg%3E");
+  display: block;
+  margin: 1.25rem 0;
+  padding: 0.6rem 0.9rem;
+  color: var(--foreground);
+  font-style: normal;
+  background-color: color-mix(in srgb, var(--callout) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--callout) 22%, transparent);
+  border-left: 4px solid var(--callout);
+  border-radius: 6px;
+}
+[data-reading-style] [data-callout="tip"] {
+  --callout: #1a7f37;
+  --callout-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'/%3E%3Cpath d='M9 18h6M10 22h4'/%3E%3C/svg%3E");
+}
+[data-reading-style] [data-callout="important"] {
+  --callout: #8250df;
+  --callout-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3Cpath d='M12 7v2M12 13h.01'/%3E%3C/svg%3E");
+}
+[data-reading-style] [data-callout="warning"] {
+  --callout: #9a6700;
+  --callout-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4M12 17h.01'/%3E%3C/svg%3E");
+}
+[data-reading-style] [data-callout="caution"] {
+  --callout: #d1242f;
+  --callout-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E");
+}
+[data-reading-style] [data-callout="quote"] {
+  --callout: var(--muted-foreground);
+  --callout-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 21c3 0 7-1 7-8V5c0-1.25-.76-2-2-2H4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 0-1 1v3c0 1 0 1 1 1zM15 21c3 0 7-1 7-8V5c0-1.25-.76-2-2-2h-4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z'/%3E%3C/svg%3E");
+}
+.dark [data-reading-style] [data-callout] {
+  --callout: #4493f8;
+}
+.dark [data-reading-style] [data-callout="tip"] {
+  --callout: #3fb950;
+}
+.dark [data-reading-style] [data-callout="important"] {
+  --callout: #ab7df8;
+}
+.dark [data-reading-style] [data-callout="warning"] {
+  --callout: #d29922;
+}
+.dark [data-reading-style] [data-callout="caution"] {
+  --callout: #f85149;
+}
+.dark [data-reading-style] [data-callout="quote"] {
+  --callout: var(--muted-foreground);
+}
+
+[data-reading-style] [data-callout] > * {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+[data-reading-style] [data-callout] > :first-child {
+  margin-top: 0;
+}
+[data-reading-style] [data-callout] > :last-child {
+  margin-bottom: 0;
+}
+
+/* The title line, with the type's icon; the reader's <p>/<summary> and the
+   editor's label (the marker line is an attribute there). */
+[data-reading-style] [data-callout-title],
+[data-reading-style] .ProseMirror blockquote[data-callout]::before {
+  display: block;
+  color: var(--callout);
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+[data-reading-style] [data-callout-title] :is(strong, em) {
+  color: inherit;
+}
+[data-reading-style] [data-callout-title]::before {
+  content: "";
+  display: inline-block;
+  margin-right: 0.45rem;
+  vertical-align: -0.15em;
+  width: 1.05em;
+  height: 1.05em;
+  background-color: var(--callout);
+  mask: var(--callout-icon) center / contain no-repeat;
+}
+[data-reading-style] .ProseMirror blockquote[data-callout]::before {
+  content: attr(data-callout-label);
+  margin-bottom: 0.5rem;
+}
+
+/* Foldable callouts and raw <details>: a chevron that turns when open. */
+[data-reading-style] details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+[data-reading-style] details > summary::-webkit-details-marker {
+  display: none;
+}
+[data-reading-style] details > summary::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin-left: 0.6rem;
+  vertical-align: 0.15em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+}
+[data-reading-style] details[open] > summary::after {
+  transform: rotate(45deg);
+}
+[data-reading-style] details[data-callout]:not([open]) > summary {
+  margin-bottom: 0;
+}
+
+[data-reading-style] details:not([data-callout]) {
+  margin: 1rem 0;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+[data-reading-style] details:not([data-callout]) > summary {
+  font-weight: 600;
+}
+[data-reading-style] details:not([data-callout])[open] > summary {
+  margin-bottom: 0.5rem;
+}
+
+[data-reading-style] kbd {
+  display: inline-block;
+  padding: 0 0.4em;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.8em;
+  line-height: 1.6;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+}
+
+:where([data-reading-style]) mark {
+  color: inherit;
+  background-color: hsl(50deg 100% 55% / 40%);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Footnotes: the reader's GFM section, and the editor's references and
+   definitions (shown with their labels, as written). */
+[data-reading-style] section.footnotes {
+  margin-top: 2.5rem;
+  padding-top: 0.5rem;
+  font-size: 0.875em;
+  color: var(--muted-foreground);
+  border-top: 1px solid var(--border);
+}
+[data-reading-style] section.footnotes li > p {
+  margin: 0.25rem 0;
+}
+[data-reading-style] [data-footnote-ref] {
+  text-decoration: none;
+}
+[data-reading-style] sup:has(> [data-footnote-ref])::before {
+  content: "[";
+  color: var(--muted-foreground);
+}
+[data-reading-style] sup:has(> [data-footnote-ref])::after {
+  content: "]";
+  color: var(--muted-foreground);
+}
+[data-reading-style] .space-footnote-ref {
+  padding: 0 0.25em;
+  font-size: 0.75em;
+  color: var(--primary);
+  background-color: var(--muted);
+  border-radius: 3px;
+}
+[data-reading-style] .space-footnote-def {
+  position: relative;
+  margin: 1rem 0;
+  padding-left: 0.9rem;
+  font-size: 0.9em;
+  color: var(--muted-foreground);
+  border-left: 2px dotted var(--border);
+}
+[data-reading-style] .space-footnote-def::before {
+  content: "[^" attr(data-footnote-def) "]";
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.85em;
+}

@@ -5,8 +5,6 @@
 import { Children, isValidElement, useMemo } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeSlug from "rehype-slug";
 import {
   UrlLink,
   experimental_FileLink as FileLink,
@@ -14,6 +12,7 @@ import {
 } from "@get-bb/plugin-sdk/app";
 import { cn } from "@/lib/utils";
 import { encodeSpacePath, resolveDocumentLink, resolveSpaceLink } from "../lib/space";
+import { readerMarkdownOptions, sanitizedId } from "./markdown-plugins";
 import { MermaidBlock } from "./MermaidBlock";
 import { useReadingStyle } from "./reading-style";
 
@@ -182,12 +181,16 @@ export function MarkdownView({
           {...props}
         />
       ),
-      blockquote: ({ node: _node, ...props }) => (
-        <blockquote
-          className="my-5 border-l-2 border-border pl-4 text-muted-foreground [&>p]:my-2"
-          {...props}
-        />
-      ),
+      blockquote: ({ node: _node, ...props }) =>
+        // Callouts are styled by reading-styles/callouts.css.
+        "data-callout" in props ? (
+          <blockquote {...props} />
+        ) : (
+          <blockquote
+            className="my-5 border-l-2 border-border pl-4 text-muted-foreground [&>p]:my-2"
+            {...props}
+          />
+        ),
       hr: () => <hr className="my-8 border-border" />,
       table: ({ node: _node, ...props }) => (
         <div className="my-5 overflow-x-auto rounded-lg border border-border">
@@ -281,9 +284,13 @@ export function MarkdownView({
               className={LINK_CLASSES}
               onClick={(event) => {
                 event.preventDefault();
-                document
-                  .getElementById(decodeURIComponent(href.slice(1)))
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                // Headings keep their ids; footnotes and raw HTML ids carry
+                // the sanitizer's prefix.
+                const id = decodeURIComponent(href.slice(1));
+                (document.getElementById(id) ?? document.getElementById(sanitizedId(id)))?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
               }}
             >
               {children}
@@ -327,11 +334,7 @@ export function MarkdownView({
 
   return (
     <article className="text-[15px] text-foreground" data-reading-style={readingStyle}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeSlug]}
-        components={components}
-      >
+      <ReactMarkdown {...readerMarkdownOptions} components={components}>
         {content}
       </ReactMarkdown>
     </article>

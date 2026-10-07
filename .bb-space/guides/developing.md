@@ -61,6 +61,7 @@ The scripts live in `scripts/e2e/` and run one after another:
 | `draw.mjs` | `bb space draw` lands with the canvas closed and with it open |
 | `annotations.mjs` | the `annotations_*` RPC: create, list, update; annotations follow `space_move` and go with `space_remove` (no browser) |
 | `markdown-editor.mjs` | editing a table cell, ticking a task and adding a link in the WYSIWYG editor save to disk; *Source* shows the same text |
+| `formatting.mjs` | callouts (one foldable), highlights, `<kbd>`/`<mark>`/`<details>` and footnotes render; `<script>` is dropped; a footnote link scrolls; the editor shows them and saving keeps them |
 | `mermaid.mjs` | mermaid blocks render (two diagrams, one parse error) in light and dark, and re-render on a theme flip |
 | `draw-lint.mjs` | an overlapping draw ends with an *Overlaps* section and the fix hint; a clean redraw reports none |
 | `outline.mjs` | the Outline tab lists the page's headings, a click scrolls to one, scrolling moves the highlight; a canvas has no outline |

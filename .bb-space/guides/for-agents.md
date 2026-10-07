@@ -41,3 +41,10 @@ the main checkout, so the user sees changes at once.
   space has that file.
 - Markdown by default; HTML for visual or interactive reports; `.tldr`
   canvases for diagrams, drawn with `space_draw` — never hand-written JSON.
+  Small diagrams tied to the text go inline as ` ```mermaid ` blocks.
+- Every format is a signal in the reading styles, so each gets one job:
+  **bold** for the thing to remember, *italic* for a new term, `code` for
+  anything literal, ==highlight== for what changed, callouts
+  (`> [!WARNING] Title`) colored by what the reader should do, tables for
+  items that share attributes, footnotes for sources. The skill's *Write
+  for a reader* section has the full rules.

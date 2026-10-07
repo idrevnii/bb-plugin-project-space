@@ -44,7 +44,8 @@ have no outline.
 ## Reading and editing
 
 Markdown opens as a document. **Edit** makes the page itself editable, with
-the same typography as reading. The bar above it formats text, makes lists,
+the same typography as reading. The bar above it formats text (bold,
+italic, strikethrough, ==highlight==, code), makes lists,
 task lists, quotes, code blocks, links and tables (row and column buttons
 appear while the cursor is in a table); tick tasks right in the page. Markdown
 shortcuts work as you type (`## `, `- `, `1. `, `[ ] `, `` ` ``, `**`).
@@ -56,7 +57,10 @@ while you were editing, a banner lets you keep theirs or overwrite.
 Saving from the editor writes normalized Markdown: paragraphs on one line,
 `-` bullets, `| --- |` table rules. The page renders the same; only the
 source layout changes, and only once you edit. Frontmatter and raw HTML
-(shown as grey chips) are kept as written.
+(shown as grey chips) are kept as written. A callout shows its title above
+its body; edit the body in place, the `> [!type] Title` line in *Source*.
+Footnote references show as small chips and their notes stay where they are
+written.
 
 Links to code elsewhere in the project (`../../server/index.ts#L10`) open
 the file in bb's preview panel on the right, with the line or range

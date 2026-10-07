@@ -114,6 +114,7 @@ function FormatBar({ editor }: { editor: Editor }) {
       bold: editor.isActive("bold"),
       italic: editor.isActive("italic"),
       strike: editor.isActive("strike"),
+      highlight: editor.isActive("highlight"),
       code: editor.isActive("code"),
       link: editor.isActive("link"),
       href: String(editor.getAttributes("link").href ?? ""),
@@ -154,6 +155,9 @@ function FormatBar({ editor }: { editor: Editor }) {
       </FormatButton>
       <FormatButton label="Strikethrough" active={state.strike} onClick={() => chain().toggleStrike().run()}>
         <span className="line-through">S</span>
+      </FormatButton>
+      <FormatButton label="Highlight" active={state.highlight} onClick={() => chain().toggleHighlight().run()}>
+        <mark className="rounded-sm bg-yellow-300/60 px-0.5 text-current">H</mark>
       </FormatButton>
       <FormatButton label="Inline code" active={state.code} onClick={() => chain().toggleCode().run()}>
         <span className="font-mono">`</span>

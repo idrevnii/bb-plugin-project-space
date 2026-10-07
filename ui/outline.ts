@@ -24,8 +24,8 @@ function headingsWithLines(markdown: string): (OutlineHeading & { line: number }
   const headings: (OutlineHeading & { line: number })[] = [];
   const visit = (node: Root | Root["children"][number]) => {
     if (node.type === "heading") {
-      // react-markdown drops raw HTML and rehype-slug reads the rendered text,
-      // which has no image alt text.
+      // rehype-slug reads the rendered text: the text inside raw HTML tags
+      // but not the tags, and no image alt text.
       const text = toString(node as MdastHeading, { includeHtml: false, includeImageAlt: false });
       headings.push({
         id: slugger.slug(text),

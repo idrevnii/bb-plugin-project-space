@@ -2,12 +2,18 @@
 // the plugin SDK so the round-trip test can build the same editor headless.
 import { Editor, Extension, Node, type Extensions } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
+import Blockquote from "@tiptap/extension-blockquote";
 import Code from "@tiptap/extension-code";
+import Highlight from "@tiptap/extension-highlight";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
 import { ListItem, TaskItem, TaskList } from "@tiptap/extension-list";
 import { TableKit } from "@tiptap/extension-table";
 import { Markdown } from "tiptap-markdown";
+import type MarkdownIt from "markdown-it";
+import markdownItFootnote from "markdown-it-footnote";
+import markdownItMark from "markdown-it-mark";
+import { defaultCalloutTitle, formatCalloutMarker, parseCalloutMarker } from "../../lib/callouts";
 
 export interface MarkdownExtensionOptions {
   /**
@@ -26,8 +32,11 @@ export function markdownExtensions({ resolveImage }: MarkdownExtensionOptions = 
       text: false,
       code: false,
       listItem: false,
+      blockquote: false,
     }),
     SpaceText,
+    CalloutBlockquote,
+    SpaceHighlight,
     // Markdown allows `code` inside links and emphasis; TipTap's default
     // excludes every other mark. Registered after the others so it stays
     // innermost when serialized.
@@ -35,6 +44,8 @@ export function markdownExtensions({ resolveImage }: MarkdownExtensionOptions = 
     ListItem.extend({ addStorage: () => ({ markdown: { serialize: serializeListItem() } }) }),
     RawHtmlBlock,
     RawHtmlInline,
+    FootnoteReference,
+    FootnoteDefinition,
     SpaceMarkdownFixes,
     Image.extend({
       addNodeView() {
@@ -70,19 +81,19 @@ export function markdownExtensions({ resolveImage }: MarkdownExtensionOptions = 
   ];
 }
 
-// Minimal views of markdown-it and prosemirror-markdown's serializer state,
-// which tiptap-markdown hands to `storage.markdown` hooks untyped.
-interface MarkdownIt {
-  renderer: { rules: Record<string, (tokens: { content: string }[], idx: number) => string> };
-}
+// A minimal view of prosemirror-markdown's serializer state, which
+// tiptap-markdown hands to `storage.markdown` hooks untyped.
 interface SerializerState {
   inTable?: boolean;
   inTightList?: boolean;
   text(text: string, escape?: boolean): void;
   write(content: string): void;
+  ensureNewLine(): void;
   closeBlock(node: unknown): void;
   flushClose(size?: number): void;
+  wrapBlock(delim: string, firstDelim: string | null, node: PmNode, f: () => void): void;
   render(node: PmNode, parent: PmNode, index: number): void;
+  renderContent(node: PmNode): void;
 }
 interface PmNode {
   attrs: Record<string, unknown>;
@@ -171,6 +182,183 @@ function rawHtmlNode(name: string, inline: boolean) {
 
 const RawHtmlBlock = rawHtmlNode("rawHtmlBlock", false);
 const RawHtmlInline = rawHtmlNode("rawHtmlInline", true);
+
+/**
+ * A blockquote that may be a callout (`> [!NOTE]`, `> [!info]- Title`). The
+ * marker line is kept as attributes, its title as written in Markdown; the
+ * editor shows it as a label above the body.
+ */
+const CalloutBlockquote = Blockquote.extend({
+  addAttributes() {
+    return {
+      calloutType: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-callout-type"),
+        renderHTML: (attributes) => {
+          const type = attributes.calloutType as string | null;
+          if (type === null) return {};
+          const title = attributes.calloutTitle as string;
+          return {
+            "data-callout-type": type.toLowerCase(),
+            "data-callout": parseCalloutMarker(`[!${type}]`)?.kind ?? "note",
+            // The label is CSS content, so the title's Markdown marks go.
+            "data-callout-label": title === "" ? defaultCalloutTitle(type) : title.replace(/\*\*|__|==|~~|[*_`]/g, ""),
+          };
+        },
+      },
+      calloutFold: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-callout-fold") ?? "",
+        renderHTML: () => ({}),
+      },
+      calloutTitle: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-callout-title") ?? "",
+        renderHTML: () => ({}),
+      },
+    };
+  },
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: SerializerState, node: PmNode) {
+          const type = node.attrs.calloutType as string | null;
+          state.wrapBlock("> ", null, node, () => {
+            if (type !== null) {
+              state.write(
+                formatCalloutMarker({
+                  type,
+                  fold: node.attrs.calloutFold as "" | "+" | "-",
+                  title: node.attrs.calloutTitle as string,
+                }),
+              );
+              state.ensureNewLine();
+            }
+            state.renderContent(node);
+          });
+        },
+        parse: {
+          setup(md: MarkdownIt) {
+            // Before inline parsing: lift a `[!type]` first line off the
+            // quote's first paragraph into attributes on the quote.
+            md.core.ruler.after("block", "space_callouts", (state) => {
+              const { tokens } = state;
+              for (let index = 0; index < tokens.length; index++) {
+                const open = tokens[index]!;
+                const inline = tokens[index + 2];
+                if (open.type !== "blockquote_open" || tokens[index + 1]?.type !== "paragraph_open") continue;
+                if (inline?.type !== "inline") continue;
+                const newline = inline.content.indexOf("\n");
+                const marker = parseCalloutMarker(newline === -1 ? inline.content : inline.content.slice(0, newline));
+                if (marker === null) continue;
+                open.attrSet("data-callout-type", marker.type);
+                open.attrSet("data-callout-fold", marker.fold);
+                open.attrSet("data-callout-title", marker.title);
+                const rest = newline === -1 ? "" : inline.content.slice(newline + 1);
+                if (rest.trim() === "") tokens.splice(index + 1, 3);
+                else inline.content = rest;
+              }
+            });
+          },
+        },
+      },
+    };
+  },
+});
+
+/** `==text==`, Obsidian's highlight, as a <mark>. */
+const SpaceHighlight = Highlight.extend({
+  addStorage() {
+    return {
+      markdown: {
+        serialize: { open: "==", close: "==", mixable: true, expelEnclosingWhitespace: true },
+        parse: {
+          setup(md: MarkdownIt) {
+            md.use(markdownItMark);
+          },
+        },
+      },
+    };
+  },
+});
+
+/**
+ * GFM footnotes: `[^label]` references and `[^label]: …` definitions. The
+ * definitions stay where they are written (markdown-it-footnote would move
+ * them to the end and drop unreferenced ones).
+ */
+const FootnoteReference = Node.create({
+  name: "footnoteReference",
+  group: "inline",
+  inline: true,
+  atom: true,
+  selectable: true,
+  addAttributes() {
+    return {
+      label: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-footnote-ref") ?? "",
+        renderHTML: (attributes) => ({ "data-footnote-ref": attributes.label as string }),
+      },
+    };
+  },
+  parseHTML: () => [{ tag: "sup[data-footnote-ref]" }],
+  renderHTML: ({ HTMLAttributes, node }) => [
+    "sup",
+    { ...HTMLAttributes, class: "space-footnote-ref", contenteditable: "false" },
+    String(node.attrs.label),
+  ],
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: SerializerState, node: PmNode) {
+          state.write(`[^${String(node.attrs.label)}]`);
+        },
+        parse: {
+          setup(md: MarkdownIt) {
+            md.use(markdownItFootnote);
+            md.core.ruler.disable("footnote_tail");
+            // `^[inline]` footnotes are not GFM; leave them as text.
+            md.inline.ruler.disable("footnote_inline");
+            const { rules } = md.renderer;
+            rules.footnote_ref = (tokens, idx) =>
+              `<sup data-footnote-ref="${escapeAttribute(String(tokens[idx]!.meta.label))}"></sup>`;
+            rules.footnote_reference_open = (tokens, idx) =>
+              `<div data-footnote-def="${escapeAttribute(String(tokens[idx]!.meta.label))}">`;
+            rules.footnote_reference_close = () => "</div>";
+          },
+        },
+      },
+    };
+  },
+});
+
+const FootnoteDefinition = Node.create({
+  name: "footnoteDefinition",
+  group: "block",
+  content: "block+",
+  defining: true,
+  addAttributes() {
+    return {
+      label: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-footnote-def") ?? "",
+        renderHTML: (attributes) => ({ "data-footnote-def": attributes.label as string }),
+      },
+    };
+  },
+  parseHTML: () => [{ tag: "div[data-footnote-def]" }],
+  renderHTML: ({ HTMLAttributes }) => ["div", { ...HTMLAttributes, class: "space-footnote-def" }, 0],
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: SerializerState, node: PmNode) {
+          state.wrapBlock("    ", `[^${String(node.attrs.label)}]: `, node, () => state.renderContent(node));
+        },
+      },
+    };
+  },
+});
 
 const SpaceMarkdownFixes = Extension.create({
   name: "spaceMarkdownFixes",
