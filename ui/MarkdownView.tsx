@@ -133,6 +133,18 @@ function Heading({
   );
 }
 
+// Outside the memo below: new heading components on every link or preview
+// change would remount the headings, and the Outline tab's tracker would be
+// left holding detached nodes.
+const HEADINGS: Components = {
+  h1: (props) => <Heading level={1} {...props} />,
+  h2: (props) => <Heading level={2} {...props} />,
+  h3: (props) => <Heading level={3} {...props} />,
+  h4: (props) => <Heading level={4} {...props} />,
+  h5: (props) => <Heading level={5} {...props} />,
+  h6: (props) => <Heading level={6} {...props} />,
+};
+
 export function MarkdownView({
   content,
   path,
@@ -143,12 +155,7 @@ export function MarkdownView({
 }: MarkdownViewProps) {
   const components = useMemo<Components>(
     () => ({
-      h1: (props) => <Heading level={1} {...props} />,
-      h2: (props) => <Heading level={2} {...props} />,
-      h3: (props) => <Heading level={3} {...props} />,
-      h4: (props) => <Heading level={4} {...props} />,
-      h5: (props) => <Heading level={5} {...props} />,
-      h6: (props) => <Heading level={6} {...props} />,
+      ...HEADINGS,
       p: ({ node: _node, ...props }) => <p className="my-4 leading-7" {...props} />,
       ul: ({ node: _node, className, ...props }) => (
         <ul

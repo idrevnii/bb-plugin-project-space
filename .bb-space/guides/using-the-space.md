@@ -65,3 +65,14 @@ not clickable; hover it to see why.
 
 HTML files render like a browser page. Canvases are full tldraw boards and
 save themselves.
+
+## Worktrees
+
+The space you see is the one in the project's main checkout. A thread that
+runs in a worktree and writes its own `.bb-space/` there shows up as a badge
+in the bar above the page: "1 worktree changed the space". Click it for each
+worktree's branch, its threads, and the files it added (**A**), changed
+(**M**) or deleted (**D**). A file opens read-only from that worktree under
+a "Viewing branch … — not the main space" banner; **Open main version**
+goes back. Nothing is copied into the main space — that happens when the
+branch is merged.

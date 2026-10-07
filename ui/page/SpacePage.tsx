@@ -75,6 +75,11 @@ function EmptySpace({ info, onCreated }: { info: SpaceInfo; onCreated: () => voi
   );
 }
 
+/** A hand-written link may carry `?env=` as a real query string. */
+function envFromLocation(): string | null {
+  return new URLSearchParams(window.location.search).get("env");
+}
+
 export function SpacePage({ subPath }: { subPath: string }) {
   const route = parseRoute(subPath);
   const context = useBbContext();
@@ -116,5 +121,5 @@ export function SpacePage({ subPath }: { subPath: string }) {
   }
   if (info === null || info.projectId !== route.projectId) return <Centered>Loading…</Centered>;
   if (!info.exists) return <EmptySpace info={info} onCreated={refetch} />;
-  return <ProjectSpace info={info} path={route.path} treePosition={treePosition} />;
+  return <ProjectSpace info={info} path={route.path} env={route.env ?? envFromLocation()} treePosition={treePosition} />;
 }
