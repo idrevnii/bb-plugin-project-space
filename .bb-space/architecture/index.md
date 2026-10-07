@@ -43,8 +43,14 @@ the plugin's own `bb space draw`.
   `HtmlFrame.tsx`, `BinaryDocument.tsx`, `ProjectPicker.tsx`,
   `ProjectSwitcher.tsx` (host header) and `FilesTab.tsx` (right panel).
 - **Live updates.** When the project's host is the server machine, a
-  recursive `fs.watch` on `.bb-space/` publishes `space-changed` (debounced
-  250 ms). Otherwise the app polls every 5 s while visible.
+  watch on every directory of `.bb-space/` publishes `space-changed`
+  (debounced 250 ms; [server/watch-tree.ts](../../server/watch-tree.ts)).
+  Not Node's `recursive: true`: on Linux it watches files one by one and
+  loses any file replaced by rename, which is how saves land. Otherwise the
+  app polls every 5 s while visible.
+- **Unloadable canvases.** A `.tldr` tldraw cannot load opens read-only with
+  the reason shown, and nothing — the user, `space_draw`, a renderer — saves
+  over it until the file is fixed on disk.
 - **HTML and images** load from `bb.sdk.files.createPreview` — a temporary,
   path-shaped URL confined to the space. HTML runs in an iframe sandboxed
   *without* `allow-same-origin`, so it cannot reach bb.
