@@ -87,8 +87,29 @@ await run(
     if (!broken.includes("cannot be pictured") || !broken.includes("not a readable tldraw document")) {
       fail(`an unreadable canvas was not reported as such:\n${broken}`);
     }
-    writeFileSync(join(SPACE, PATH), intact);
     ok("an unreadable canvas is reported, not pictured as empty");
+
+    // Drawing must not overwrite a file tldraw cannot load: refused on the
+    // server when it is not tldraw JSON, by the renderer otherwise.
+    for (const [what, content] of [
+      ["not JSON", '{"not": "a tldr'],
+      ["not loadable by tldraw", '{"records":[]}'],
+    ]) {
+      writeFileSync(join(SPACE, PATH), content);
+      const specFile = join(specDir, "over-broken.json");
+      writeFileSync(specFile, JSON.stringify(chain(["p", "q"])));
+      const started = Date.now();
+      let refused = "";
+      try {
+        bb("space", "draw", PATH, "--project", PROJECT_ID, "--spec-file", specFile);
+      } catch (error) {
+        refused = String(error.stderr);
+      }
+      if (!refused.includes("was not drawn on")) fail(`draw over a broken canvas (${what}) was not refused:\n${refused}`);
+      if (readFileSync(join(SPACE, PATH), "utf8") !== content) fail(`draw overwrote a broken canvas (${what})`);
+      ok(`draw over a broken canvas (${what}) is refused and the file kept (${Date.now() - started} ms)`);
+    }
+    writeFileSync(join(SPACE, PATH), intact);
 
     await page.goto(spaceUrl(PATH));
     await page.locator(".tl-container").first().waitFor({ timeout: 20_000 });

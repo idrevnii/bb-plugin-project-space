@@ -85,7 +85,9 @@ function setup(rootPath = ROOT) {
   const withdraw = () =>
     draw.rpc.space_draw_ack({ ids: pending().batches.map((batch) => batch.id) });
   const rows = () => (db.prepare(`SELECT COUNT(*) AS n FROM canvas_images`).get() as { n: number }).n;
-  return { disk, view, pending, put, published, draw, written, withdraw, rows };
+  const drawTool = (spec: object) =>
+    tools.get("space_draw")!.execute({ path: PATH, ...spec }, { projectId: space.projectId }) as Promise<ToolResult>;
+  return { disk, view, pending, put, published, draw, written, withdraw, rows, drawTool };
 }
 
 const DOC = '{"tldrawFileFormatVersion":1,"records":[]}';
@@ -222,5 +224,32 @@ describe("bb space canvas --png", () => {
     put(DOC, "iVBORw0KGgo=");
     await expect(run(draw, ".bb-space/canvas.png")).rejects.toThrow(/not written into the space/);
     expect(written.size).toBe(0);
+  });
+});
+
+describe("space_draw on a canvas that cannot be loaded", () => {
+  const spec = { clear: true, nodes: [{ id: "a", label: "A" }] };
+
+  it("refuses a file that is not tldraw JSON, without queuing", async () => {
+    const { disk, drawTool, pending } = setup();
+    disk.set(`${ROOT}/${PATH}`, '{"not": "a tldr');
+    const result = await drawTool(spec);
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toMatch(/was not drawn on: it is not a tldraw JSON document.*draw into a new path/);
+    expect(pending().batches).toHaveLength(0);
+    expect(disk.get(`${ROOT}/${PATH}`)).toBe('{"not": "a tldr');
+  });
+
+  it("stops waiting and withdraws the batch when a renderer cannot load it", async () => {
+    const { disk, drawTool, pending, put } = setup();
+    const content = '{"records":[]}';
+    disk.set(`${ROOT}/${PATH}`, content);
+    const result = drawTool(spec);
+    await vi.waitFor(() => expect(pending().batches).toHaveLength(1));
+    put(content, "", "it is not a readable tldraw document (notATldrawFile)");
+    const settled = await result;
+    expect(settled.isError).toBe(true);
+    expect(settled.content[0]!.text).toMatch(/was not drawn on: it is not a readable tldraw document/);
+    expect(pending().batches).toHaveLength(0);
   });
 });

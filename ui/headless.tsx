@@ -115,6 +115,15 @@ function HeadlessRenderer({
         if (posted) await rpc("space_draw_ack", { ids: renders });
         return;
       }
+      if (unreadable !== null && file !== null) {
+        // Drawing on the blank board would overwrite the file. Report it;
+        // space_draw sees the error and withdraws its batch.
+        const target = { projectId, path, sha256: file.sha256 };
+        if (await postCanvasError(put, target, unreadable)) {
+          await rpc("space_draw_ack", { ids: renders });
+        }
+        return;
+      }
       const done = applyBatches(editor, draws);
       const result = (await rpc("space_write", {
         projectId,
