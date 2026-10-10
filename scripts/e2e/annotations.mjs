@@ -37,8 +37,9 @@ try {
   }
   ok("listed");
 
-  const updated = call("annotations_update", { id: annotation.id, status: "resolved", resolution: "Fixed" }).annotation;
-  if (updated.status !== "resolved" || updated.resolution !== "Fixed" || updated.comment !== "E2E comment") {
+  // Not "resolved": with *Delete resolved comments* on, that deletes it.
+  const updated = call("annotations_update", { id: annotation.id, status: "sent", resolution: "Fixed" }).annotation;
+  if (updated.status !== "sent" || updated.resolution !== "Fixed" || updated.comment !== "E2E comment") {
     fail(`update: ${JSON.stringify(updated)}`);
   }
   ok("updated");

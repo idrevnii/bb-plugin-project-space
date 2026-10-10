@@ -24,7 +24,7 @@ version.
 | `bb space canvas <path.tldr> --png /tmp/d.png` | saves a PNG of the canvas as the user sees it |
 | `bb space annotations list [--path p] [--status open\|sent\|resolved]` | lists the user's comments, one line each with its `ann_…` id |
 | `bb space annotations show <id>` | prints one comment with its quote and 3 lines of the file around it |
-| `bb space annotations resolve <id> --note "…"` | marks the comment as done; the Review tab shows the note |
+| `bb space annotations resolve <id> --note "…"` | marks the comment as done; by default the space then deletes it (setting *Delete resolved comments*), else the Review tab shows the note |
 | `bb space annotations reply <id> "…"` | answers and does not resolve, for example to ask a question back |
 
 ### Search output

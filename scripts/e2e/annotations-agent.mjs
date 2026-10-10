@@ -4,7 +4,7 @@
 // tab without a reload. Cleans up its scratch page and annotations.
 import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { OUT, PROJECT_ID, SPACE, bb, fail, ok, panel, run, spaceUrl, waitFor } from "./lib.mjs";
+import { OUT, PROJECT_ID, SPACE, autoDeleteResolved, bb, fail, ok, panel, run, spaceUrl, waitFor } from "./lib.mjs";
 
 const PATH = "scratch-e2e-agent.md";
 const file = join(SPACE, PATH);
@@ -51,6 +51,14 @@ await run(
     if ((await item.getAttribute("data-status")) !== "open") fail("reply changed the status");
     ok("a reply shows in the tab live, the comment still open");
 
+    if (autoDeleteResolved()) {
+      const printed = space("resolve", id, "--note", "Named them: Victoria");
+      if (!printed.includes(`Resolved and deleted ${id}`)) fail(`resolve printed: ${printed}`);
+      await item.waitFor({ state: "detached", timeout: 15_000 });
+      if (space("list", "--path", PATH).includes(id)) fail("still listed after resolve");
+      ok("resolve deletes it (Delete resolved comments is on); the tab drops it without a reload");
+      return;
+    }
     space("resolve", id, "--note", "Named them: Victoria");
     await waitFor("resolved in the tab, live", async () => (await item.getAttribute("data-status")) === "resolved");
     await item.getByText("Named them: Victoria").waitFor({ timeout: 5_000 });

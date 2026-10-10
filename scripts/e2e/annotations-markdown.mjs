@@ -6,7 +6,7 @@
 // mode offers no *Comment*. Cleans up its scratch page and annotations.
 import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { OUT, PROJECT_ID, SPACE, bb, fail, ok, panel, run, spaceUrl, waitFor } from "./lib.mjs";
+import { OUT, PROJECT_ID, SPACE, autoDeleteResolved, bb, fail, ok, panel, run, spaceUrl, waitFor } from "./lib.mjs";
 
 const PATH = "scratch-e2e-annotate.md";
 const file = join(SPACE, PATH);
@@ -99,14 +99,26 @@ await run(
     await card.getByRole("button", { name: "Save" }).click();
     await card.getByText("Name the fox, please").waitFor({ timeout: 5_000 });
     await waitFor("the edit to be stored", () => list()[0]?.comment === "Name the fox, please");
+    const before = list()[0];
     await card.getByRole("button", { name: "Resolve" }).click();
-    await waitFor("the resolve to be stored", () => list()[0]?.status === "resolved");
-    await card.getByRole("button", { name: "Reopen" }).waitFor({ timeout: 5_000 });
-    await page.screenshot({ path: join(OUT, "annotations-markdown-card.png") });
-    await page.keyboard.press("Escape");
-    await card.waitFor({ state: "detached", timeout: 5_000 });
-    await waitFor("the resolved highlight", async () => (await highlighted(page, "space-annotation-resolved")).join() === PHRASE);
-    ok("clicking the highlight opens the comment; edit and resolve are stored");
+    if (autoDeleteResolved()) {
+      await card.waitFor({ state: "detached", timeout: 5_000 });
+      await waitFor("the resolve to delete it", () => list().length === 0);
+      await waitFor("no highlight", async () => (await highlighted(page)).length === 0);
+      ok("clicking the highlight opens the comment; edit is stored, Resolve deletes it");
+      // The steps below need the comment again.
+      writeFileSync(inputFile, JSON.stringify({ projectId: PROJECT_ID, path: PATH, anchor: before.anchor, comment: before.comment }));
+      bb("plugin", "rpc", "call", "project-space", "annotations_create", "--input-file", inputFile, "--json");
+      await waitFor("the comment again", async () => (await highlighted(page)).join() === PHRASE);
+    } else {
+      await waitFor("the resolve to be stored", () => list()[0]?.status === "resolved");
+      await card.getByRole("button", { name: "Reopen" }).waitFor({ timeout: 5_000 });
+      await page.screenshot({ path: join(OUT, "annotations-markdown-card.png") });
+      await page.keyboard.press("Escape");
+      await card.waitFor({ state: "detached", timeout: 5_000 });
+      await waitFor("the resolved highlight", async () => (await highlighted(page, "space-annotation-resolved")).join() === PHRASE);
+      ok("clicking the highlight opens the comment; edit and resolve are stored");
+    }
 
     writeFileSync(file, "# Annotate e2e\n\nA new first paragraph.\n\nNothing about animals any more.\n");
     await body.getByText("Nothing about animals").waitFor({ timeout: 10_000 });

@@ -76,6 +76,24 @@ describe("annotationStore", () => {
     await expect(store.update(a.id, { comment: "x" })).rejects.toThrow(/No annotation/);
   });
 
+  it("deletes resolved annotations on request", async () => {
+    const { store } = memoryFiles();
+    const a = await store.create({ path: "a.md", anchor: { kind: "file" }, comment: "A", author: "user" });
+    const b = await store.create({ path: "a.md", anchor: { kind: "file" }, comment: "B", author: "user" });
+    const c = await store.create({ path: "c.md", anchor: { kind: "file" }, comment: "C", author: "user" });
+
+    const resolved = await store.update(a.id, { status: "resolved", resolution: "Done" }, { dropResolved: true });
+    expect(resolved).toMatchObject({ id: a.id, status: "resolved", resolution: "Done" });
+    expect((await store.list()).map((each) => each.id)).toEqual([b.id, c.id]);
+    // Other changes keep the annotation.
+    await store.update(b.id, { status: "sent" }, { dropResolved: true });
+    expect((await store.list("a.md"))[0]).toMatchObject({ id: b.id, status: "sent" });
+
+    await store.update(b.id, { status: "resolved" });
+    expect(await store.removeResolved(["a.md", "c.md", "a.md"])).toEqual(["a.md"]);
+    expect((await store.list()).map((each) => each.id)).toEqual([c.id]);
+  });
+
   it("reads a missing annotation file as none, but fails on any other read error", async () => {
     const { disk, files, store } = memoryFiles();
     expect(await store.list("missing.md")).toEqual([]);

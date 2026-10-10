@@ -22,7 +22,7 @@ const STATUSES = ["open", "sent", "resolved"] as const;
 export const annotationsAgentModule = defineModule({
   /** Nothing for the app: storage and the RPC are in server/annotations.ts. */
   contract: defineRpcContract({}),
-  register({ bb, resolveSpace, readText }) {
+  register({ bb, settings, resolveSpace, readText }) {
     async function storeFor(projectId: string) {
       const space = await resolveSpace(projectId);
       return { space, store: annotationStore(bb.sdk.files, space) };
@@ -46,11 +46,12 @@ export const annotationsAgentModule = defineModule({
       projectId: string,
       id: string,
       patch: Pick<Annotation, "resolution"> & Partial<Pick<Annotation, "status">>,
+      dropResolved: boolean,
     ): Promise<Annotation> {
       const { space, store } = await storeFor(projectId);
       let annotation: Annotation;
       try {
-        annotation = await store.update(id, patch);
+        annotation = await store.update(id, patch, { dropResolved });
       } catch (cause) {
         if (cause instanceof Error && cause.message === `No annotation ${id}`) throw notFound(id);
         throw cause;
@@ -59,8 +60,12 @@ export const annotationsAgentModule = defineModule({
       return annotation;
     }
 
-    const resolve = (projectId: string, id: string, note: string | undefined) =>
-      update(projectId, id, { status: "resolved", resolution: cleanNote(note) });
+    /** Resolves, or deletes when the setting `autoDeleteResolved` is on; returns what to print. */
+    async function resolve(projectId: string, id: string, note: string | undefined): Promise<string> {
+      const { autoDeleteResolved } = await settings.get();
+      const resolved = await update(projectId, id, { status: "resolved", resolution: cleanNote(note) }, autoDeleteResolved);
+      return `${autoDeleteResolved ? "Resolved and deleted" : "Resolved"} ${resolved.id} on ${resolved.path}.`;
+    }
 
     bb.agents.registerTool({
       name: "space_annotations",
@@ -70,7 +75,7 @@ export const annotationsAgentModule = defineModule({
         "action 'list' prints one line per annotation (filter by space-relative path and status " +
         "open|sent|resolved); 'show' prints one annotation's comment and the quoted passage with " +
         "3 lines of the file's current text around it; 'resolve' marks it done with a one-line " +
-        "note, which the user sees in the Review tab. Read each with show, change the file, then " +
+        "note (by default the space then deletes the comment). Read each with show, change the file, then " +
         "resolve it.",
       presentation: {
         label: { pending: "Reading space annotations", completed: "Read space annotations" },
@@ -90,8 +95,7 @@ export const annotationsAgentModule = defineModule({
           }
           if (id === undefined) throw new Error(`action '${action}' needs an id (ann_…).`);
           if (action === "show") return await show(ctx.projectId, id);
-          const resolved = await resolve(ctx.projectId, id, note);
-          return `Resolved ${resolved.id} on ${resolved.path}.`;
+          return await resolve(ctx.projectId, id, note);
         } catch (cause) {
           return { content: [{ type: "text", text: String(cause instanceof Error ? cause.message : cause) }], isError: true };
         }
@@ -134,7 +138,7 @@ export const annotationsAgentModule = defineModule({
         },
       }),
       "annotations resolve": cliCommand({
-        summary: "Mark an annotation resolved, with a one-line note the user sees in the Review tab",
+        summary: "Mark an annotation resolved with a one-line note; deletes it when the setting autoDeleteResolved is on (default)",
         positionals: [idPositional],
         options: {
           project: projectOption,
@@ -142,8 +146,7 @@ export const annotationsAgentModule = defineModule({
         },
         async run(input, ctx) {
           const projectId = requireProject(input.options.project, ctx);
-          const resolved = await resolve(projectId, input.positionals.id, input.options.note);
-          return { exitCode: 0, stdout: `Resolved ${resolved.id} on ${resolved.path}.` };
+          return { exitCode: 0, stdout: await resolve(projectId, input.positionals.id, input.options.note) };
         },
       }),
       "annotations reply": cliCommand({
@@ -157,9 +160,7 @@ export const annotationsAgentModule = defineModule({
           const projectId = requireProject(input.options.project, ctx);
           const text = input.positionals.text.join(" ").trim();
           if (text === "") throw new PluginCliError("empty reply", { code: "reply_required" });
-          const answered = await update(projectId, input.positionals.id, {
-            resolution: clipNote(text),
-          });
+          const answered = await update(projectId, input.positionals.id, { resolution: clipNote(text) }, false);
           return { exitCode: 0, stdout: `Replied on ${answered.id} (${answered.status}).` };
         },
       }),

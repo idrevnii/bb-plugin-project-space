@@ -303,8 +303,10 @@ through them one at a time:
 2. **Change the file** — at the path `bb space root` prints, with your
    ordinary file tools.
 3. **Resolve** — `action: "resolve"` with a one-line `note` (or
-   `bb space annotations resolve <id> --note "…"`) saying what changed. The
-   user sees the note in the Review tab at once.
+   `bb space annotations resolve <id> --note "…"`) saying what changed. By
+   default the space then deletes the comment (`Resolved and deleted …`);
+   with the setting *Delete resolved comments* off, the user sees the note
+   in the Review tab at once.
 
 - If a comment is unclear, answer instead of guessing:
   `bb space annotations reply <id> "…"` keeps it open with your question.

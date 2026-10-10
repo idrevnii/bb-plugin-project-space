@@ -76,6 +76,13 @@ function defineSettings(bb: BbPluginApi) {
       options: ["blue-topaz", "things", "plain"],
       default: "blue-topaz",
     },
+    autoDeleteResolved: {
+      type: "boolean",
+      label: "Delete resolved comments",
+      description:
+        "When a comment is resolved, by you or by an agent, delete it. Comments that are already resolved go the next time the space lists them.",
+      default: true,
+    },
     tldrawLicenseKey: {
       type: "string",
       label: "tldraw license key",

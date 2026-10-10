@@ -8,7 +8,7 @@
 // Deletes only the annotations it created.
 import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { OUT, PROJECT_ID, SPACE, bb, fail, ok, panel, run, spaceUrl, waitFor } from "./lib.mjs";
+import { OUT, PROJECT_ID, SPACE, autoDeleteResolved, bb, fail, ok, panel, run, spaceUrl, waitFor } from "./lib.mjs";
 
 const PATH = "reports/status.html";
 const HEADING = "Project Space — status";
@@ -101,13 +101,25 @@ await run(
     const card = body.getByRole("dialog", { name: "Comment" });
     await card.getByText("e2e: say which version").waitFor({ timeout: 5_000 });
     if ((await highlighted(frame, "space-annotation-active")).join() !== HEADING) fail("open comment is not marked active");
+    const before = mine()[0];
     await card.getByRole("button", { name: "Resolve" }).click();
-    await waitFor("the resolve to be stored", () => mine()[0]?.status === "resolved");
-    await page.screenshot({ path: join(OUT, "annotations-html-card.png") });
-    await page.keyboard.press("Escape");
-    await card.waitFor({ state: "detached", timeout: 5_000 });
-    await waitFor("the resolved highlight", async () => (await highlighted(frame, "space-annotation-resolved")).join() === HEADING);
-    ok("clicking the highlight opens the comment; resolving is stored");
+    if (autoDeleteResolved()) {
+      await card.waitFor({ state: "detached", timeout: 5_000 });
+      await waitFor("the resolve to delete it", () => mine().length === 0);
+      await waitFor("no highlight", async () => (await highlighted(frame)).length === 0);
+      ok("clicking the highlight opens the comment; Resolve deletes it");
+      created.delete(before.id);
+      // The steps below need the comment again.
+      created.add(rpc("annotations_create", { path: PATH, anchor: before.anchor, comment: before.comment }).annotation.id);
+      await waitFor("the comment again", async () => (await highlighted(frame)).join() === HEADING);
+    } else {
+      await waitFor("the resolve to be stored", () => mine()[0]?.status === "resolved");
+      await page.screenshot({ path: join(OUT, "annotations-html-card.png") });
+      await page.keyboard.press("Escape");
+      await card.waitFor({ state: "detached", timeout: 5_000 });
+      await waitFor("the resolved highlight", async () => (await highlighted(frame, "space-annotation-resolved")).join() === HEADING);
+      ok("clicking the highlight opens the comment; resolving is stored");
+    }
 
     await body.getByRole("button", { name: "Annotate" }).click();
     await page.getByRole("button", { name: "Review", exact: true }).click();
@@ -116,6 +128,7 @@ await run(
       .getByRole("listitem")
       .filter({ hasText: "e2e: say which version" })
       .getByRole("button")
+      .first()
       .click();
     await card.getByText("e2e: say which version").waitFor({ timeout: 15_000 });
     if ((await body.getByRole("button", { name: "Annotate" }).getAttribute("aria-pressed")) !== "true") {

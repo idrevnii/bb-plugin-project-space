@@ -61,6 +61,7 @@ function Review({
   activePath: string;
 }) {
   const go = useSpaceNavigation();
+  const rpc = useSpaceRpc();
   const groups = useMemo(() => reviewGroups(annotations), [annotations]);
   const open = annotations.filter((each) => each.status === "open");
   // null: the default, every open comment. Ticking makes it explicit.
@@ -80,6 +81,12 @@ function Review({
   const show = (annotation: Annotation) => {
     go(projectId, annotation.path);
     requestAnnotationFocus(projectId, annotation.path, annotation.id);
+  };
+  const remove = (annotation: Annotation) => {
+    // The list refetches on space-annotations-changed.
+    rpc.call("annotations_delete", { projectId, id: annotation.id }).catch((cause) =>
+      setNotice({ kind: "error", text: errorMessage(cause) }),
+    );
   };
   const done = (next: Notice) => {
     setNotice(next);
@@ -147,6 +154,7 @@ function Review({
                   checked={picked.some((each) => each.id === annotation.id)}
                   onToggle={() => toggle(annotation.id)}
                   onShow={() => show(annotation)}
+                  onDelete={() => remove(annotation)}
                 />
               ))}
             </ul>
@@ -162,15 +170,22 @@ function ReviewItem({
   checked,
   onToggle,
   onShow,
+  onDelete,
 }: {
   annotation: Annotation;
   checked: boolean;
   onToggle: () => void;
   onShow: () => void;
+  onDelete: () => void;
 }) {
   const resolved = annotation.status === "resolved";
+  const label = `Delete comment “${annotation.comment.slice(0, 40)}”`;
   return (
-    <li data-annotation-id={annotation.id} data-status={annotation.status} className="flex items-start gap-1.5 rounded-md px-1 hover:bg-state-hover">
+    <li
+      data-annotation-id={annotation.id}
+      data-status={annotation.status}
+      className="group flex items-start gap-1.5 rounded-md px-1 hover:bg-state-hover"
+    >
       <input
         type="checkbox"
         className="mt-2 shrink-0"
@@ -194,6 +209,15 @@ function ReviewItem({
             {annotation.resolution}
           </span>
         ) : null}
+      </button>
+      <button
+        type="button"
+        aria-label={label}
+        title="Delete comment"
+        onClick={onDelete}
+        className="mt-1 flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground opacity-0 hover:bg-state-hover hover:text-destructive focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
+      >
+        <Icon name="Trash2" className="size-3.5" />
       </button>
     </li>
   );

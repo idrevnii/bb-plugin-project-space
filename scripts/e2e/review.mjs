@@ -4,12 +4,14 @@
 // review message (the draft is cleared again). With REVIEW_THREAD_ID set,
 // *Send to…* that thread posts the message there and the tab shows both
 // comments as sent without a reload; skipped otherwise, because it starts a
-// turn in that thread. Cleans up its scratch page and annotations.
+// turn in that thread. A third comment is deleted with its trash button. With
+// *Delete resolved comments* on, a fourth one resolved through the RPC goes
+// from the store and the tab. Cleans up its scratch page and annotations.
 //
 //   REVIEW_THREAD_ID  a thread of the project to post the review to (optional)
 import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { OUT, PROJECT_ID, SPACE, bb, fail, ok, panel, run, spaceUrl, waitFor } from "./lib.mjs";
+import { OUT, PROJECT_ID, SPACE, autoDeleteResolved, bb, fail, ok, panel, run, spaceUrl, waitFor } from "./lib.mjs";
 
 const PATH = "scratch-e2e-review.md";
 const file = join(SPACE, PATH);
@@ -59,7 +61,7 @@ await run(
     await page.screenshot({ path: join(OUT, "review-tab.png") });
     ok(`the tab lists both comments under ${PATH} (${count})`);
 
-    await items.filter({ hasText: "Pears need a source" }).getByRole("button").click();
+    await items.filter({ hasText: "Pears need a source" }).getByRole("button").first().click();
     const card = body.getByRole("dialog", { name: "Comment" });
     await card.getByText("Pears need a source").waitFor({ timeout: 15_000 });
     await waitFor("the page scrolled to the pears", () =>
@@ -75,6 +77,27 @@ await run(
     await page.screenshot({ path: join(OUT, "review-jump.png") });
     ok("clicking a comment opens its page scrolled to it, comment shown");
     await page.keyboard.press("Escape");
+
+    const third = rpc("annotations_create", { path: PATH, anchor: quote("Filler line"), comment: "Delete me" }).annotation;
+    const doomed = review.locator(`li[data-annotation-id="${third.id}"]`);
+    await doomed.waitFor({ timeout: 15_000 });
+    await doomed.hover();
+    await doomed.getByRole("button", { name: /^Delete comment/ }).click();
+    await waitFor("the deleted comment to leave the tab", async () => (await doomed.count()) === 0);
+    if (list().some((each) => each.id === third.id)) fail("the trash button did not delete the comment");
+    ok("the trash button in the Review tab deletes a comment");
+
+    if (!autoDeleteResolved()) {
+      ok("skipped auto-delete of resolved comments (the setting is off)");
+    } else {
+      const fourth = rpc("annotations_create", { path: PATH, anchor: quote("Filler line"), comment: "Resolve me" }).annotation;
+      const resolving = review.locator(`li[data-annotation-id="${fourth.id}"]`);
+      await resolving.waitFor({ timeout: 15_000 });
+      rpc("annotations_update", { id: fourth.id, status: "resolved" });
+      await waitFor("the resolved comment to leave the tab", async () => (await resolving.count()) === 0);
+      if (list().some((each) => each.id === fourth.id)) fail("the resolved comment is still stored");
+      ok("a resolved comment is deleted when Delete resolved comments is on");
+    }
 
     await onlyOurs(review);
     await page.getByRole("button", { name: "Send to…" }).click();

@@ -51,6 +51,20 @@ A new annotation has the status `open`. The diagram shows the usual life
 cycle. **Nothing enforces these transitions.** The UI sets `open → sent` when
 it sends, and the agent sets `resolved`.
 
+The setting `autoDeleteResolved` (*Delete resolved comments*, on by
+default) deletes an annotation when it becomes `resolved`:
+
+- `annotations_update` and `bb space annotations resolve` call
+  `store.update(id, patch, { dropResolved })`. The store removes the
+  annotation in the same compare-and-swap write and returns its last state.
+  The CLI and the tool print `Resolved and deleted <id> on <path>.`
+- `annotations_list` deletes resolved annotations that it finds
+  (`store.removeResolved`), for example from before the setting was on. It
+  publishes `space-annotations-changed` for these files and does not return
+  them.
+- `bb space annotations list` and `show` do not delete. `reply` never
+  deletes.
+
 ```mermaid
 stateDiagram-v2
   [*] --> open: created
@@ -204,7 +218,8 @@ URL. The messages and the security rules are in
 
 The Review tab shows `annotations_list` for the full project
 (`useProjectAnnotations`, live on `space-annotations-changed`).
-`reviewGroups` puts the comments in groups by file. In a file, open comments
+`reviewGroups` puts the comments in groups by file. Each comment has a trash
+button (shown on hover or focus) that calls `annotations_delete`. In a file, open comments
 come first, then sent, then resolved, and the oldest first in each group.
 Files with open comments come first. A click on a comment opens its file and
 calls `requestAnnotationFocus`. When the page has rendered, the Markdown

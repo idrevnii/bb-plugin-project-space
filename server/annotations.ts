@@ -230,9 +230,14 @@ export function annotationStore(files: Files, space: ProjectSpace) {
       }));
     },
 
+    /**
+     * Applies `patch`. With `dropResolved`, an annotation that ends up
+     * resolved is deleted instead and the result is its last state.
+     */
     async update(
       id: string,
       patch: Partial<Pick<Annotation, "comment" | "status" | "resolution" | "sentTo">>,
+      { dropResolved = false }: { dropResolved?: boolean } = {},
     ): Promise<Annotation> {
       const { path } = await find(id);
       const defined = Object.fromEntries(
@@ -242,8 +247,11 @@ export function annotationStore(files: Files, space: ProjectSpace) {
         const current = annotations.find((each) => each.id === id);
         if (current === undefined) throw new Error(`No annotation ${id}`);
         const updated: Annotation = { ...current, ...defined, updatedAt: Date.now() };
+        const drop = dropResolved && updated.status === "resolved";
         return {
-          annotations: annotations.map((each) => (each.id === id ? updated : each)),
+          annotations: drop
+            ? annotations.filter((each) => each.id !== id)
+            : annotations.map((each) => (each.id === id ? updated : each)),
           result: updated,
         };
       });
@@ -256,6 +264,19 @@ export function annotationStore(files: Files, space: ProjectSpace) {
         result: undefined,
       }));
       return path;
+    },
+
+    /** Deletes the resolved annotations of these files; returns the files that had some. */
+    async removeResolved(paths: Iterable<string>): Promise<string[]> {
+      const changed: string[] = [];
+      for (const path of new Set(paths)) {
+        const had = await mutate(path, (annotations) => {
+          const kept = annotations.filter((each) => each.status !== "resolved");
+          return { annotations: kept, result: kept.length < annotations.length };
+        });
+        if (had) changed.push(path);
+      }
+      return changed;
     },
 
     /** Follows a file or folder move; returns the space paths whose annotations moved. */
@@ -323,16 +344,22 @@ export async function followFileChange(
 
 export const annotationsModule = defineModule({
   contract: annotationsContract,
-  register({ bb, resolveSpace }) {
+  register({ bb, settings, resolveSpace }) {
     async function storeFor(id: string) {
       const space = await resolveSpace(id);
       return { space, store: annotationStore(bb.sdk.files, space) };
     }
+    const dropResolved = async () => (await settings.get()).autoDeleteResolved;
 
     const rpc: PluginRpcHandlers<typeof annotationsContract> = {
       annotations_list: async ({ projectId: id, path }) => {
-        const { store } = await storeFor(id);
-        return { annotations: await store.list(path) };
+        const { space, store } = await storeFor(id);
+        const annotations = await store.list(path);
+        const resolved = annotations.filter((each) => each.status === "resolved");
+        if (resolved.length === 0 || !(await dropResolved())) return { annotations };
+        // Resolved before the setting was on, or by an older plugin: clean up now.
+        notifyAnnotations(bb, space.projectId, await store.removeResolved(resolved.map((each) => each.path)));
+        return { annotations: annotations.filter((each) => each.status !== "resolved") };
       },
       annotations_create: async ({ projectId: id, path, anchor, comment, author }) => {
         const { space, store } = await storeFor(id);
@@ -342,7 +369,7 @@ export const annotationsModule = defineModule({
       },
       annotations_update: async ({ projectId: id, id: annotationId, ...patch }) => {
         const { space, store } = await storeFor(id);
-        const annotation = await store.update(annotationId, patch);
+        const annotation = await store.update(annotationId, patch, { dropResolved: await dropResolved() });
         notifyAnnotations(bb, space.projectId, [annotation.path]);
         return { annotation };
       },

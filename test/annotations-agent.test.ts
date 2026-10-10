@@ -84,11 +84,12 @@ describe("annotation text", () => {
   });
 });
 
-/** The plugin on the fake host, files over a Map. */
-async function load() {
+/** The plugin on the fake host, files over a Map; resolved comments stay unless asked. */
+async function load({ autoDeleteResolved = false } = {}) {
   const disk = new Map<string, string>();
   const { bb, harness } = createFakePluginHost({
     pluginId: "project-space",
+    settings: { autoDeleteResolved },
     sdk: {
       system: { config: async () => ({ primaryHostId: "other-host" }) },
       projects: {
@@ -159,6 +160,33 @@ describe("bb space annotations", () => {
     await cli("resolve", id, "--note", "Named it Rex");
     expect((await cli("show", id)).stdout).toContain("Resolution:\n  Named it Rex");
     expect(harness.realtimeSignals.length - before).toBe(3);
+  });
+
+  it("deletes a resolved annotation when autoDeleteResolved is on", async () => {
+    const { harness, cli, id } = await load({ autoDeleteResolved: true });
+    expect((await cli("resolve", id, "--note", "Named it Rex")).stdout).toBe(`Resolved and deleted ${id} on p.md.`);
+    expect((await cli("list")).stdout).toBe("No annotations.");
+    expect((await cli("show", id)).exitCode).not.toBe(0);
+
+    // One resolved while the setting was off goes on the next list of the app.
+    const call = (method: string, input: object) => harness.callRpc(method, { projectId: "proj_1", ...input });
+    const { annotation } = (await call("annotations_create", { path: "p.md", anchor: fox, comment: "Old" })) as {
+      annotation: Annotation;
+    };
+    const keep = (await call("annotations_create", { path: "p.md", anchor: fox, comment: "Keep" })) as {
+      annotation: Annotation;
+    };
+    await harness.setSettings({ autoDeleteResolved: false });
+    await call("annotations_update", { id: annotation.id, status: "resolved" });
+    expect((await cli("list", "--status", "resolved")).stdout).toContain(annotation.id);
+    await harness.setSettings({ autoDeleteResolved: true });
+    const listed = (await call("annotations_list", {})) as { annotations: Annotation[] };
+    expect(listed.annotations.map((each) => each.id)).toEqual([keep.annotation.id]);
+    expect((await cli("list", "--status", "resolved")).stdout).toBe("No annotations.");
+
+    // The UI's Resolve deletes too.
+    await call("annotations_update", { id: keep.annotation.id, status: "resolved" });
+    expect((await cli("list")).stdout).toBe("No annotations.");
   });
 
   it("fails cleanly on an unknown id or a bad path", async () => {

@@ -2,6 +2,7 @@
 // canvas): a textarea that saves on Ctrl/⌘+Enter, and an existing comment
 // with Edit, Resolve/Reopen and Delete.
 import { useState } from "react";
+import { useSettings } from "@get-bb/plugin-sdk/app";
 import { Button } from "@/components/ui/button";
 import { MAX_COMMENT_LENGTH, type Annotation } from "../../lib/annotations";
 import { errorMessage, type SpaceRpc } from "../data";
@@ -77,6 +78,7 @@ export function CommentCard({
   onChanged: () => void;
   onClose: () => void;
 }) {
+  const { values } = useSettings();
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const act = (call: () => Promise<unknown>, close = false) => {
@@ -103,6 +105,8 @@ export function CommentCard({
     );
   }
   const resolved = annotation.status === "resolved";
+  // The server deletes a comment on resolve when this setting is on (default).
+  const deletesOnResolve = values?.autoDeleteResolved !== false;
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -132,6 +136,7 @@ export function CommentCard({
           onClick={() =>
             act(() =>
               rpc.call("annotations_update", { projectId, id: annotation.id, status: resolved ? "open" : "resolved" }),
+              !resolved && deletesOnResolve,
             )
           }
         >

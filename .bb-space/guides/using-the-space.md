@@ -164,7 +164,7 @@ sequenceDiagram
   S->>A: message with the comments and their ids
   A->>A: change the files
   A->>S: bb space annotations resolve
-  S-->>You: the comment shows as resolved
+  S-->>You: the comment goes away (or shows as resolved)
 ```
 
 ### On a Markdown page
@@ -181,7 +181,8 @@ comment stays open.
 
 The highlight follows its text when you or an agent edit the page. This works
 while the text stays approximately the same. A resolved comment has an
-underline, not a fill.
+underline, not a fill. By default, the space deletes a comment when it is
+resolved. See *Delete resolved comments* in [Settings](#settings).
 
 > [!NOTE] If the text is gone
 > If someone deletes the text or changes it too much, the space keeps the
@@ -249,6 +250,9 @@ comment.
 When the message is sent, the tab marks its comments *sent*, for all three
 destinations. The tab updates without a reload. If you do not send a draft,
 no comment changes.
+
+To delete a comment, move the pointer onto it in the Review tab and click
+the trash icon. This works for all comments: open, sent and resolved.
 
 > [!NOTE] Check the project of a new thread
 > **New thread** opens the composer with the project that it had last.
@@ -329,6 +333,7 @@ Go to Settings → Plugins → Project Space.
 | --- | --- | --- |
 | *File tree position* | `right` (default), `left` | puts the tree in the right panel, or next to the document |
 | *Reading style* | `blue-topaz` (default), `things`, `plain` | sets the look of Markdown pages; see the [decision](../decisions/reading-styles.md) |
+| *Delete resolved comments* | on (default), off | deletes a comment when you or an agent resolves it; comments that are already resolved go when the Review tab or the page lists them again. Off keeps them with the agent's note |
 | *tldraw license key* | a key, or empty | is necessary only when you open bb at an https address that is not local, for example with bb connect |
 
 The **Blue Topaz** and **Things** themes in Settings → Appearance give agent

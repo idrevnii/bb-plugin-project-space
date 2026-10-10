@@ -14,6 +14,7 @@ async function load() {
   const sent: unknown[] = [];
   const { bb, harness } = createFakePluginHost({
     pluginId: "project-space",
+    settings: { autoDeleteResolved: false },
     sdk: {
       system: { config: async () => ({ primaryHostId: "other-host" }) },
       projects: {

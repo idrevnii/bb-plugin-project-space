@@ -25,6 +25,11 @@ export function bb(...args) {
 /** Absolute path of the project's .bb-space directory. */
 export const SPACE = bb("space", "root", "--project", PROJECT_ID).trim();
 
+/** The setting *Delete resolved comments* (on unless set to false). */
+export function autoDeleteResolved() {
+  return JSON.parse(bb("plugin", "config", "project-space", "--json")).values.autoDeleteResolved !== false;
+}
+
 export function spaceUrl(path = "") {
   return `${BB_URL}/plugins/project-space/space/${PROJECT_ID}/${path}`;
 }
