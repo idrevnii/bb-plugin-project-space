@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { SPACE_DIR } from "../../lib/space";
 import { errorMessage, useSpaceRpc } from "../data";
+import { lastPage } from "./last-place";
 import { useSpaceNavigation } from "./routing";
 
 export function ProjectPicker() {
@@ -36,7 +37,7 @@ export function ProjectPicker() {
             <li key={project.id}>
               <button
                 type="button"
-                onClick={() => go(project.id)}
+                onClick={() => go(project.id, lastPage(project.id))}
                 className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm hover:bg-state-hover"
               >
                 <Icon name={project.hasSpace ? "Layers" : "Folder"} className="size-4 text-muted-foreground" />

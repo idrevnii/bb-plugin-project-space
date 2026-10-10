@@ -22,6 +22,7 @@ import { TextDocument } from "./TextDocument";
 import { Toolbar } from "./Toolbar";
 import { WorktreeBadge } from "./WorktreeBadge";
 import { WorktreeDocument } from "./WorktreeDocument";
+import { forgetPage, rememberPage } from "./last-place";
 import { useSpaceNavigation } from "./routing";
 
 function pickDefaultFile(paths: string[]): string | null {
@@ -71,6 +72,14 @@ export function ProjectSpace({
     const pick = pickDefaultFile(inFolder);
     if (pick !== null) go(info.projectId, prefix + pick, { replace: true });
   }, [filePath, path, tree.entries, go, info.projectId]);
+
+  // The ways into the space come back to the last page that opened.
+  const opened = !worktreeView && file !== null && file.path === filePath;
+  useEffect(() => {
+    if (filePath === null) return;
+    if (opened) rememberPage(info.projectId, filePath);
+    else if (missing) forgetPage(info.projectId, filePath);
+  }, [opened, missing, filePath, info.projectId]);
 
   const openSpacePath = useCallback(
     (target: string, hash: string) => {

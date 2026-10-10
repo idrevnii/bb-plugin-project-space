@@ -41,6 +41,9 @@ and the tabs agree without shared state.
 
 The other files in `ui/page/` are `Toolbar.tsx`, `BinaryDocument.tsx`,
 `ProjectPicker.tsx`, `ProjectSwitcher.tsx` and `FilesTab.tsx`.
+`last-place.ts` keeps the last project and the last page of each project in
+`localStorage`. The ways into the space open that page. A route with no path
+opens the start page.
 
 ### Saving
 

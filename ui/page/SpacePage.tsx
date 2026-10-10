@@ -10,33 +10,8 @@ import { errorMessage, useSpaceInfo, useSpaceRpc } from "../data";
 import { Centered } from "./Centered";
 import { ProjectPicker } from "./ProjectPicker";
 import { ProjectSpace } from "./ProjectSpace";
+import { forgetProject, lastPage, lastProject, rememberProject } from "./last-place";
 import { PANEL_PATH, parseRoute, useSpaceNavigation, useTreePosition } from "./routing";
-
-const LAST_PROJECT_KEY = "project-space:last-project";
-
-function rememberProject(projectId: string) {
-  try {
-    localStorage.setItem(LAST_PROJECT_KEY, projectId);
-  } catch {
-    // Storage can be unavailable; the picker still works.
-  }
-}
-
-function forgetProject() {
-  try {
-    localStorage.removeItem(LAST_PROJECT_KEY);
-  } catch {
-    // Nothing to forget.
-  }
-}
-
-function lastProject(): string | null {
-  try {
-    return localStorage.getItem(LAST_PROJECT_KEY);
-  } catch {
-    return null;
-  }
-}
 
 function EmptySpace({ info, onCreated }: { info: SpaceInfo; onCreated: () => void }) {
   const rpc = useSpaceRpc();
@@ -90,7 +65,7 @@ export function SpacePage({ subPath }: { subPath: string }) {
   // No project in the route: continue where the user was, or ask.
   const fallbackProject = route.projectId === null ? (context.projectId ?? lastProject()) : null;
   useEffect(() => {
-    if (fallbackProject !== null) go(fallbackProject, "", { replace: true });
+    if (fallbackProject !== null) go(fallbackProject, lastPage(fallbackProject), { replace: true });
   }, [fallbackProject, go]);
   useEffect(() => {
     if (route.projectId !== null) rememberProject(route.projectId);

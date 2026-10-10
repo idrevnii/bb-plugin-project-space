@@ -8,6 +8,7 @@ import { displayName, normalizeSpacePath } from "./lib/space";
 import { registerHeadlessRenderer } from "./ui/headless";
 import { OutlineTab } from "./ui/OutlineTab";
 import { FilesTab } from "./ui/page/FilesTab";
+import { lastPage } from "./ui/page/last-place";
 import { ProjectSwitcher } from "./ui/page/ProjectSwitcher";
 import { FILES_TAB, OUTLINE_TAB, PANEL_PATH, REVIEW_TAB, routeSubPath } from "./ui/page/routing";
 import { SpacePage } from "./ui/page/SpacePage";
@@ -27,7 +28,7 @@ function OpenSpaceHeaderAction({
       size={isCompactViewport ? "icon" : "sm"}
       className={isCompactViewport ? "size-7" : "h-7 gap-1.5 px-2"}
       aria-label="Open project space"
-      onClick={() => navigate.toPluginPanel(PANEL_PATH, { subPath: routeSubPath(projectId) })}
+      onClick={() => navigate.toPluginPanel(PANEL_PATH, { subPath: routeSubPath(projectId, lastPage(projectId)) })}
     >
       <Icon name="Layers" className="size-4" />
       {isCompactViewport ? null : <span className="text-xs">Space</span>}

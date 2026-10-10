@@ -40,6 +40,11 @@ The sketch shows the Space screen with the right panel open.
 
 To show a different project, use the selector in the title bar.
 
+The sidebar item, the header button and the selector open the last page
+that you read in that project. To go to the start page (`index.md`), click
+the project name at the left of the breadcrumbs. Each browser keeps its own
+last page.
+
 ## Make, rename and delete files
 
 The **Files** tab in the right panel shows the tree of the space.

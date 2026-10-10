@@ -1,6 +1,7 @@
 // Header switcher (host title bar).
 import { useEffect, useState } from "react";
 import { useSpaceRpc } from "../data";
+import { lastPage } from "./last-place";
 import { parseRoute, useSpaceNavigation } from "./routing";
 
 export function ProjectSwitcher({ subPath }: { subPath: string }) {
@@ -19,7 +20,7 @@ export function ProjectSwitcher({ subPath }: { subPath: string }) {
     <select
       aria-label="Project"
       value={projectId}
-      onChange={(event) => go(event.target.value)}
+      onChange={(event) => go(event.target.value, lastPage(event.target.value))}
       className="h-7 max-w-[14rem] rounded-md border border-input bg-transparent px-2 text-xs text-foreground outline-none hover:bg-state-hover focus:ring-1 focus:ring-ring"
     >
       {projects.map((project) => (
