@@ -10,6 +10,17 @@ The full documentation is in the space of this repository:
 
 ## Install
 
+Install the plugin from GitHub. bb builds it during the install.
+
+```sh
+bb plugin install git:github.com/idrevnii/bb-plugin-project-space
+```
+
+This source follows the `main` branch. To get new commits, run
+`bb plugin update project-space`.
+
+To change the plugin, install it from a checkout:
+
 ```sh
 npm install
 bb plugin install .
