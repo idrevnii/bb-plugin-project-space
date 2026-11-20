@@ -41,7 +41,8 @@ const preview = (page) =>
     return {
       paths: all
         .filter((element) => element.children.length === 0 && element.textContent?.trim().startsWith("‎/"))
-        .map((element) => element.textContent.trim().slice(1)),
+        // bb wraps the path in left-to-right marks (U+200E), one on each side.
+        .map((element) => element.textContent.replaceAll("\u200e", "").trim()),
       selected: all
         .filter((element) => element.hasAttribute("data-selected-line") && element.hasAttribute("data-column-number"))
         .map((element) => Number(element.getAttribute("data-column-number"))),
