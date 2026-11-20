@@ -108,7 +108,7 @@ export function registerCli(
   bb.cli.register(
     defineCli({
       name: "space",
-      summary: "Find and set up the project space (.bb-space) agents document a project in",
+      summary: "Find and set up the project space (.bb-space, or the Space folder setting) agents document a project in",
       commands: { ...commands, link },
     }),
   );

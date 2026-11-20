@@ -120,6 +120,7 @@ after a failure.
 | `worktrees.mjs` | a page added in the `.bb-space` of a worktree shows in the badge, opens read-only, and goes away after a delete; **Copy to main space** copies a page; a page that main changed too is marked and copies only after a second click; the script skips this check if there is no worktree |
 | `tree-rename-delete.mjs` | a rename of the open page or its folder keeps the page open; the tree refuses a rename onto a name that exists; a delete of the open page or its folder opens the start page |
 | `tree-left.mjs` | *File tree position* = `left`: the tree is next to the document; open and make files there; a canvas fills the column; the switch back is live, and the script restores the setting |
+| `space-folder.mjs` | *Space folder* = another folder: `bb space root` prints it; the open page shows that folder with no reload; a folder that does not exist shows the empty state with its name; the setting refuses `/etc` and `..`; the script restores the setting |
 | `space-links.mjs` | the **Space** button in the thread header, with a label and as an icon only; the newest `::space` card in a thread and its *Open in space* (the script skips this check if the thread has no card) |
 | `edit-conflict.mjs` | a page that changed on disk during an edit: the banner, a refused *Save*, *Discard mine* and *Overwrite*, in WYSIWYG and in *Source* |
 | `canvas-conflict.mjs` | an agent changes an open canvas: *Load theirs*, *Keep mine*, a change during a save, and the canvas's own save that comes back as an event |
@@ -144,7 +145,8 @@ The scripts read their target from these environment variables:
 
 > [!WARNING] Run these scripts only when nobody uses the space
 > `tree-left.mjs` changes the *File tree position* setting for all bb
-> windows. `bb space draw` with no open window queues a drawing. The drawing
+> windows. `space-folder.mjs` changes the *Space folder* setting for a
+> short time, so all bb windows and agents see a different space. `bb space draw` with no open window queues a drawing. The drawing
 > lands when a bb window opens next.
 
 ## Finish a task

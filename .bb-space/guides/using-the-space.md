@@ -2,7 +2,8 @@
 
 This guide tells you how to open the space of a project, find and arrange
 pages, edit them and comment on them. You do all of this on the **Space
-screen** in bb. The files are in the `.bb-space/` folder of the project.
+screen** in bb. The files are in the `.bb-space/` folder of the project. The
+*Space folder* [setting](#settings) can name a different folder.
 
 ## Parts of the Space screen
 
@@ -331,10 +332,19 @@ Go to Settings → Plugins → Project Space.
 
 | Setting | Values | Does |
 | --- | --- | --- |
+| *Space folder* | a folder in the checkout, for example `docs` or `docs/space`; empty (default) is `.bb-space` | sets the folder that holds the space in all projects. An absolute path or `..` is not a permitted value |
 | *File tree position* | `right` (default), `left` | puts the tree in the right panel, or next to the document |
 | *Reading style* | `blue-topaz` (default), `things`, `plain` | sets the look of Markdown pages; see the [decision](../decisions/reading-styles.md) |
 | *Delete resolved comments* | on (default), off | deletes a comment when you or an agent resolves it; comments that are already resolved go when the Review tab or the page lists them again. Off keeps them with the agent's note |
 | *tldraw license key* | a key, or empty | is necessary only when you open bb at an https address that is not local, for example with bb connect |
+
+> [!WARNING] Move the files before you change *Space folder*
+> The plugin does not move files. Move the old folder to the new name in
+> each project, for example `git mv .bb-space docs`. If the new folder does
+> not exist, the Space screen shows a project with no space.
+
+The comments are in the `.space/` folder of the space, so they move with the
+folder.
 
 The **Blue Topaz** and **Things** themes in Settings → Appearance give agent
 replies and file previews the same Markdown look.

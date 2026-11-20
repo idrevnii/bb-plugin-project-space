@@ -44,7 +44,7 @@ Each word below has one meaning on every page.
 
 | Word | Meaning |
 | --- | --- |
-| *space* | the `.bb-space/` folder of a project and all files in it |
+| *space* | the `.bb-space/` folder of a project and all files in it; the *Space folder* setting can name a different folder |
 | *Space screen* | the full-screen view in bb that shows a space |
 | *page* | a Markdown or HTML file in the space |
 | *canvas* | a `.tldr` file, which tldraw opens as a drawing board |

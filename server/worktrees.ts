@@ -13,7 +13,7 @@ import {
   type PluginRpcHandlers,
 } from "@get-bb/plugin-sdk";
 import { z } from "zod";
-import { SPACE_DIR, normalizeSpacePath } from "../lib/space";
+import { normalizeSpacePath } from "../lib/space";
 import {
   classifyChange,
   mainChangedSinceBase,
@@ -22,7 +22,7 @@ import {
 } from "../lib/worktrees";
 import { followFileChange } from "./annotations";
 import { defineModule } from "./context";
-import { absolute, checkoutOf, nonRootSpacePath, projectId, type ProjectSpace } from "./space";
+import { absolute, checkoutOf, hasSpaceDir, nonRootSpacePath, projectId, type ProjectSpace } from "./space";
 
 const changeSchema = z.enum(["added", "modified", "deleted"]);
 
@@ -119,6 +119,8 @@ type Environment = Awaited<ReturnType<BbPluginApi["sdk"]["environments"]["list"]
 interface WorktreeSpace {
   env: Environment;
   checkout: string;
+  /** The space folder relative to the checkout. */
+  spaceDir: string;
   rootPath: string;
 }
 
@@ -176,7 +178,7 @@ export const worktreesModule = defineModule({
         .sort((a, b) => b.updatedAt - a.updatedAt)
         .map((env) => {
           const checkout = trimSlashes(env.path ?? "");
-          return { env, checkout, rootPath: `${checkout}/${SPACE_DIR}` };
+          return { env, checkout, spaceDir: space.spaceDir, rootPath: `${checkout}/${space.spaceDir}` };
         });
     }
 
@@ -189,21 +191,8 @@ export const worktreesModule = defineModule({
       }
     }
 
-    async function hasSpace(worktree: WorktreeSpace): Promise<boolean> {
-      try {
-        const result = await bb.sdk.files.listPaths({
-          hostId: worktree.env.hostId,
-          path: worktree.checkout,
-          query: SPACE_DIR,
-          includeFiles: false,
-          includeDirectories: true,
-          includeHidden: true,
-          limit: 50,
-        });
-        return result.paths.some((entry) => entry.path === SPACE_DIR);
-      } catch {
-        return false;
-      }
+    function hasSpace(worktree: WorktreeSpace): Promise<boolean> {
+      return hasSpaceDir(bb, worktree.env.hostId, worktree.checkout, worktree.spaceDir);
     }
 
     async function spaceFiles(hostId: string, rootPath: string): Promise<string[] | null> {
@@ -229,7 +218,7 @@ export const worktreesModule = defineModule({
      * Space paths the worktree's branch touched since its merge base, or
      * null when git cannot say (then every file is a candidate).
      */
-    async function branchCandidates(env: Environment): Promise<BranchCandidates | null> {
+    async function branchCandidates(env: Environment, spaceDir: string): Promise<BranchCandidates | null> {
       const mergeBaseBranch = env.mergeBaseBranch ?? env.baseBranch ?? env.defaultBranch;
       if (mergeBaseBranch === null) return null;
       try {
@@ -244,7 +233,7 @@ export const worktreesModule = defineModule({
         for (const file of diff.files) {
           for (const repoPath of [file.path, file.previousPath]) {
             if (repoPath === null) continue;
-            const path = spacePathOfRepoPath(repoPath);
+            const path = spacePathOfRepoPath(repoPath, spaceDir);
             if (path === null) continue;
             repoPaths.set(path, repoPath);
             if (repoPath === file.path && (file.origin === "untracked" || NEW_AT_PATH.has(file.changeKind))) {
@@ -292,7 +281,7 @@ export const worktreesModule = defineModule({
 
     async function compare(space: ProjectSpace, worktree: WorktreeSpace): Promise<SpaceWorktree | null> {
       const { env } = worktree;
-      const fromGit = await branchCandidates(env);
+      const fromGit = await branchCandidates(env, worktree.spaceDir);
       if (fromGit !== null && fromGit.paths.length === 0) return null;
       if (!(await hasSpace(worktree))) return null;
       let candidates: { paths: string[]; truncated: boolean };
@@ -393,7 +382,12 @@ export const worktreesModule = defineModule({
         throw new Error(`Environment ${envId} is not a worktree of ${space.projectName}.`);
       }
       const checkout = trimSlashes(env.path);
-      const worktreeSpace: ProjectSpace = { ...space, hostId: env.hostId, rootPath: `${checkout}/${SPACE_DIR}` };
+      const worktreeSpace: ProjectSpace = {
+        ...space,
+        hostId: env.hostId,
+        checkoutPath: checkout,
+        rootPath: `${checkout}/${space.spaceDir}`,
+      };
       return { env, checkout, worktreeSpace };
     }
 

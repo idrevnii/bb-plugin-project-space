@@ -79,6 +79,34 @@ describe("resolveDocumentLink", () => {
     });
   });
 
+  it("follows a space folder other than .bb-space", () => {
+    expect(resolveDocumentLink("guides/a.md", "../../../server/index.ts", undefined, "docs/space")).toEqual({
+      kind: "checkout",
+      path: "server/index.ts",
+      lines: null,
+    });
+    expect(resolveDocumentLink("guides/a.md", "../../space/index.md", undefined, "docs/space")).toEqual({
+      kind: "space",
+      path: "index.md",
+      hash: "",
+    });
+    expect(resolveDocumentLink("a.md", "../other.md", undefined, "docs/space")).toEqual({
+      kind: "checkout",
+      path: "docs/other.md",
+      lines: null,
+    });
+    expect(resolveDocumentLink("a.md", "/docs/arch.md", () => false, "docs")).toEqual({
+      kind: "space",
+      path: "arch.md",
+      hash: "",
+    });
+    expect(resolveDocumentLink("a.md", "../.bb-space/x.md", undefined, "docs")).toEqual({
+      kind: "checkout",
+      path: ".bb-space/x.md",
+      lines: null,
+    });
+  });
+
   it("refuses links that escape the checkout", () => {
     expect(resolveDocumentLink("index.md", "../../etc/passwd")).toEqual({
       kind: "outside",

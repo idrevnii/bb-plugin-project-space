@@ -13,7 +13,7 @@ import { posix } from "node:path";
 import { PluginCliError, defineRpcContract, type BbPluginApi, type PluginRpcHandlers } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 import { RENDER_ONLY_SPEC } from "../lib/canvas/spec";
-import { fileKind } from "../lib/space";
+import { DEFAULT_SPACE_DIR, fileKind } from "../lib/space";
 import { invokerHost, invokerPath } from "./cli";
 import { defineModule, type ServerContext } from "./context";
 import { absolute, nonRootSpacePath, projectId, type ProjectSpace } from "./space";
@@ -234,11 +234,11 @@ async function realTarget(path: string): Promise<string> {
 }
 
 function insideSpace(path: string, root: string): boolean {
-  return path === root || path.startsWith(`${root}/`) || path.split("/").includes(".bb-space");
+  return path === root || path.startsWith(`${root}/`) || path.split("/").includes(DEFAULT_SPACE_DIR);
 }
 
 /**
- * Refuses a --png target inside a space: by name anywhere, and by the
+ * Refuses a --png target inside a space: by the default name anywhere, and by the
  * resolved path (relative paths, `..`, symlinks) on the space's own host.
  */
 async function refuseSpaceTarget(
@@ -249,7 +249,7 @@ async function refuseSpaceTarget(
   const refuse = () =>
     new PluginCliError("canvas pictures are not written into the space", {
       code: "invalid_path",
-      hint: "Write the PNG outside .bb-space/, e.g. /tmp/canvas.png.",
+      hint: `Write the PNG outside ${space.spaceDir}/, e.g. /tmp/canvas.png.`,
     });
   if (insideSpace(path, space.rootPath)) throw refuse();
   // The server can only resolve symlinks on its own disk.

@@ -1,8 +1,26 @@
 // Pure helpers shared by the server and the app: path rules and file kinds.
 // No SDK or Node imports, so both bundles can use them.
 
-/** The space directory, relative to the project's checkout root. */
-export const SPACE_DIR = ".bb-space";
+/** The space directory when the *Space folder* setting is empty, relative to the checkout root. */
+export const DEFAULT_SPACE_DIR = ".bb-space";
+
+/**
+ * A *Space folder* setting value as a checkout-relative directory
+ * (`./docs/` → `docs`), or null when it cannot name one: an absolute path,
+ * `..`, a backslash, or nothing but the checkout root.
+ */
+export function parseSpaceDir(input: string): string | null {
+  const value = input.trim();
+  if (value.startsWith("/") || value.includes("\0") || value.includes("\\")) return null;
+  const segments = value.split("/").filter((segment) => segment !== "" && segment !== ".");
+  if (segments.length === 0 || segments.includes("..")) return null;
+  return segments.join("/");
+}
+
+/** The space directory for a setting value; the default for an empty or invalid one. */
+export function normalizeSpaceDir(input: unknown): string {
+  return (typeof input === "string" ? parseSpaceDir(input) : null) ?? DEFAULT_SPACE_DIR;
+}
 
 /** Hidden plugin bookkeeping inside the space (annotations, later). */
 export const SPACE_META_DIR = ".space";
@@ -155,6 +173,7 @@ export function resolveDocumentLink(
   fromPath: string,
   href: string,
   spaceHas?: (path: string) => boolean,
+  spaceDir: string = DEFAULT_SPACE_DIR,
 ): DocumentLink | null {
   const inSpace = resolveSpaceLink(fromPath, href);
   if (inSpace !== null) {
@@ -163,8 +182,8 @@ export function resolveDocumentLink(
       return { kind: "space", ...inSpace };
     }
     if (inSpace.path === "") return { kind: "space", ...inSpace };
-    if (inSpace.path.startsWith(`${SPACE_DIR}/`)) {
-      return { kind: "space", path: inSpace.path.slice(SPACE_DIR.length + 1), hash: inSpace.hash };
+    if (inSpace.path.startsWith(`${spaceDir}/`)) {
+      return { kind: "space", path: inSpace.path.slice(spaceDir.length + 1), hash: inSpace.hash };
     }
     return { kind: "checkout", path: inSpace.path, lines: parseLineHash(inSpace.hash) };
   }
@@ -182,7 +201,8 @@ export function resolveDocumentLink(
   }
   // resolveSpaceLink only gives up on relative paths by climbing past the
   // space root, so resolve again from the checkout root.
-  const stack = [SPACE_DIR, ...parentOf(fromPath).split("/")].filter(
+  const dirSegments = spaceDir.split("/");
+  const stack = [...dirSegments, ...parentOf(fromPath).split("/")].filter(
     (segment) => segment !== "",
   );
   for (const segment of target.split("/")) {
@@ -194,9 +214,9 @@ export function resolveDocumentLink(
     }
     stack.push(segment);
   }
-  if (stack[0] === SPACE_DIR) {
+  if (dirSegments.every((segment, index) => stack[index] === segment)) {
     // Out and back in: `../.bb-space/guides/x.md`.
-    return { kind: "space", path: stack.slice(1).join("/"), hash };
+    return { kind: "space", path: stack.slice(dirSegments.length).join("/"), hash };
   }
   return { kind: "checkout", path: stack.join("/"), lines: parseLineHash(hash) };
 }

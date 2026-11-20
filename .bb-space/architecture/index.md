@@ -185,9 +185,16 @@ flowchart LR
 It has no SDK imports and no Node imports. `lib/space.ts` holds the path
 rules:
 
+- the space folder: `.bb-space`, or the value of the *Space folder* setting
+  (`spaceDir`), which `parseSpaceDir` reads as a folder in the checkout;
 - normalization: no `..` and no absolute paths;
 - file kinds;
 - link resolution, also for links out of the space to checkout files.
+
+The server reads the setting when it resolves a project
+([`server/space.ts`](../../server/space.ts)). When the setting changes, the
+server forgets the resolved paths, stops the watchers of the old folders and
+publishes `space-changed`. The app then loads the space again.
 
 The other files in `lib/` are `annotations.ts`, `callouts.ts`, `search.ts`,
 `worktrees.ts` and `canvas/` (draw spec, layout, read and lint).

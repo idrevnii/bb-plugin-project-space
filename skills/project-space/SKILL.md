@@ -6,7 +6,9 @@ description: Write or update a project's living documentation in its project spa
 # Project space
 
 Every bb project can have a **space**: the `.bb-space/` folder in the
-project's checkout. The user reads it in bb's full-screen **Space** page
+project's checkout. The user can name a different folder (for example
+`docs/`) in the plugin's *Space folder* setting, so always take the path
+from `bb space root`. The user reads it in bb's full-screen **Space** page
 (sidebar → Space, or the Space button in a thread header). It renders
 Markdown as a document, HTML as a live browser page, and `.tldr` files as a
 tldraw canvas. The user edits there too, so treat it as shared, living

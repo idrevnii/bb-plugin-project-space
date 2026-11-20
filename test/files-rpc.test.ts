@@ -8,10 +8,11 @@ const ROOT = `${CHECKOUT}/.bb-space`;
 const sha = (text: string) => createHash("sha256").update(text).digest("hex");
 
 /** The plugin on the fake host, with `bb.sdk.files` over a Map of absolute paths. */
-async function load() {
+async function load(settings: Record<string, string> = {}) {
   const disk = new Map<string, string>([[`${ROOT}/index.md`, "# Home\n"]]);
   const { bb, harness } = createFakePluginHost({
     pluginId: "project-space",
+    settings,
     sdk: {
       system: { config: async () => ({ primaryHostId: "other-host" }) },
       projects: {
@@ -124,5 +125,24 @@ describe("space_read", () => {
     expect(harness.sdk.callsTo("files.read")).toEqual([]);
     const file = await harness.callRpc("space_read", { projectId: "proj_1", path: "index.md" });
     expect(file).toMatchObject({ path: "index.md", content: "# Home\n", encoding: "utf8", modifiedAtMs: null });
+  });
+});
+
+describe("the Space folder setting", () => {
+  it("puts the space in the folder that the setting names", async () => {
+    const { harness, disk } = await load({ spaceDir: "./docs/space/" });
+    const info = await harness.callRpc("space_info", { projectId: "proj_1" });
+    expect(info).toMatchObject({ spaceDir: "docs/space", rootPath: `${CHECKOUT}/docs/space`, checkoutPath: CHECKOUT });
+    await write(harness, { path: "a.md", content: "x" });
+    expect(disk.has(`${CHECKOUT}/docs/space/a.md`)).toBe(true);
+  });
+
+  it("moves the space when the setting changes, and refuses a path outside the checkout", async () => {
+    const { harness } = await load();
+    expect(await harness.callRpc("space_info", { projectId: "proj_1" })).toMatchObject({ spaceDir: ".bb-space", rootPath: ROOT });
+    await harness.setSettings({ spaceDir: "docs" });
+    expect(await harness.callRpc("space_info", { projectId: "proj_1" })).toMatchObject({ spaceDir: "docs", rootPath: `${CHECKOUT}/docs` });
+    await expect(harness.setSettings({ spaceDir: "/etc" })).rejects.toThrow();
+    await expect(harness.setSettings({ spaceDir: "../other" })).rejects.toThrow();
   });
 });

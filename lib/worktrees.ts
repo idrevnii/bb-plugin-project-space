@@ -1,19 +1,24 @@
 // Pure helpers for worktree awareness: which changed repository paths are
 // space files, and how a worktree's copy compares with the main space.
-import { SPACE_DIR, normalizeSpacePath } from "./space";
+import { DEFAULT_SPACE_DIR, normalizeSpacePath } from "./space";
 
 export type WorktreeChange = "added" | "modified" | "deleted";
 
 /**
  * The space-relative path of a repository-relative path inside a
- * `.bb-space/` folder, or null outside it. Hidden entries (plugin
- * bookkeeping such as `.space/`) are left out, as the file tree does.
+ * space folder (`spaceDir`, one or more segments), or null outside it.
+ * Hidden entries (plugin bookkeeping such as `.space/`) are left out, as
+ * the file tree does.
  */
-export function spacePathOfRepoPath(repoPath: string): string | null {
+export function spacePathOfRepoPath(repoPath: string, spaceDir: string = DEFAULT_SPACE_DIR): string | null {
   const segments = repoPath.split("/");
-  const at = segments.indexOf(SPACE_DIR);
+  const dir = spaceDir.split("/");
+  let at = -1;
+  for (let start = 0; start + dir.length <= segments.length && at === -1; start += 1) {
+    if (dir.every((segment, index) => segments[start + index] === segment)) at = start;
+  }
   if (at === -1) return null;
-  const rest = segments.slice(at + 1);
+  const rest = segments.slice(at + dir.length);
   if (rest.length === 0 || rest.some((segment) => segment.startsWith("."))) return null;
   const path = normalizeSpacePath(rest.join("/"));
   return path === null || path === "" ? null : path;

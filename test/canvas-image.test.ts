@@ -15,6 +15,8 @@ const space: ProjectSpace = {
   projectId: "proj_test",
   projectName: "Test",
   hostId: "host",
+  checkoutPath: "/repo",
+  spaceDir: ".bb-space",
   rootPath: ROOT,
   isLocal: true,
 };

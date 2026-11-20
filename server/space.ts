@@ -1,14 +1,15 @@
 // Project resolution and live change notifications, shared by every module.
 //
-// Every project gets a space: the `.bb-space/` directory in its default
-// checkout. All file I/O goes through `bb.sdk.files` with the project
+// Every project gets a space: a directory in its default checkout,
+// `.bb-space/` unless the *Space folder* setting names another. All file I/O goes through `bb.sdk.files` with the project
 // source's host, so a project on an enrolled machine works the same as a
 // local one. When that host is the server machine, a recursive fs.watch
 // publishes `space-changed` so open pages follow agents' writes.
 import { stat } from "node:fs/promises";
 import type { BbPluginApi } from "@get-bb/plugin-sdk";
 import { z } from "zod";
-import { SPACE_DIR, normalizeSpacePath } from "../lib/space";
+import { normalizeSpaceDir, normalizeSpacePath } from "../lib/space";
+import type { Settings } from "./index";
 import { watchTree, type TreeWatcher } from "./watch-tree";
 
 /** Realtime channel: payload `{ projectId }`. */
@@ -34,7 +35,11 @@ export interface ProjectSpace {
   projectId: string;
   projectName: string;
   hostId: string;
-  /** Absolute `.bb-space` path on `hostId`. */
+  /** Absolute path of the project checkout on `hostId`. */
+  checkoutPath: string;
+  /** The space folder relative to the checkout (the *Space folder* setting). */
+  spaceDir: string;
+  /** Absolute path of the space folder on `hostId`. */
   rootPath: string;
   isLocal: boolean;
 }
@@ -57,12 +62,41 @@ export function isMissing(error: unknown): boolean {
 }
 
 export function checkoutOf(space: ProjectSpace): string {
-  return space.rootPath.slice(0, -SPACE_DIR.length - 1);
+  return space.checkoutPath;
+}
+
+/**
+ * Whether `checkout` on a host has the folder `spaceDir`, asked through
+ * `bb.sdk.files`. listPaths does not fail for a missing directory, so this
+ * looks for the folder by name from its parent instead.
+ */
+export async function hasSpaceDir(
+  bb: BbPluginApi,
+  hostId: string,
+  checkout: string,
+  spaceDir: string,
+): Promise<boolean> {
+  const cut = spaceDir.lastIndexOf("/");
+  const name = spaceDir.slice(cut + 1);
+  try {
+    const result = await bb.sdk.files.listPaths({
+      hostId,
+      path: cut === -1 ? checkout : `${checkout}/${spaceDir.slice(0, cut)}`,
+      query: name,
+      includeFiles: false,
+      includeDirectories: true,
+      includeHidden: true,
+      limit: 50,
+    });
+    return result.paths.some((entry) => entry.path === name);
+  } catch {
+    return false;
+  }
 }
 
 export type Spaces = ReturnType<typeof createSpaces>;
 
-export function createSpaces(bb: BbPluginApi) {
+export function createSpaces(bb: BbPluginApi, settings: Settings) {
   const projectCache = new Map<
     string,
     { space: ProjectSpace; loadedAt: number }
@@ -91,11 +125,14 @@ export function createSpaces(bb: BbPluginApi) {
       );
     }
     const checkout = source.path.replace(/\/+$/, "");
+    const spaceDir = normalizeSpaceDir((await settings.get()).spaceDir);
     const space: ProjectSpace = {
       projectId: project.id,
       projectName: project.name,
       hostId: source.hostId,
-      rootPath: `${checkout}/${SPACE_DIR}`,
+      checkoutPath: checkout,
+      spaceDir,
+      rootPath: `${checkout}/${spaceDir}`,
       isLocal: source.hostId === (await serverHostId()),
     };
     projectCache.set(id, { space, loadedAt: Date.now() });
@@ -110,22 +147,7 @@ export function createSpaces(bb: BbPluginApi) {
         return false;
       }
     }
-    // listPaths does not fail for a missing directory, so look for the space
-    // from the checkout root instead.
-    try {
-      const result = await bb.sdk.files.listPaths({
-        hostId: space.hostId,
-        path: checkoutOf(space),
-        query: SPACE_DIR,
-        includeFiles: false,
-        includeDirectories: true,
-        includeHidden: true,
-        limit: 50,
-      });
-      return result.paths.some((entry) => entry.path === SPACE_DIR);
-    } catch {
-      return false;
-    }
+    return hasSpaceDir(bb, space.hostId, space.checkoutPath, space.spaceDir);
   }
 
   /** A space file as text, or null when it cannot be read. */
@@ -181,6 +203,17 @@ export function createSpaces(bb: BbPluginApi) {
       return false;
     }
   }
+
+  // A new *Space folder* moves every space: forget the resolved paths, stop
+  // the watchers of the old folders and tell open pages to load again.
+  settings.onChange((next, prev) => {
+    if (normalizeSpaceDir(next.spaceDir) === normalizeSpaceDir(prev.spaceDir)) return;
+    const projectIds = new Set([...projectCache.keys(), ...watchers.keys()]);
+    projectCache.clear();
+    for (const watcher of watchers.values()) watcher.close();
+    watchers.clear();
+    for (const id of projectIds) notifyChanged(id);
+  });
 
   bb.onDispose(() => {
     for (const watcher of watchers.values()) watcher.close();

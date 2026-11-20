@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useBbContext, useBbNavigate } from "@get-bb/plugin-sdk/app";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { SPACE_DIR } from "../../lib/space";
 import type { SpaceInfo } from "../../server";
 import { errorMessage, useSpaceInfo, useSpaceRpc } from "../data";
 import { Centered } from "./Centered";
@@ -23,7 +22,7 @@ function EmptySpace({ info, onCreated }: { info: SpaceInfo; onCreated: () => voi
       <Icon name="Layers" className="mx-auto mb-3 size-8 text-muted-foreground" />
       <p className="text-base font-medium text-foreground">{info.projectName} has no space yet</p>
       <p className="mt-2">
-        A space is a <code>{SPACE_DIR}/</code> folder in the project with pages, HTML
+        A space is a <code>{info.spaceDir}/</code> folder in the project with pages, HTML
         reports, and canvases. Agents can fill it with <code>bb space root</code>.
       </p>
       <Button

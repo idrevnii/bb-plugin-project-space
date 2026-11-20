@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  normalizeSpaceDir,
+  parseSpaceDir,
   baseName,
   displayName,
   encodeSpacePath,
@@ -166,5 +168,28 @@ describe("path helpers", () => {
     expect(baseName("a/b/c.md")).toBe("c.md");
     expect(baseName("c.md")).toBe("c.md");
     expect(encodeSpacePath("my docs/a b#1?.md")).toBe("my%20docs/a%20b%231%3F.md");
+  });
+});
+
+describe("parseSpaceDir", () => {
+  it("reads a folder relative to the checkout", () => {
+    expect(parseSpaceDir("docs")).toBe("docs");
+    expect(parseSpaceDir("./docs/")).toBe("docs");
+    expect(parseSpaceDir(" docs//space/ ")).toBe("docs/space");
+    expect(parseSpaceDir(".bb-space")).toBe(".bb-space");
+  });
+  it("refuses what is not a folder inside the checkout", () => {
+    for (const value of ["", "  ", ".", "./", "/docs", "../docs", "docs/../..", "docs\\space"]) {
+      expect(parseSpaceDir(value)).toBeNull();
+    }
+  });
+});
+
+describe("normalizeSpaceDir", () => {
+  it("falls back to .bb-space", () => {
+    expect(normalizeSpaceDir("docs/")).toBe("docs");
+    expect(normalizeSpaceDir("")).toBe(".bb-space");
+    expect(normalizeSpaceDir("/abs")).toBe(".bb-space");
+    expect(normalizeSpaceDir(undefined)).toBe(".bb-space");
   });
 });

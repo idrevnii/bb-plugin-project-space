@@ -255,7 +255,7 @@ export const drawModule = defineModule({
       name: "space_draw",
       description:
         "Draw or update a boxes-and-arrows diagram in a tldraw canvas file (.tldr) in the " +
-        "project space (.bb-space/), which the user reads in bb's Space page. `path` is " +
+        "project space (.bb-space/ by default), which the user reads in bb's Space page. `path` is " +
         "space-relative, e.g. architecture/overview.tldr; a missing file is created. Nodes are " +
         "labelled shapes; edges connect node ids with bound arrows that follow moved shapes. " +
         "Omit x/y and nodes are auto-laid-out in layers along the edges (layout 'lr' or 'tb'). " +
@@ -366,7 +366,7 @@ export const drawModule = defineModule({
           project: projectOption,
           png: {
             type: "string",
-            description: "Write a PNG picture of the canvas to this file (outside .bb-space/) instead. Needs a bb window open.",
+            description: "Write a PNG picture of the canvas to this file (outside the space) instead. Needs a bb window open.",
           },
         },
         async run(input, ctx) {

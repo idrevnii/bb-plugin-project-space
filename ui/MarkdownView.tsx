@@ -13,6 +13,7 @@ import {
 } from "@get-bb/plugin-sdk/app";
 import { cn } from "@/lib/utils";
 import { encodeSpacePath, resolveDocumentLink, resolveSpaceLink } from "../lib/space";
+import { useSpaceDir } from "./data";
 import { readerMarkdownOptions, sanitizedId } from "./markdown-plugins";
 import { MermaidBlock } from "./MermaidBlock";
 import { useReadingStyle } from "./reading-style";
@@ -192,6 +193,7 @@ export function MarkdownView({
   titleSlot,
 }: MarkdownViewProps) {
   const readingStyle = useReadingStyle();
+  const spaceDir = useSpaceDir();
   const components = useMemo<Components>(
     () => ({
       ...HEADINGS,
@@ -253,7 +255,7 @@ export function MarkdownView({
         />
       ),
       a: ({ node: _node, href = "", children, ...props }) => {
-        const target = resolveDocumentLink(path, href, spaceHas);
+        const target = resolveDocumentLink(path, href, spaceHas, spaceDir);
         if (target?.kind === "space") {
           return (
             <a
@@ -367,7 +369,7 @@ export function MarkdownView({
         <input {...props} disabled className="size-3.5 accent-current" />
       ),
     }),
-    [path, previewBaseUrl, onOpenSpacePath, checkout, spaceHas],
+    [path, previewBaseUrl, onOpenSpacePath, checkout, spaceHas, spaceDir],
   );
 
   return (

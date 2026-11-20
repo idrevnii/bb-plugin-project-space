@@ -71,7 +71,7 @@ export const annotationsAgentModule = defineModule({
       name: "space_annotations",
       description:
         "Comments the user pinned to passages, shapes or whole files in the project space " +
-        "(.bb-space/) and usually sent you from bb's Review tab with their ann_… ids. " +
+        "(.bb-space/ by default) and usually sent you from bb's Review tab with their ann_… ids. " +
         "action 'list' prints one line per annotation (filter by space-relative path and status " +
         "open|sent|resolved); 'show' prints one annotation's comment and the quoted passage with " +
         "3 lines of the file's current text around it; 'resolve' marks it done with a one-line " +

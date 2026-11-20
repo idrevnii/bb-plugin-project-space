@@ -13,6 +13,12 @@ describe("spacePathOfRepoPath", () => {
     expect(spacePathOfRepoPath(".bb-space/roadmap.md")).toBe("roadmap.md");
     expect(spacePathOfRepoPath("docs/.bb-space/guides/a.md")).toBe("guides/a.md");
   });
+  it("uses the space folder that the setting names", () => {
+    expect(spacePathOfRepoPath("docs/roadmap.md", "docs")).toBe("roadmap.md");
+    expect(spacePathOfRepoPath("docs/space/guides/a.md", "docs/space")).toBe("guides/a.md");
+    expect(spacePathOfRepoPath("docs/other/a.md", "docs/space")).toBeNull();
+    expect(spacePathOfRepoPath(".bb-space/roadmap.md", "docs")).toBeNull();
+  });
   it("drops files outside the space, the folder itself, and hidden entries", () => {
     expect(spacePathOfRepoPath("server/index.ts")).toBeNull();
     expect(spacePathOfRepoPath(".bb-space")).toBeNull();

@@ -60,8 +60,8 @@ task thread, so that bb removes the worktree. Details:
   JSON by hand.
 - Do not edit `.bb-space/.space/` (stored comments) or
   `test/fixtures/diagram.tldr` (a snapshot).
-- `scripts/e2e/tree-left.mjs` and an off-screen `bb space draw` change state
-  for all bb windows. Run them only when nobody uses the space.
+- `scripts/e2e/tree-left.mjs`, `scripts/e2e/space-folder.mjs` and an
+  off-screen `bb space draw` change state for all bb windows. Run them only when nobody uses the space.
 
 ## Docs
 

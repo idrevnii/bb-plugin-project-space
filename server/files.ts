@@ -17,6 +17,8 @@ const projectInfoSchema = z.object({
   projectName: z.string(),
   /** Absolute path of `.bb-space` on the project's host. */
   rootPath: z.string(),
+  /** The space folder relative to the checkout: `.bb-space` or the *Space folder* setting. */
+  spaceDir: z.string(),
   /** Absolute path of the project checkout that holds the space. */
   checkoutPath: z.string(),
   /** The host both paths live on. */
@@ -132,6 +134,7 @@ export const filesModule = defineModule({
         projectId: space.projectId,
         projectName: space.projectName,
         rootPath: space.rootPath,
+        spaceDir: space.spaceDir,
         checkoutPath: checkoutOf(space),
         hostId: space.hostId,
         exists,

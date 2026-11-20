@@ -1,13 +1,14 @@
 // Project Space — backend.
 //
-// Every project gets a space: the `.bb-space/` directory in its default
-// checkout. Agents write there with ordinary file tools; the app reads and
+// Every project gets a space: a directory in its default checkout,
+// `.bb-space/` unless the *Space folder* setting names another. Agents write there with ordinary file tools; the app reads and
 // edits it through the RPC the modules below register.
 //
 // Adding a feature: write a module with `defineModule` (server/context.ts)
 // and add it to `modules`. Its contract joins `rpcContract`, its handlers
 // and `bb space` subcommands register with the rest.
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { z } from "zod";
 import { annotationsModule } from "./annotations";
 import { annotationsAgentModule } from "./annotations-agent";
 import { canvasImageModule } from "./canvas-image";
@@ -17,6 +18,7 @@ import { drawModule } from "./draw";
 import { filesModule } from "./files";
 import { searchModule } from "./search";
 import { sendModule } from "./send";
+import { DEFAULT_SPACE_DIR, parseSpaceDir } from "../lib/space";
 import { createSpaces } from "./space";
 import { worktreesModule } from "./worktrees";
 
@@ -60,6 +62,18 @@ export type Settings = ReturnType<typeof defineSettings>;
 
 function defineSettings(bb: BbPluginApi) {
   return bb.settings.define({
+    spaceDir: {
+      type: "string",
+      label: "Space folder",
+      description:
+        `The folder in each project's checkout that holds its space, for example docs. Empty means ${DEFAULT_SPACE_DIR}. The plugin does not move files: move the old folder yourself.`,
+      experimental_schema: z
+        .string()
+        .refine((value) => value.trim() === "" || parseSpaceDir(value) !== null, {
+          message: "Give a folder inside the checkout, such as docs or docs/space. Absolute paths and .. do not work.",
+        }),
+      default: "",
+    },
     treePosition: {
       type: "select",
       label: "File tree position",
@@ -95,7 +109,7 @@ function defineSettings(bb: BbPluginApi) {
 
 export default async function plugin(bb: BbPluginApi) {
   const settings = defineSettings(bb);
-  const ctx: ServerContext = { bb, settings, ...createSpaces(bb) };
+  const ctx: ServerContext = { bb, settings, ...createSpaces(bb, settings) };
 
   const parts = modules.map((module) => module.register(ctx));
   bb.rpc.register(rpcContract, Object.assign({}, ...parts.map((part) => part.rpc)));

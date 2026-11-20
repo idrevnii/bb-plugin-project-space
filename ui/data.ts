@@ -7,8 +7,10 @@ import {
   useRealtime,
   useRealtimeConnectionState,
   useRpc,
+  useSettings,
 } from "@get-bb/plugin-sdk/app";
 import { SPACE_ANNOTATIONS_CHANGED, type Annotation } from "../lib/annotations";
+import { normalizeSpaceDir } from "../lib/space";
 import { copySummary } from "../lib/worktrees";
 import type {
   SpaceFile,
@@ -63,8 +65,16 @@ function useSpaceChanges(
   }, [projectId, watching]);
 }
 
+/** The space folder relative to a checkout: the *Space folder* setting, or `.bb-space`. */
+export function useSpaceDir(): string {
+  const { values } = useSettings();
+  return normalizeSpaceDir(values?.spaceDir);
+}
+
 export function useSpaceInfo(projectId: string | null) {
   const rpc = useSpaceRpc();
+  // A new *Space folder* moves the space, so everything loads again.
+  const spaceDir = useSpaceDir();
   const [info, setInfo] = useState<SpaceInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const refetch = useCallback(() => {
@@ -76,7 +86,7 @@ export function useSpaceInfo(projectId: string | null) {
       },
       (cause) => setError(errorMessage(cause)),
     );
-  }, [rpc, projectId]);
+  }, [rpc, projectId, spaceDir]);
   useEffect(() => {
     setInfo(null);
     setError(null);
