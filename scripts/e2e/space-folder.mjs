@@ -44,7 +44,8 @@ await run(async ({ page }) => {
 
   // A folder that does not exist: the empty state names it.
   setDir(MISSING);
-  await page.getByText("has no space yet").waitFor({ timeout: 20_000 });
+  const empty = page.locator("p", { hasText: "has no space yet" });
+  await empty.waitFor({ timeout: 20_000 });
   await page.locator("code", { hasText: `${MISSING}/` }).waitFor({ timeout: 5_000 });
   ok("a folder that does not exist offers a new space and names the folder");
 
@@ -64,7 +65,7 @@ await run(async ({ page }) => {
   // Back to the default: the page shows the usual space again.
   setDir(before);
   if (root() !== SPACE) fail(`bb space root is ${root()} after the reset, not ${SPACE}`);
-  await waitFor("the default space to come back", async () => !(await page.getByText("has no space yet").isVisible()));
+  await waitFor("the default space to come back", async () => !(await empty.isVisible()));
   await page.locator("article").first().waitFor({ timeout: 20_000 });
   ok("the default folder comes back when the setting is empty");
 }, cleanup);
